@@ -2,13 +2,13 @@
 
 ### Instructions
 
-This is the airflow image used for Vision Zero ETL processes. To get started, first build the image, then you can start running, developing and troubleshooting existing ETL scripts.
+This is the airflow image used for Vision Zero ETL processes. To get started, be sure you have docker-compose installed, and run the command below.
 
-This image is based off of Matthieu "Puckel_" Roisil's docker image: https://github.com/puckel/docker-airflow
+Airflow's image is based off of Matthieu "Puckel_" Roisil's docker image: https://github.com/puckel/docker-airflow
 
 ### Docker-Compose
 
-Once the image is built, you will want to run docker-compose. To run, Airflow depends on PostgreSQL and Redis. These components are provided together as a small cluster in docker-compose. Redis runs within the Airflow container, while PostgreSQL will run separately. 
+To run, Airflow depends on PostgreSQL and Redis (if you run with celery). These components are provided together as a small cluster in docker-compose. The cluster also includes an nginx reverse proxy to centralize web access to airflow's UI and/or any other additional services.
 
 ##### Run Airflow (in detached mode):
 
