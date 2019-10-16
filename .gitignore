@@ -3,6 +3,9 @@
 *.key
 *.crt
 
+# Postgres
+postgres-data/
+
 # IDE
 .code/
 .idea/
