@@ -34,7 +34,7 @@ with DAG('atd_visionzero_etl', default_args=default_args, schedule_interval="5 *
                 api_version='auto',
                 auto_remove=True,
                 command="/bin/sleep 30",
-                docker_url="tcp://192.168.0.1:2376",
+                docker_url="tcp://localhost:2376",
                 network_mode="bridge"
         )
 
