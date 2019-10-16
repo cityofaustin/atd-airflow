@@ -10,6 +10,10 @@ Airflow's image is based off of Matthieu "Puckel_" Roisil's docker image: https:
 
 To run, Airflow depends on PostgreSQL and Redis (if you run with celery). These components are provided together as a small cluster in docker-compose. The cluster also includes an nginx reverse proxy to centralize web access to airflow's UI and/or any other additional services.
 
+### PostgreSQL
+
+Keep the postgres-data folder empty, docker will try to establish a postgres volume on here to persist its data.
+
 ##### Run Airflow (in detached mode):
 
 From the docker folder: `docker-compose -f docker-compose-localexecutor.yml up -d`
