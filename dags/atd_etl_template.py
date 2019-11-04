@@ -1,5 +1,6 @@
 from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
+from airflow.models import Variable
 from datetime import datetime, timedelta
 from airflow.operators.docker_operator import DockerOperator
 
@@ -14,7 +15,7 @@ default_args = {
         'retry_delay'           : timedelta(minutes=5)
 }
 
-with DAG('atd_visionzero_etl', default_args=default_args, schedule_interval="5 * * * *", catchup=False) as dag:
+with DAG('atd_etl_template', default_args=default_args, schedule_interval="5 * * * *", catchup=False) as dag:
         #
         # Task: print_current_date
         # Description: It prints the current date in the command line
@@ -30,12 +31,14 @@ with DAG('atd_visionzero_etl', default_args=default_args, schedule_interval="5 *
         #
         t2 = DockerOperator(
                 task_id='docker_command',
-                image='centos:latest',
+                image='alpine:latest',
                 api_version='auto',
                 auto_remove=True,
                 command="/bin/sleep 30",
                 docker_url="tcp://localhost:2376",
-                network_mode="bridge"
+                network_mode="bridge",
+                # Change these in Airflow UI -> Admin -> Variables
+                environment = Variable.get("atd_etl_template", deserialize_json=True)
         )
 
         #
