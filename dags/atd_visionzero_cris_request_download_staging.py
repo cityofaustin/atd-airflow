@@ -16,10 +16,13 @@ default_args = {
 }
 
 with DAG('atd_visionzero_cris_request_download_staging', default_args=default_args, schedule_interval="*/10 * * * *", catchup=False) as dag:
+        # We first need to gather the environment variables for this execution
+        atd_visionzero_cris_staging=Variable.get("atd_visionzero_cris_staging", deserialize_json=True)
+        atd_visionzero_cris_volumes=Variable.get("atd_visionzero_cris_volumes", deserialize_json=True)
 
         #
         # Task: docker_command
-        # Description: Runs a docker container with CentOS, and waits 30 seconds before being terminated.
+        # Description: Runs a python command within a Docker container.
         #
         t1 = DockerOperator(
                 task_id='docker_command',
@@ -29,10 +32,10 @@ with DAG('atd_visionzero_cris_request_download_staging', default_args=default_ar
                 command="/app/process_cris_request_download.py",
                 docker_url="tcp://localhost:2376",
                 network_mode="bridge",
-                environment=Variable.get("atd_visionzero_cris_staging", deserialize_json=True),
+                environment=atd_visionzero_cris_staging,
                 volumes=[
-                        "~/airflow/data:/data",
-                        "~/airflow/tmp:/app/tmp"
+                        atd_visionzero_cris_volumes["ATD_VOLUME_DATA"],
+                        atd_visionzero_cris_volumes["ATD_VOLUME_TEMP"],
                 ],
         )
 
