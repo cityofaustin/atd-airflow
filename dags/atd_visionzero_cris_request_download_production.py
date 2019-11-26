@@ -15,8 +15,11 @@ default_args = {
         'retry_delay'           : timedelta(minutes=5)
 }
 
-with DAG('atd_visionzero_cris_request_download_production', default_args=default_args, schedule_interval="0 1 * * *", catchup=False) as dag:
+# We first need to gather the environment variables for this execution
+atd_visionzero_cris_envvars=Variable.get("atd_visionzero_cris_production", deserialize_json=True)
+atd_visionzero_cris_volumes=Variable.get("atd_visionzero_cris_volumes", deserialize_json=True)
 
+with DAG('atd_visionzero_cris_request_download_production', default_args=default_args, schedule_interval="0 1 * * *", catchup=False) as dag:
         #
         # Task: docker_command
         # Description: Runs a docker container with CentOS, and waits 30 seconds before being terminated.
@@ -29,10 +32,10 @@ with DAG('atd_visionzero_cris_request_download_production', default_args=default
                 command="/app/process_cris_request_download.py",
                 docker_url="tcp://localhost:2376",
                 network_mode="bridge",
-                environment=Variable.get("atd_visionzero_cris_production", deserialize_json=True),
+                environment=atd_visionzero_cris_envvars,
                 volumes=[
-                        "~/airflow/data:/data",
-                        "~/airflow/tmp:/app/tmp"
+                        atd_visionzero_cris_volumes["ATD_VOLUME_DATA"],
+                        atd_visionzero_cris_volumes["ATD_VOLUME_TEMP"],
                 ],
         )
 
