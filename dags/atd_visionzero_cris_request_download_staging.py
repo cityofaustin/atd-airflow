@@ -15,11 +15,11 @@ default_args = {
         'retry_delay'           : timedelta(minutes=5)
 }
 
-with DAG('atd_visionzero_cris_request_download_staging', default_args=default_args, schedule_interval="*/10 * * * *", catchup=False) as dag:
-        # We first need to gather the environment variables for this execution
-        atd_visionzero_cris_staging=Variable.get("atd_visionzero_cris_staging", deserialize_json=True)
-        atd_visionzero_cris_volumes=Variable.get("atd_visionzero_cris_volumes", deserialize_json=True)
+# We first need to gather the environment variables for this execution
+atd_visionzero_cris_staging=Variable.get("atd_visionzero_cris_staging", deserialize_json=True)
+atd_visionzero_cris_volumes=Variable.get("atd_visionzero_cris_volumes", deserialize_json=True)
 
+with DAG('atd_visionzero_cris_request_download_staging', default_args=default_args, schedule_interval="*/10 * * * *", catchup=False) as dag:
         #
         # Task: docker_command
         # Description: Runs a python command within a Docker container.
