@@ -6,7 +6,7 @@ from airflow.operators.docker_operator import DockerOperator
 
 default_args = {
         'owner'                 : 'airflow',
-        'description'           : 'Downloads files from email and extracts zip files (staging).',
+        'description'           : 'Imports raw CSV extracts into VZD via Hasura (production).',
         'depend_on_past'        : False,
         'start_date'            : datetime(2019, 1, 1),
         'email_on_failure'      : False,
@@ -15,7 +15,7 @@ default_args = {
         'retry_delay'           : timedelta(minutes=5)
 }
 
-with DAG('atd_visionzero_cris_request_download_staging', default_args=default_args, schedule_interval="*/10 * * * *", catchup=False) as dag:
+with DAG('atd_visionzero_hasura_import_production', default_args=default_args, schedule_interval="0 1 * * *", catchup=False) as dag:
 
         #
         # Task: docker_command
@@ -23,13 +23,13 @@ with DAG('atd_visionzero_cris_request_download_staging', default_args=default_ar
         #
         t1 = DockerOperator(
                 task_id='docker_command',
-                image='atddocker/atd-vz-etl:master',
+                image='atddocker/atd-vz-etl:production',
                 api_version='auto',
                 auto_remove=True,
-                command="/app/process_cris_request_download.py",
+                command="/app/process_hasura_import.py",
                 docker_url="tcp://localhost:2376",
                 network_mode="bridge",
-                environment=Variable.get("atd_visionzero_cris_staging", deserialize_json=True)
+                environment=Variable.get("atd_visionzero_cris_production", deserialize_json=True)
         )
 
         #
