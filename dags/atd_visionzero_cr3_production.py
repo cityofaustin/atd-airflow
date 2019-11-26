@@ -15,7 +15,7 @@ default_args = {
         'retry_delay'           : timedelta(minutes=5)
 }
 
-with DAG('atd_visionzero_cr3_production', default_args=default_args, schedule_interval="*/5 * * * *", catchup=False) as dag:
+with DAG('atd_visionzero_cr3_production', default_args=default_args, schedule_interval="0 */12 * * *", catchup=False) as dag:
         #
         # Task: print_current_date
         # Description: It prints the current date in the command line
