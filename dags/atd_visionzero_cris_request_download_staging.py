@@ -29,7 +29,11 @@ with DAG('atd_visionzero_cris_request_download_staging', default_args=default_ar
                 command="/app/process_cris_request_download.py",
                 docker_url="tcp://localhost:2376",
                 network_mode="bridge",
-                environment=Variable.get("atd_visionzero_cris_staging", deserialize_json=True)
+                environment=Variable.get("atd_visionzero_cris_staging", deserialize_json=True),
+                volumes=[
+                        "~/airflow/data:/data",
+                        "~/airflow/tmp:/app/tmp"
+                ],
         )
 
         #
