@@ -6,7 +6,7 @@ from airflow.operators.docker_operator import DockerOperator
 
 default_args = {
         'owner'                 : 'airflow',
-        'description'           : 'Creates a new CRIS data extract (staging).',
+        'description'           : 'Downloads files from email and extracts zip files (staging).',
         'depend_on_past'        : False,
         'start_date'            : datetime(2019, 1, 1),
         'email_on_failure'      : False,
