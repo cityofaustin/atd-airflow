@@ -15,7 +15,7 @@ default_args = {
         'retry_delay'           : timedelta(minutes=5)
 }
 
-with DAG('atd_visionzero_cris_request_production', default_args=default_args, schedule_interval="0 21 * * *", catchup=False) as dag:
+with DAG('atd_visionzero_cris_request_production', default_args=default_args, schedule_interval="0 1 * * *", catchup=False) as dag:
 
         #
         # Task: docker_command
@@ -29,7 +29,7 @@ with DAG('atd_visionzero_cris_request_production', default_args=default_args, sc
                 command="/app/process_cris_request.py",
                 docker_url="tcp://localhost:2376",
                 network_mode="bridge",
-                environment = Variable.get("atd_visionzero_cris_production", deserialize_json=True)
+                environment=Variable.get("atd_visionzero_cris_production", deserialize_json=True)
         )
 
         #
