@@ -15,7 +15,11 @@ default_args = {
         'retry_delay'           : timedelta(minutes=5)
 }
 
-with DAG('atd_visionzero_hasura_import_staging', default_args=default_args, schedule_interval="*/10 * * * *", catchup=False) as dag:
+# We first need to gather the environment variables for this execution
+atd_visionzero_cris_staging=Variable.get("atd_visionzero_cris_staging", deserialize_json=True)
+atd_visionzero_cris_volumes=Variable.get("atd_visionzero_cris_volumes", deserialize_json=True)
+
+with DAG('atd_visionzero_hasura_import_staging', default_args=default_args, schedule_interval="0 3 * * *", catchup=False) as dag:
 
         #
         # Task: docker_command
@@ -29,7 +33,11 @@ with DAG('atd_visionzero_hasura_import_staging', default_args=default_args, sche
                 command="/app/process_hasura_import.py",
                 docker_url="tcp://localhost:2376",
                 network_mode="bridge",
-                environment=Variable.get("atd_visionzero_cris_staging", deserialize_json=True)
+                environment=atd_visionzero_cris_staging,
+                volumes=[
+                        atd_visionzero_cris_volumes["ATD_VOLUME_DATA"],
+                        atd_visionzero_cris_volumes["ATD_VOLUME_TEMP"],
+                ],
         )
 
         #
