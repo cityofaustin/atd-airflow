@@ -6,7 +6,7 @@ from airflow.operators.docker_operator import DockerOperator
 
 default_args = {
         'owner'                 : 'airflow',
-        'description'           : 'Use of the DockerOperator',
+        'description'           : 'Uploads CR3 files to records that dont have it. (production)',
         'depend_on_past'        : False,
         'start_date'            : datetime(2019, 1, 1),
         'email_on_failure'      : False,
@@ -17,19 +17,10 @@ default_args = {
 
 with DAG('atd_visionzero_cr3_production', default_args=default_args, schedule_interval="0 */12 * * *", catchup=False) as dag:
         #
-        # Task: print_current_date
-        # Description: It prints the current date in the command line
-        #
-        t1 = BashOperator(
-                task_id='print_current_date',
-                bash_command='date'
-        )
-
-        #
         # Task: docker_command
         # Description: Runs a docker container with CentOS, and waits 30 seconds before being terminated.
         #
-        t2 = DockerOperator(
+        t1 = DockerOperator(
                 task_id='docker_command',
                 image='atddocker/atd-vz-etl:master',
                 api_version='auto',
@@ -37,16 +28,16 @@ with DAG('atd_visionzero_cr3_production', default_args=default_args, schedule_in
                 command="/app/process_cris_cr3.py",
                 docker_url="tcp://localhost:2376",
                 network_mode="bridge",
-                environment = Variable.get("atd_visionzero_cr3_production", deserialize_json=True)
+                environment=Variable.get("atd_visionzero_cr3_production", deserialize_json=True)
         )
 
         #
         # Task: print_hello
         # Description: Prints hello world in the console
         #
-        t3 = BashOperator(
+        t2 = BashOperator(
                 task_id='print_hello',
                 bash_command='echo "hello world"'
         )
 
-        t1 >> t3 >> t2
+        t1 >> t2
