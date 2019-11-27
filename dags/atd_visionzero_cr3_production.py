@@ -28,7 +28,7 @@ with DAG('atd_visionzero_cr3_production', default_args=default_args, schedule_in
                 command="/app/process_cris_cr3.py",
                 docker_url="tcp://localhost:2376",
                 network_mode="bridge",
-                environment=Variable.get("atd_visionzero_cr3_production", deserialize_json=True)
+                environment=Variable.get("atd_visionzero_cris_production", deserialize_json=True)
         )
 
         #
