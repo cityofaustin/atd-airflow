@@ -104,16 +104,16 @@ with DAG('atd_visionzero_cris_request_staging', default_args=default_args, sched
         # Task: upload_aws
         # Description: Uploads CSV files to an S3 Bucket for backup
         #
-        t6 = BashOperator(
-                task_id='upload_aws',
-                bash_command='echo "Not Yet Implemented"'
-        )
+        # t6 = BashOperator(
+        #         task_id='upload_aws',
+        #         bash_command='echo "Not Yet Implemented"'
+        # )
 
         #
         # Task: clean_up
         # Description: Removes any zip, xml, csv files from the local server.
         #
-        t7 = BashOperator(
+        clean_up = BashOperator(
                 task_id='bash_clean_up',
                 bash_command='echo "Not Yet Implemented"'
         )
@@ -122,4 +122,4 @@ with DAG('atd_visionzero_cris_request_staging', default_args=default_args, sched
         # We now set up the tasks in the right order
         #
         #t1 >> t2 >> t3 >> t4 >> t5 >> t6 >> t7
-        t1 >> t6 >> t7
+        t1 >> clean_up
