@@ -22,7 +22,7 @@ atd_visionzero_cris_volumes=Variable.get("atd_visionzero_cris_volumes", deserial
 with DAG('atd_visionzero_cris_request_download_staging', default_args=default_args, schedule_interval="0 1 * * *", catchup=False) as dag:
         #
         # Task: docker_command
-        # Description: Runs a python command within a Docker container.
+        # Description: Runs a docker container with CentOS, and waits 30 seconds before being terminated.
         #
         t1 = DockerOperator(
                 task_id='docker_command',
