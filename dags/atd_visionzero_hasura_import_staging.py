@@ -22,31 +22,21 @@ atd_visionzero_cris_volumes=Variable.get("atd_visionzero_cris_volumes", deserial
 with DAG('atd_visionzero_hasura_import_staging', default_args=default_args, schedule_interval="0 3 * * *", catchup=False) as dag:
 
         #
-        # Task: docker_command_crashes
-        # Description: Imports a raw CSV file with crash records into our database via GraphSQL/Hasura.
+        # Task: clean_up
+        # Description: Removes any zip, csv, xml or email files from the tmp directory.
         #
-        t1 = DockerOperator(
+        clean_up = DockerOperator(
                 task_id='docker_command_crashes',
                 image='atddocker/atd-vz-etl:master',
                 api_version='auto',
                 auto_remove=True,
-                command="/app/process_hasura_import.py crash",
+                command='sh -c "ls -lha /data && rm -rf /data/* && ls -lha /data && ls -lha /app/tmp && rm -rf /app/tmp/* && ls -lha /app/tmp"',
                 docker_url="tcp://localhost:2376",
                 network_mode="bridge",
-                environment=atd_visionzero_cris_envvars,
+                environment=atd_visionzero_cris_volumes,
                 volumes=[
                         atd_visionzero_cris_volumes["ATD_VOLUME_DATA"],
                         atd_visionzero_cris_volumes["ATD_VOLUME_TEMP"],
                 ],
         )
 
-        #
-        # Task: clean_up
-        # Description: Removes any zip, csv, xml or email files from the tmp directory.
-        #
-        clean_up = BashOperator(
-                task_id='clean_up',
-                bash_command='echo "Not Yet Implemented"'
-        )
-
-        t1 >> clean_up
