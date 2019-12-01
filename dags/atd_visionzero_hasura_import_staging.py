@@ -21,6 +21,25 @@ atd_visionzero_cris_volumes=Variable.get("atd_visionzero_cris_volumes", deserial
 
 with DAG('atd_visionzero_hasura_import_staging', default_args=default_args, schedule_interval="0 3 * * *", catchup=False) as dag:
         #
+        # Task: docker_command_crashes
+        # Description: Imports a raw CSV file with crash records into our database via GraphSQL/Hasura.
+        #
+        crash = DockerOperator(
+                task_id='docker_command_crashes',
+                image='atddocker/atd-vz-etl:master',
+                api_version='auto',
+                auto_remove=True,
+                command="/app/process_hasura_import.py crash",
+                docker_url="tcp://localhost:2376",
+                network_mode="bridge",
+                environment=atd_visionzero_cris_envvars,
+                volumes=[
+                        atd_visionzero_cris_volumes["ATD_VOLUME_DATA"],
+                        atd_visionzero_cris_volumes["ATD_VOLUME_TEMP"],
+                ],
+        )
+
+        #
         # Task: docker_command_aws_copy
         # Description: Copies raw csv files to S3 for backup, history and analysis.
         #
@@ -61,4 +80,4 @@ with DAG('atd_visionzero_hasura_import_staging', default_args=default_args, sche
         #
         # Schedule the tasks in order
         #
-        aws_copy >> clean_up
+        crash >> aws_copy >> clean_up
