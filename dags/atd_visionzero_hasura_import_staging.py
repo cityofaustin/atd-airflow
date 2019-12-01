@@ -20,23 +20,45 @@ atd_visionzero_cris_envvars=Variable.get("atd_visionzero_cris_staging", deserial
 atd_visionzero_cris_volumes=Variable.get("atd_visionzero_cris_volumes", deserialize_json=True)
 
 with DAG('atd_visionzero_hasura_import_staging', default_args=default_args, schedule_interval="0 3 * * *", catchup=False) as dag:
-
         #
-        # Task: clean_up
-        # Description: Removes any zip, csv, xml or email files from the tmp directory.
+        # Task: docker_command_aws_copy
+        # Description: Copies raw csv files to S3 for backup, history and analysis.
         #
-        clean_up = DockerOperator(
-                task_id='docker_command_crashes',
+        aws_copy = DockerOperator(
+                task_id='docker_command_aws_copy',
                 image='atddocker/atd-vz-etl:master',
                 api_version='auto',
                 auto_remove=True,
-                command='sh -c "ls -lha /data && rm -rf /data/* && ls -lha /data && ls -lha /app/tmp && rm -rf /app/tmp/* && ls -lha /app/tmp"',
+                command="sh -c \"aws s3 cp /data s3://$ATD_CRIS_IMPORT_CSV_BUCKET --recursive --exclude '*.xml'\"",
                 docker_url="tcp://localhost:2376",
                 network_mode="bridge",
-                environment=atd_visionzero_cris_volumes,
+                environment=atd_visionzero_cris_envvars,
                 volumes=[
                         atd_visionzero_cris_volumes["ATD_VOLUME_DATA"],
                         atd_visionzero_cris_volumes["ATD_VOLUME_TEMP"],
                 ],
         )
 
+        #
+        # Task: clean_up
+        # Description: Removes any zip, csv, xml or email files from the tmp directory.
+        #
+        clean_up = DockerOperator(
+                task_id='docker_command_clean_up',
+                image='atddocker/atd-vz-etl:master',
+                api_version='auto',
+                auto_remove=True,
+                command='sh -c "ls -lha /data && rm -rf /data/* && ls -lha /data && ls -lha /app/tmp && rm -rf /app/tmp/* && ls -lha /app/tmp"',
+                docker_url="tcp://localhost:2376",
+                network_mode="bridge",
+                environment=atd_visionzero_cris_envvars,
+                volumes=[
+                        atd_visionzero_cris_volumes["ATD_VOLUME_DATA"],
+                        atd_visionzero_cris_volumes["ATD_VOLUME_TEMP"],
+                ],
+        )
+
+        #
+        # Schedule the tasks in order
+        #
+        aws_copy >> clean_up
