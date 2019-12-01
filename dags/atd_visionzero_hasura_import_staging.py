@@ -59,6 +59,25 @@ with DAG('atd_visionzero_hasura_import_staging', default_args=default_args, sche
         )
 
         #
+        # Task: docker_command_person
+        # Description: Imports a raw CSV file with person records into our database via GraphSQL/Hasura.
+        #
+        person = DockerOperator(
+                task_id='docker_command_person',
+                image='atddocker/atd-vz-etl:master',
+                api_version='auto',
+                auto_remove=True,
+                command="/app/process_hasura_import.py person",
+                docker_url="tcp://localhost:2376",
+                network_mode="bridge",
+                environment=atd_visionzero_cris_envvars,
+                volumes=[
+                        atd_visionzero_cris_volumes["ATD_VOLUME_DATA"],
+                        atd_visionzero_cris_volumes["ATD_VOLUME_TEMP"],
+                ],
+        )
+
+        #
         # Task: docker_command_aws_copy
         # Description: Copies raw csv files to S3 for backup, history and analysis.
         #
@@ -99,4 +118,4 @@ with DAG('atd_visionzero_hasura_import_staging', default_args=default_args, sche
         #
         # Schedule the tasks in order
         #
-        crash >> unit >> aws_copy >> clean_up
+        crash >> unit >> person >> aws_copy >> clean_up
