@@ -74,6 +74,11 @@ RUN set -ex \
         /usr/share/doc \
         /usr/share/doc-base
 
+# Make the Config Directory
+RUN mkdir ${AIRFLOW_USER_HOME}/config && mkdir ${AIRFLOW_USER_HOME}/hooks
+COPY config ${AIRFLOW_USER_HOME}/config
+COPY hooks ${AIRFLOW_USER_HOME}/hooks
+
 COPY script/entrypoint.sh /entrypoint.sh
 COPY config/airflow.cfg ${AIRFLOW_USER_HOME}/airflow.cfg
 
