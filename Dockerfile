@@ -60,7 +60,7 @@ RUN set -ex \
     && pip install flask-bcrypt \
     && pip install psycopg2-binary \
     && pip install SQLAlchemy \
-    && pip install apache-airflow[crypto,celery,postgres,hive,jdbc,mysql,ssh${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}]==${AIRFLOW_VERSION} \
+    && pip install apache-airflow[crypto,celery,postgres,hive,jdbc,mysql,s3,ssh${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}]==${AIRFLOW_VERSION} \
     && pip install 'redis==3.2' \
     && if [ -n "${PYTHON_DEPS}" ]; then pip install ${PYTHON_DEPS}; fi \
     && apt-get purge --auto-remove -yqq $buildDeps \
@@ -73,6 +73,11 @@ RUN set -ex \
         /usr/share/man \
         /usr/share/doc \
         /usr/share/doc-base
+
+# Make the Config Directory
+RUN mkdir ${AIRFLOW_USER_HOME}/config && mkdir ${AIRFLOW_USER_HOME}/hooks
+COPY config ${AIRFLOW_USER_HOME}/config
+COPY hooks ${AIRFLOW_USER_HOME}/hooks
 
 COPY script/entrypoint.sh /entrypoint.sh
 COPY config/airflow.cfg ${AIRFLOW_USER_HOME}/airflow.cfg

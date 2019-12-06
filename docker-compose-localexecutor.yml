@@ -44,7 +44,7 @@ services:
             - POSTGRES_DB=airflow
 
     #
-    # Airflow server, 
+    # Airflow server
     #
 
     airflow:
@@ -61,12 +61,13 @@ services:
             - postgres
             - redis
             - nginx
-            
         environment:
             - LOAD_EX=n
             - EXECUTOR=Local
             - POSTGRES_HOST=localhost
             - REDIS_HOST=localhost
+        env_file:
+            - ../config/airflow.env
         volumes:
             - ./dags:/usr/local/airflow/dags
             - ./plugins:/usr/local/airflow/plugins
@@ -75,4 +76,4 @@ services:
             test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
             interval: 30s
             timeout: 30s
-            retries: 3
+            retries: 5
