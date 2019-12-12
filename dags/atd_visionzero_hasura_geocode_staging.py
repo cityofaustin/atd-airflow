@@ -23,7 +23,7 @@ with DAG('atd_visionzero_hasura_geocode_staging', default_args=default_args, sch
         # Task: docker_command_geocode
         # Description: Imports a raw CSV file with crash records into our database via GraphSQL/Hasura.
         #
-        crash = DockerOperator(
+        t1 = DockerOperator(
                 task_id='docker_command_geocode',
                 image='atddocker/atd-vz-etl:master',
                 api_version='auto',
@@ -34,7 +34,7 @@ with DAG('atd_visionzero_hasura_geocode_staging', default_args=default_args, sch
                 environment=atd_visionzero_cris_envvars
         )
 
-                #
+        #
         # Task: report_errors
         # Description: Reports an error
         #
