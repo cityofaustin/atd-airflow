@@ -1,8 +1,6 @@
 {
 	"images": [
 		"atddocker/atd-vz-etl:master",
-		"atddocker/atd-vz-etl:production",
 		"atddocker/atd-vz-etl-agol:master",
-                "atddocker/atd-vz-etl-agol:production"
 	]
 }
