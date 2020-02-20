@@ -15,7 +15,7 @@ default_args = {
         'retry_delay'           : timedelta(minutes=5)
 }
 
-with DAG('atd_visionzero_cr3_staging', default_args=default_args, schedule_interval="*/10 * * * *", catchup=False) as dag:
+with DAG('atd_visionzero_cr3_staging', default_args=default_args, schedule_interval="*/30 * * * *", catchup=False) as dag:
         #
         # Task: docker_command
         # Description: Runs a docker container with CentOS, and waits 30 seconds before being terminated.
