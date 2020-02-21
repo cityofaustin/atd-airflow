@@ -1,6 +1,7 @@
 {
 	"images": [
 		"atddocker/atd-vz-etl",
-		"atddocker/atd-vz-etl-agol"
+		"atddocker/atd-vz-etl-agol",
+		"atddocker/atd-mds-etl"
 	]
 }
