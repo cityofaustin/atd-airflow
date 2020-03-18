@@ -14,13 +14,12 @@ default_args = {
     "retry_delay": timedelta(minutes=5),
 }
 
-
-current_time_max = datetime.now() + timedelta(days=-1)
-current_time_min = datetime.now() + timedelta(days=-2)
-time_max = f"{current_time_max.year}-{current_time_max.month}-{current_time_max.day}-{current_time_max.hour}"
+current_time_max = datetime.now()
+current_time_min = datetime.now()
+time_max = f"{current_time_max.year}-{current_time_max.month}-01-01"
 time_min = f"{current_time_min.year}-{current_time_min.month}-{current_time_min.day}-{current_time_min.hour}"
 environment_vars = Variable.get("atd_mds_config_production", deserialize_json=True)
-docker_image = "atddocker/atd-mds-etl:master"
+docker_image = "atddocker/atd-mds-etl:production"
 
 with DAG(
     f"atd_mds_process_unfinished_production",
@@ -35,7 +34,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"./provider_runtool.py --provider 'lime' --time-max '{time_max}' --time-min '{time_min}' --incomplete-only --no-logs",
+        command=f"./provider_runtool.py --provider 'lime' --time-max '{time_max}' --time-min '{time_min}' --incomplete-only --no-logs --force",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=environment_vars,
@@ -48,7 +47,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"./provider_runtool.py --provider 'jump' --time-max '{time_max}' --time-min '{time_min}' --incomplete-only --no-logs",
+        command=f"./provider_runtool.py --provider 'jump' --time-max '{time_max}' --time-min '{time_min}' --incomplete-only --no-logs --force",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=environment_vars,
@@ -61,7 +60,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"./provider_runtool.py --provider 'bird' --time-max '{time_max}' --time-min '{time_min}' --incomplete-only --no-logs",
+        command=f"./provider_runtool.py --provider 'bird' --time-max '{time_max}' --time-min '{time_min}' --incomplete-only --no-logs --force",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=environment_vars,
@@ -74,7 +73,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"./provider_runtool.py --provider 'lyft' --time-max '{time_max}' --time-min '{time_min}' --incomplete-only --no-logs",
+        command=f"./provider_runtool.py --provider 'lyft' --time-max '{time_max}' --time-min '{time_min}' --incomplete-only --no-logs --force",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=environment_vars,
@@ -87,7 +86,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"./provider_runtool.py --provider 'wheels' --time-max '{time_max}' --time-min '{time_min}' --incomplete-only --no-logs",
+        command=f"./provider_runtool.py --provider 'wheels' --time-max '{time_max}' --time-min '{time_min}' --incomplete-only --no-logs --force",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=environment_vars,
@@ -100,7 +99,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"./provider_runtool.py --provider 'spin' --time-max '{time_max}' --time-min '{time_min}' --incomplete-only --no-logs",
+        command=f"./provider_runtool.py --provider 'spin' --time-max '{time_max}' --time-min '{time_min}' --incomplete-only --no-logs --force",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=environment_vars,
@@ -113,7 +112,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"./provider_runtool.py --provider 'ojo' --time-max '{time_max}' --time-min '{time_min}' --incomplete-only --no-logs",
+        command=f"./provider_runtool.py --provider 'ojo' --time-max '{time_max}' --time-min '{time_min}' --incomplete-only --no-logs --force",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=environment_vars,
