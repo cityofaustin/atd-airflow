@@ -15,10 +15,10 @@ default_args = {
 }
 
 
-current_time_max = datetime.now()
-current_time_min = datetime.now() + timedelta(days=-1, hours=-6)
-time_max = f"{current_time_max.year}-{current_time_max.month}-01-01"
-time_min = f"{current_time_min.year}-{current_time_min.month}-{current_time_min.day}-{current_time_min.hour}"
+current_time_min = datetime.now()
+current_time_max = datetime.now() + timedelta(days=-1, hours=-8)
+time_min = f"{current_time_min.year}-{current_time_min.month}-01-01"
+time_max = f"{current_time_max.year}-{current_time_max.month}-{current_time_max.day}-{current_time_max.hour}"
 environment_vars = Variable.get("atd_mds_config_staging", deserialize_json=True)
 docker_image = "atddocker/atd-mds-etl:master"
 
