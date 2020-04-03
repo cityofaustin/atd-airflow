@@ -87,7 +87,7 @@ COPY hooks ${AIRFLOW_USER_HOME}/hooks
 
 COPY script/entrypoint.sh /entrypoint.sh
 COPY ${airflow_configuration} ${AIRFLOW_USER_HOME}/airflow.cfg
-
+RUN rm -rf /usr/local/lib/python3.7/site-packages/airflow/example_dags/example*.py;
 RUN chown -R airflow: ${AIRFLOW_USER_HOME}
 
 EXPOSE 8080 5555 8793
