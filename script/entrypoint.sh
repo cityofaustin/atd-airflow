@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-rm /usr/local/airflow/dags/.airflowignore;
 AIRFLOW_IGNORE_PATH="/usr/local/airflow/dags/.airflowignore";
+# Be sure to always remove it before starting up...
+rm $AIRFLOW_IGNORE_PATH;
 
 if [[ "${ATD_AIRFLOW_ENVIRONMENT}" = "production" ]] ; then
     cp /usr/local/airflow/config/.airflowignore $AIRFLOW_IGNORE_PATH;
