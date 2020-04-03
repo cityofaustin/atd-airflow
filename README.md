@@ -24,13 +24,16 @@ To run, Airflow depends on PostgreSQL and Redis (if you run with celery). These 
 
 Keep the postgres-data folder empty, docker will try to establish a postgres volume on here to persist its data.
 
-##### Run Airflow (in detached mode):
+##### Run Airflow for Development:
 
-From the docker folder: `docker-compose -f docker-compose-localexecutor.yml up -d`
+To run in dettached mode, from the docker folder run: `docker-compose -f docker-compose-dev.yml up -d`
+
+Remove the `-d` (dettached) flag if you hare having issues, this will cause docker compose
+to run in attached mode, which will show the console output of the cluster, including any errors.
 
 Check the Airflow webclient: http://localhost:8080
 
-Stopping the cluster: `docker-compose -f docker-compose-localexecutor.yml down`
+Stopping the cluster: `docker-compose -f docker-compose-dev.yml down`
 
 ### Read the Docs
 
