@@ -19,7 +19,7 @@ dag = DAG(
 
 
 email_task = EmailOperator(
-    to='sergio.garcia@austintexas.gov',
+    to='your@email.com',
     task_id='email_task',
     subject='Templated Subject: start_date {{ ds }}',
     mime_charset="utf-8",
