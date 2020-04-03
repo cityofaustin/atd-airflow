@@ -59,6 +59,8 @@ RUN set -ex \
     && pip install pyasn1 \
     && pip install docker \
     && pip install rtree \
+    && pip install sodapy \
+    && pip install pandas \
     && pip install requests \
     && pip install flask-bcrypt \
     && pip install psycopg2-binary \
