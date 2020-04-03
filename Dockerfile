@@ -1,17 +1,14 @@
-# VERSION 1.0
-# AUTHOR: Austin Transportation Department
-# DESCRIPTION: Basic Airflow container
-# BUILD: docker build --rm -t atddocker/atd-airflow -f Dockerfile .
-
+# VERSION 1.10.9
 FROM python:3.7-slim-stretch
 LABEL maintainer="Austin Transportation Department"
 
-# Never prompts the user for choices on installation/configuration of packages
+
+# Never prompt the user for choices on installation/configuration of packages
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM linux
 
 # Airflow
-ARG AIRFLOW_VERSION=1.10.4
+ARG AIRFLOW_VERSION=1.10.9
 ARG AIRFLOW_USER_HOME=/usr/local/airflow
 ARG AIRFLOW_DEPS=""
 ARG PYTHON_DEPS=""
@@ -23,6 +20,9 @@ ENV LANG en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 ENV LC_CTYPE en_US.UTF-8
 ENV LC_MESSAGES en_US.UTF-8
+
+# Disable noisy "Handling signal" log messages:
+# ENV GUNICORN_CMD_ARGS --log-level WARNING
 
 RUN set -ex \
     && buildDeps=' \
@@ -47,6 +47,7 @@ RUN set -ex \
         netcat \
         locales \
         inetutils-ping \
+        libspatialindex-dev \
     && sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen \
     && locale-gen \
     && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
@@ -57,6 +58,8 @@ RUN set -ex \
     && pip install ndg-httpsclient \
     && pip install pyasn1 \
     && pip install docker \
+    && pip install rtree \
+    && pip install requests \
     && pip install flask-bcrypt \
     && pip install psycopg2-binary \
     && pip install SQLAlchemy \
@@ -74,20 +77,23 @@ RUN set -ex \
         /usr/share/doc \
         /usr/share/doc-base
 
+ARG airflow_configuration=config/airflow.cfg
+ARG airflow_environment=production
+ENV ATD_AIRFLOW_ENVIRONMENT="${airflow_environment}"
+
 # Make the Config Directory
-RUN mkdir ${AIRFLOW_USER_HOME}/config && mkdir ${AIRFLOW_USER_HOME}/hooks
+RUN mkdir ${AIRFLOW_USER_HOME}/config && mkdir ${AIRFLOW_USER_HOME}/hooks && mkdir ${AIRFLOW_USER_HOME}/dags
 COPY config ${AIRFLOW_USER_HOME}/config
 COPY hooks ${AIRFLOW_USER_HOME}/hooks
 
 COPY script/entrypoint.sh /entrypoint.sh
-COPY config/airflow.cfg ${AIRFLOW_USER_HOME}/airflow.cfg
-
+COPY ${airflow_configuration} ${AIRFLOW_USER_HOME}/airflow.cfg
+RUN rm -rf /usr/local/lib/python3.7/site-packages/airflow/example_dags/example*.py;
 RUN chown -R airflow: ${AIRFLOW_USER_HOME}
-
 
 EXPOSE 8080 5555 8793
 
 USER airflow
 WORKDIR ${AIRFLOW_USER_HOME}
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["webserver"] # set default arg for entrypoint
+CMD ["webserver"]
