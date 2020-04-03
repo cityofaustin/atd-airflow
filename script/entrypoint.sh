@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 
+rm /usr/local/airflow/dags/.airflowignore;
+AIRFLOW_IGNORE_PATH="/usr/local/airflow/dags/.airflowignore";
+
+if [[ "${ATD_AIRFLOW_ENVIRONMENT}" = "production" ]] ; then
+    cp /usr/local/airflow/config/.airflowignore $AIRFLOW_IGNORE_PATH;
+else
+    cp /usr/local/airflow/config/.airflowignore-dev $AIRFLOW_IGNORE_PATH;
+fi;
+
 TRY_LOOP="20"
 
 : "${REDIS_HOST:="redis"}"
