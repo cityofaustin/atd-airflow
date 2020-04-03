@@ -138,3 +138,4 @@ dmypy.json
 
 # Airflow Ignore
 dags/.airflowignore
+*.env
