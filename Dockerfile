@@ -76,13 +76,17 @@ RUN set -ex \
         /usr/share/doc \
         /usr/share/doc-base
 
+ARG airflow_configuration=config/airflow.cfg
+ARG airflow_environment=production
+ENV ATD_AIRFLOW_ENVIRONMENT="${airflow_environment}"
+
 # Make the Config Directory
-RUN mkdir ${AIRFLOW_USER_HOME}/config && mkdir ${AIRFLOW_USER_HOME}/hooks
+RUN mkdir ${AIRFLOW_USER_HOME}/config && mkdir ${AIRFLOW_USER_HOME}/hooks && mkdir ${AIRFLOW_USER_HOME}/dags
 COPY config ${AIRFLOW_USER_HOME}/config
 COPY hooks ${AIRFLOW_USER_HOME}/hooks
 
 COPY script/entrypoint.sh /entrypoint.sh
-COPY config/airflow.cfg ${AIRFLOW_USER_HOME}/airflow.cfg
+COPY ${airflow_configuration} ${AIRFLOW_USER_HOME}/airflow.cfg
 
 RUN chown -R airflow: ${AIRFLOW_USER_HOME}
 
