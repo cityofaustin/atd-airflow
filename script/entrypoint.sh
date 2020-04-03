@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
 
 # Create an alias for AIRFLOW_HOME
-export ATD_AIRFLOW_PATH="/usr/local/airflow";
-
-AIRFLOW_IGNORE_PATH="${ATD_AIRFLOW_PATH}/.airflowignore";
+AIRFLOW_IGNORE_PATH="/usr/local/airflow/config";
+AIRFLOW_IGNORE_DEST="/usr/local/airflow/dags/.airflowignore";
 # Be sure to always remove it before starting up...
 if [[ -f "${AIRFLOW_IGNORE_PATH}" ]]
 then
     echo "Removing existing airflow ignore file...";
-    rm $AIRFLOW_IGNORE_PATH;
+    rm $AIRFLOW_IGNORE_DEST;
 fi
 
 
 if [[ "${ATD_AIRFLOW_ENVIRONMENT}" = "production" ]] ; then
-    cp $ATD_AIRFLOW_PATH/config/.airflowignore $AIRFLOW_IGNORE_PATH;
+    cp "${AIRFLOW_IGNORE_PATH}/.airflowignore" $AIRFLOW_IGNORE_DEST
 else
-    cp $ATD_AIRFLOW_PATH/config/.airflowignore-dev $AIRFLOW_IGNORE_PATH;
+    cp "${AIRFLOW_IGNORE_PATH}/.airflowignore-dev" $AIRFLOW_IGNORE_DEST;
 fi;
 
 TRY_LOOP="20"
