@@ -27,7 +27,7 @@ dag = DAG(
     dag_id="atd_census_download",
     description="Script to get daily Census 2020 response rates for Austin MSA census Tracts",
     default_args=args,
-    schedule_interval="0 5 * * *",
+    schedule_interval="0 17 * * *",
     dagrun_timeout=timedelta(minutes=60),
     tags=["production", "census"],
 )
