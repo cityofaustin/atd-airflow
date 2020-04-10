@@ -5,6 +5,8 @@ import json
 import csv
 import os
 from sodapy import Socrata
+import dateutil.parser as parser
+
 
 app_token = os.getenv("APP_TOKEN", None)
 socrata_key_id = os.getenv("SOCRATA_KEY_ID", None)
@@ -55,8 +57,18 @@ RespDF['GEOID10'] = goidstr
 RespDF['state'] = 'Texas'
 RespDF['county'] = RespDF["county"].replace(counties_with_labels)
 
+# Create UID field
+
+
+def make_uid(x):
+    date = parser.parse(x['RESP_DATE'])
+    return date.strftime('%Y-%m-%d-') + str(x['GEOID10'])
+
+
+RespDF['UID'] = RespDF.apply(make_uid, axis=1)
 
 # Format Tract values
+
 
 def format_tract(string, index):
     return string[:index] + '.' + string[index:]
@@ -66,12 +78,13 @@ RespDF['tract'] = format_tract(RespDF['tract'].str, 4).str.lstrip('0')
 
 # Reorder columns
 reindexed_data = RespDF.reindex(columns=['RESP_DATE', 'GEOID10', 'DRRALL', 'DRRINT',
-                                         'CRRALL', 'CRRINT', 'county', 'tract', 'state', 'GEO_ID'])
+                                         'CRRALL', 'CRRINT', 'county', 'tract', 'state', 'GEO_ID', 'UID'])
 
 json_data = reindexed_data.to_dict(orient="records")
 
+
 try:
-    socrata_upsert = socrata_client.upsert('ajri-btbu', json_data)
+    socrata_upsert = socrata_client.upsert('evvr-qwa7', json_data)
     print(socrata_upsert)
 except Exception as e:
     print("Exception, could not insert: " + str(e))
