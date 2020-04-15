@@ -8,6 +8,8 @@ from sodapy import Socrata
 import dateutil.parser as parser
 import json
 
+print(os.getcwd())
+
 
 app_token = os.getenv("APP_TOKEN", None)
 socrata_key_id = os.getenv("SOCRATA_KEY_ID", None)
