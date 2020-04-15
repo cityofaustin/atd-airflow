@@ -10,6 +10,8 @@ import json
 
 print(os.getcwd())
 
+# Required to locate files in temporary execution folders
+absolute_path = os.path.abspath(os.path.dirname(__file__))
 
 app_token = os.getenv("APP_TOKEN", None)
 socrata_key_id = os.getenv("SOCRATA_KEY_ID", None)
@@ -151,7 +153,7 @@ def replace_place_id_with_value(x):
 top_30_df['place'] = top_30_df.apply(replace_place_id_with_value, axis=1)
 
 # Replace state ID with human-readable State Name
-with open("~/dags/python_scripts/census_states.json") as json_file:
+with open("{absolute_path}/census_states.json") as json_file:
     states_data = json.load(json_file)
 
 states_df = pd.DataFrame(states_data)
