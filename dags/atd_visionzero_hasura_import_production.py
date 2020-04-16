@@ -19,7 +19,13 @@ default_args = {
 atd_visionzero_cris_envvars=Variable.get("atd_visionzero_cris_production", deserialize_json=True)
 atd_visionzero_cris_volumes=Variable.get("atd_visionzero_cris_volumes", deserialize_json=True)
 
-with DAG('atd_visionzero_hasura_import_production', default_args=default_args, schedule_interval="0 3 * * *", catchup=False) as dag:
+with DAG(
+        'atd_visionzero_hasura_import_production',
+        default_args=default_args,
+        schedule_interval="0 8 * * *",
+        catchup=False,
+        tags=["production", "visionzero"],
+) as dag:
         #
         # Task: docker_command_crashes
         # Description: Imports a raw CSV file with crash records into our database via GraphSQL/Hasura.
