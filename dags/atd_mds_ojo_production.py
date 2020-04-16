@@ -22,7 +22,7 @@ environment_vars = Variable.get("atd_mds_config_production", deserialize_json=Tr
 docker_image = 'atddocker/atd-mds-etl:production'
 
 with DAG(
-        "atd_mds_{mds_provider}_production",
+        f"atd_mds_{mds_provider}_production",
         default_args=default_args,
         schedule_interval="30 * * * *",
         catchup=False,
