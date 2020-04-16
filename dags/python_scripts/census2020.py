@@ -153,7 +153,7 @@ def replace_place_id_with_value(x):
 top_30_df['place'] = top_30_df.apply(replace_place_id_with_value, axis=1)
 
 # Replace state ID with human-readable State Name
-with open("{absolute_path}/census_states.json") as json_file:
+with open(f"{absolute_path}/census_states.json") as json_file:
     states_data = json.load(json_file)
 
 states_df = pd.DataFrame(states_data)
