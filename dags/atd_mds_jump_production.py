@@ -21,7 +21,13 @@ time_max = f"{current_time.year}-{current_time.month}-{current_time.day}-{(curre
 environment_vars = Variable.get("atd_mds_config_production", deserialize_json=True)
 docker_image = 'atddocker/atd-mds-etl:production'
 
-with DAG(f"atd_mds_{mds_provider}_production", default_args=default_args, schedule_interval="15 * * * *", catchup=False) as dag:
+with DAG(
+        f"atd_mds_{mds_provider}_production",
+        default_args=default_args,
+        schedule_interval="15 * * * *",
+        catchup=False,
+        tags=["production", "mds"],
+) as dag:
         #
         # Task: provider_extract
         # Description: Given a schedule block, the script extracts data from the MDS provider within the schedule's time window
