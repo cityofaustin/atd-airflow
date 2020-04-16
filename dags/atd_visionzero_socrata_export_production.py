@@ -15,7 +15,13 @@ default_args = {
         'retry_delay'           : timedelta(minutes=5)
 }
 
-with DAG('atd_visionzero_socrata_export_production', default_args=default_args, schedule_interval="0 4 * * *", catchup=False) as dag:
+with DAG(
+        'atd_visionzero_socrata_export_production',
+        default_args=default_args,
+        schedule_interval="0 9 * * *",
+        catchup=False,
+        tags=["production", "visionzero"],
+) as dag:
 
         #
         # Task: docker_command

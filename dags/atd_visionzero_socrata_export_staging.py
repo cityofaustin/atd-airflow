@@ -12,10 +12,16 @@ default_args = {
         'email_on_failure'      : False,
         'email_on_retry'        : False,
         'retries'               : 1,
-        'retry_delay'           : timedelta(minutes=5)
+        'retry_delay'           : timedelta(minutes=5),
 }
 
-with DAG('atd_visionzero_socrata_export_staging', default_args=default_args, schedule_interval="0 4 * * *", catchup=False) as dag:
+with DAG(
+        'atd_visionzero_socrata_export_staging',
+        default_args=default_args,
+        schedule_interval="0 9 * * *",
+        catchup=False,
+        tags=["staging", "visionzero"],
+) as dag:
 
         #
         # Task: docker_command
