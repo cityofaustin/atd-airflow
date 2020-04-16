@@ -18,7 +18,13 @@ default_args = {
 # We first need to gather the environment variables for this execution
 atd_visionzero_cris_envvars=Variable.get("atd_visionzero_cris_production", deserialize_json=True)
 
-with DAG('atd_visionzero_hasura_geocode_production', default_args=default_args, schedule_interval="0 3 * * *", catchup=False) as dag:
+with DAG(
+        'atd_visionzero_hasura_geocode_production',
+        default_args=default_args,
+        schedule_interval="0 8 * * *",
+        catchup=False,
+        tags=["production", "visionzero"],
+) as dag:
         #
         # Task: docker_command_geocode
         # Description: Imports a raw CSV file with crash records into our database via GraphSQL/Hasura.
