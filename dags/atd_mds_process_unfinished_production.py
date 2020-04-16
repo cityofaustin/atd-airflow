@@ -26,6 +26,7 @@ with DAG(
     default_args=default_args,
     schedule_interval="0 2 * * *",
     catchup=False,
+    tags=["production", "mds"],
 ) as dag:
     # Task: process_unfinished_lime
     # Description: Processes unfinished schedule blocks assigned to Lime
