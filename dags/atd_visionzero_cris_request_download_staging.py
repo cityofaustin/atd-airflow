@@ -19,7 +19,13 @@ default_args = {
 atd_visionzero_cris_envvars=Variable.get("atd_visionzero_cris_staging", deserialize_json=True)
 atd_visionzero_cris_volumes=Variable.get("atd_visionzero_cris_volumes", deserialize_json=True)
 
-with DAG('atd_visionzero_cris_request_download_staging', default_args=default_args, schedule_interval="0 2 * * *", catchup=False) as dag:
+with DAG(
+        'atd_visionzero_cris_request_download_staging',
+        default_args=default_args,
+        schedule_interval="0 7 * * *",
+        catchup=False,
+        tags=["staging", "visionzero"],
+) as dag:
         #
         # Task: docker_command
         # Description: Runs a docker container with CentOS, and waits 30 seconds before being terminated.
