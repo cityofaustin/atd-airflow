@@ -15,7 +15,13 @@ default_args = {
         'retry_delay'           : timedelta(minutes=5)
 }
 
-with DAG('atd_etl_template', default_args=default_args, schedule_interval="5 * * * *", catchup=False) as dag:
+with DAG(
+        'atd_etl_template',
+        default_args=default_args,
+        schedule_interval="5 * * * *",
+        catchup=False,
+        tags=["environment", "project"],
+) as dag:
         #
         # Task: print_current_date
         # Description: It prints the current date in the command line
