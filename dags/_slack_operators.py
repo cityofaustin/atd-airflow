@@ -42,10 +42,10 @@ def task_success_slack_alert(context):
             exec_date=context.get('execution_date'),
             log_url=context.get('task_instance').log_url,
         )
-    failed_alert = SlackWebhookOperator(
+    success_alert = SlackWebhookOperator(
         task_id='slack_test',
         http_conn_id='slack',
         webhook_token=slack_webhook_token,
         message=slack_msg,
         username='airflow')
-    return failed_alert.execute(context=context)
+    return success_alert.execute(context=context)
