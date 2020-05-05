@@ -14,7 +14,7 @@ default_args = {
         'email_on_failure'      : False,
         'email_on_retry'        : False,
         'retries'               : 1,
-        'retry_delay'           : timedelta(minutes=5)
+        'retry_delay'           : timedelta(minutes=5),
         'on_failure_callback'   : task_fail_slack_alert,
         'on_success_callback'   : task_success_slack_alert,
 }
