@@ -9,6 +9,7 @@ from airflow.operators.bash_operator import BashOperator
 from airflow.operators.email_operator import EmailOperator
 from airflow.utils.dates import days_ago
 
+from _slack_operators import *
 
 # First, load our environment variables as a dictionary
 environment_vars = Variable.get("atd_census_2020", deserialize_json=True)
@@ -16,8 +17,10 @@ environment_vars = Variable.get("atd_census_2020", deserialize_json=True)
 args = {
     "owner": "airflow",
     "start_date": days_ago(2),
-    'email': [environment_vars.get("EMAIL_RECIPIENT", "")],
-    'email_on_failure': True,
+    "email": [environment_vars.get("EMAIL_RECIPIENT", "")],
+    "email_on_failure": True,
+    "on_failure_callback": task_fail_slack_alert,
+    "on_success_callback": task_success_slack_alert
 }
 
 #
