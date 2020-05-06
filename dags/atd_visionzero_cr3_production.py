@@ -16,7 +16,6 @@ default_args = {
         'retries'               : 1,
         'retry_delay'           : timedelta(minutes=5),
         'on_failure_callback'   : task_fail_slack_alert,
-        'on_success_callback'   : task_success_slack_alert,
 }
 
 with DAG(
@@ -41,13 +40,4 @@ with DAG(
                 environment=Variable.get("atd_visionzero_cris_production", deserialize_json=True)
         )
 
-        #
-        # Task: print_hello
-        # Description: Prints hello world in the console
-        #
-        t2 = BashOperator(
-                task_id='print_hello',
-                bash_command='echo "hello world"'
-        )
-
-        t1 >> t2
+        t1
