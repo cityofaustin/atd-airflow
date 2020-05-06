@@ -4,6 +4,8 @@ from airflow.models import Variable
 from datetime import datetime, timedelta
 from airflow.operators.docker_operator import DockerOperator
 
+from _slack_operators import *
+
 default_args = {
         'owner'                 : 'airflow',
         'description'           : 'Imports raw CSV extracts into VZD via Hasura (staging).',
@@ -12,7 +14,9 @@ default_args = {
         'email_on_failure'      : False,
         'email_on_retry'        : False,
         'retries'               : 1,
-        'retry_delay'           : timedelta(minutes=5)
+        'retry_delay'           : timedelta(minutes=5),
+        'on_failure_callback'   : task_fail_slack_alert,
+        'on_success_callback'   : task_success_slack_alert,
 }
 
 # We first need to gather the environment variables for this execution
