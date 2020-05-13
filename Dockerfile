@@ -64,6 +64,7 @@ RUN set -ex \
     && pip install requests \
     && pip install flask-bcrypt \
     && pip install psycopg2-binary \
+    && pip install knackpy \
     && pip install SQLAlchemy \
     && pip install apache-airflow[crypto,celery,postgres,hive,jdbc,mysql,s3,ssh${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}]==${AIRFLOW_VERSION} \
     && pip install 'redis==3.2' \
