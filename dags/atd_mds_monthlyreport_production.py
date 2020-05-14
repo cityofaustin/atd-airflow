@@ -39,7 +39,7 @@ dag = DAG(
 # A quick successful test
 #
 run_python = BashOperator(
-    task_id="run_census_script",
+    task_id="run_python",
     bash_command="python3 ~/dags/python_scripts/atd_mds_monthly_report.py",
     env=environment_vars,
     dag=dag,
