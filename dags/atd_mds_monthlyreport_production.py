@@ -51,10 +51,9 @@ run_python = BashOperator(
 email_task = EmailOperator(
     to=environment_vars.get("email_recipients", ""),
     task_id="email_task",
-    subject="MDS Data Inserted in Knack: start_date {{ ds }}",
+    subject="MDS Data Inserted in Knack: {{ ds }}",
     mime_charset="utf-8",
-    params={"content1": "random"},
-    html_content="The MDS Data has been inserted into Knack without errors. Task Random ID: {{ params.content1 }}  task_key - {{ task_instance_key_str }} test_mode - {{ test_mode }} task_owner - {{ task.owner}} hostname - {{ ti.hostname }}",
+    html_content="The MDS Data has been inserted into Knack without errors. \n Task ID: {{ task_instance_key_str }} \n Test Mode: {{ test_mode }} \n Task Owner: {{ task.owner}} \n Hostname: {{ ti.hostname }}",
     dag=dag,
 )
 
