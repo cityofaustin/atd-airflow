@@ -7,8 +7,10 @@
 postgres-data/
 
 # IDE
+.DS_Store
 .code/
 .idea/
+.vscode/
 
 
 # Byte-compiled / optimized / DLL files
