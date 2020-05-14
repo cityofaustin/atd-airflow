@@ -32,7 +32,7 @@ dag = DAG(
     default_args=args,
     schedule_interval="0 18 2 * *",  # (3rd day of the month, at midnight UTC)
     dagrun_timeout=timedelta(minutes=60),
-    tags=["production", "census"],
+    tags=["production", "mds"],
 )
 
 #
