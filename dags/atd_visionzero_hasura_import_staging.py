@@ -20,7 +20,7 @@ default_args = {
 
 # We first need to gather the environment variables for this execution
 atd_visionzero_cris_envvars=Variable.get("atd_visionzero_cris_staging", deserialize_json=True)
-atd_visionzero_cris_volumes=Variable.get("atd_visionzero_cris_volumes", deserialize_json=True)
+atd_visionzero_cris_volumes=Variable.get("atd_visionzero_cris_volumes_staging", deserialize_json=True)
 
 with DAG(
         'atd_visionzero_hasura_import_staging',
