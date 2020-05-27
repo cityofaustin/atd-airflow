@@ -242,11 +242,35 @@ counties_df['county'] = counties_df.apply(get_county_value, axis=1)
 
 
 ##########
+# Get State of Texas Data
+##########
+
+
+state_api_call = f'https://api.census.gov/data/2020/dec/responserate?get=DRRALL,CRRINT,RESP_DATE,CRRALL,GEO_ID,DRRINT&for=state:{TX_STATE_CODE}'
+state_response = requests.get(state_api_call)
+state_formatted_response = json.loads(state_response.text)[1:]
+
+texas_df = pd.DataFrame(columns=['DRRALL', 'CRRINT', 'RESP_DATE', 'CRRALL',
+                                 'GEO_ID', 'DRRINT', 'state'], data=state_formatted_response)
+
+
+# Add column for 10 digit Geography ID
+shortened_geoid = texas_df.loc[:, 'GEO_ID'].str[9:]
+texas_df['GEOID20'] = shortened_geoid
+
+# Add column for UID in same format as Tracts DF
+texas_df['UID'] = texas_df.apply(make_uid, axis=1)
+
+texas_df['state'] = "Texas"
+
+
+##########
 # Combine the Data Frames
 ##########
 
 # Concatenate the dataframes into one unified DF
-df_combined = pd.concat([tracts_df, top_30_df, counties_df], sort=True)
+df_combined = pd.concat(
+    [tracts_df, top_30_df, counties_df, texas_df], sort=True)
 
 # Replace NaN values that Socrata doesn't like
 df_combined['place'] = df_combined['place'].fillna("N/A")
@@ -255,7 +279,6 @@ df_combined['county'] = df_combined['county'].fillna("N/A")
 df_combined['tract'] = df_combined['tract'].fillna(0)
 
 json_data = df_combined.to_dict(orient="records")
-
 
 ##########
 # Send Data to Socrata
