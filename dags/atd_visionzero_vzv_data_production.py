@@ -42,18 +42,29 @@ dag = DAG(
 #
 download_data = BashOperator(
     task_id="download_data",
-    bash_command='curl $HASURA_ENDPOINT --data "$VZV_DATA_QUERY" > $VZV_DATA_FILENAME',
+    bash_command='curl --header "Content-Type: application/json" ' +
+        '--header "x-hasura-admin-secret: $HASURA_ADMIN_KEY" ' +
+        '--data "{ \\"query\\": \\"$VZV_DATA_QUERY\\"}" ' +
+        '"$HASURA_ENDPOINT" > $VZV_DATA_FILENAME && ' +
+        'aws s3 cp $VZV_DATA_FILENAME s3://$VZV_DATA_BUCKET/production/'
+    ,
     env=environment_vars,
     dag=dag,
 )
 
-
 #
-# Extract view_vzv_header_totals
+# Transforms JSON to multiple CSV files
 #
-view_vzv_header_totals = BashOperator(
-    task_id="view_vzv_header_totals",
-    bash_command='cat $VZV_DATA_FILENAME | jq -r ".data.view_vzv_header_totals" | in2csv -f json -v --no-inference > view_vzv_header_totals.csv',
+transform_to_csv = BashOperator(
+    task_id="transform_to_csv",
+    bash_command='aws s3 cp s3://$VZV_DATA_BUCKET/production/$VZV_DATA_FILENAME . && ' +
+                 'cat $VZV_DATA_FILENAME | jq -r ".data.view_vzv_header_totals" | in2csv -f json -v --no-inference > view_vzv_header_totals.csv && ' +
+                 'cat $VZV_DATA_FILENAME | jq -r ".data.view_vzv_by_month_year" | in2csv -f json -v --no-inference > view_vzv_by_month_year.csv && ' +
+                 'cat $VZV_DATA_FILENAME | jq -r ".data.view_vzv_by_time_of_day" | in2csv -f json -v --no-inference > view_vzv_by_time_of_day.csv && ' +
+                 'cat $VZV_DATA_FILENAME | jq -r ".data.view_vzv_demographics_age_sex_eth" | in2csv -f json -v --no-inference > view_vzv_demographics_age_sex_eth.csv && ' +
+                 'cat $VZV_DATA_FILENAME | jq -r ".data.view_vzv_by_mode" | in2csv -f json -v --no-inference > view_vzv_by_mode.csv && ' +
+                 'aws s3 cp . s3://$VZV_DATA_BUCKET/production/ --recursive --exclude "*" --include "*.csv"'
+    ,
     env=environment_vars,
     dag=dag,
 )
@@ -71,9 +82,7 @@ email_task = EmailOperator(
     dag=dag,
 )
 
-download_data >> \
-view_vzv_header_totals >> \
-email_task
+download_data >> transform_to_csv >> email_task
 
 if __name__ == "__main__":
     dag.cli()
