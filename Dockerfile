@@ -46,6 +46,8 @@ RUN set -ex \
         rsync \
         netcat \
         locales \
+        jq \
+        awscli \
         inetutils-ping \
         libspatialindex-dev \
     && sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen \
@@ -65,6 +67,7 @@ RUN set -ex \
     && pip install flask-bcrypt \
     && pip install psycopg2-binary \
     && pip install knackpy \
+    && pip install csvkit \
     && pip install SQLAlchemy \
     && pip install apache-airflow[crypto,celery,postgres,hive,jdbc,mysql,s3,ssh${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}]==${AIRFLOW_VERSION} \
     && pip install 'redis==3.2' \
