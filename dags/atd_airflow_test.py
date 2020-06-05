@@ -30,7 +30,7 @@ dag = DAG(
     dag_id="atd_airflow_test",
     description="Script to test airflow functionality",
     default_args=args,
-    schedule_interval="0 0 5 * *",
+    schedule_interval="0 0 6 * *",
     dagrun_timeout=timedelta(minutes=60),
     tags=["production", "census"],
 )
