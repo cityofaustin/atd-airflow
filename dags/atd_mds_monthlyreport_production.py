@@ -30,7 +30,7 @@ dag = DAG(
     dag_id="atd_mds_monthly_report",
     description="Gathers the data from MDS and submits to Knack",
     default_args=args,
-    schedule_interval="0 0 3 * *",  # (3rd day of the month, midnight UTC)
+    schedule_interval="0 6 3 * *",  # (3rd day of the month, at around midnight CST)
     dagrun_timeout=timedelta(minutes=60),
     tags=["production", "mds"],
 )
