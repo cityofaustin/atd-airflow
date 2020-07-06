@@ -1,63 +1,58 @@
 """
-    Description: A script to test Slack Integration
+   Gathers data for MDS report and uploads to knack
 """
-from datetime import timedelta
-
-from airflow.models import DAG
+from airflow import DAG
+from airflow.operators.bash_operator import BashOperator
 from airflow.models import Variable
+from datetime import datetime, timedelta
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.email_operator import EmailOperator
-from airflow.utils.dates import days_ago
 
 from _slack_operators import *
 
-# First, load our environment variables as a dictionary
-environment_vars = Variable.get("atd_mds_monthly_report_production", deserialize_json=True)
-
-args = {
-    "owner": "airflow",
-    "start_date": days_ago(2),
-    "email": [environment_vars.get("email_recipients", "")],
-    "email_on_failure": True,
-    "on_failure_callback": task_fail_slack_alert,
-    "on_success_callback": task_success_slack_alert,
+default_args = {
+        'owner'                 : 'airflow',
+        'description'           : 'Gathers MDS data and uploads to Knack',
+        'depend_on_past'        : False,
+        'start_date'            : datetime(2018, 1, 1),
+        'email_on_failure'      : False,
+        'email_on_retry'        : False,
+        'retries'               : 1,
+        'retry_delay'           : timedelta(minutes=5),
+        'on_failure_callback'   : task_fail_slack_alert,
 }
 
-#
-# Set up our dag
-#
-dag = DAG(
-    dag_id="atd_mds_monthly_report",
-    description="Gathers the data from MDS and submits to Knack",
-    default_args=args,
-    schedule_interval="0 6 3 * *",  # (3rd day of the month, at around midnight CST)
-    dagrun_timeout=timedelta(minutes=60),
-    tags=["production", "mds"],
-)
+environment_vars = Variable.get("atd_mds_monthly_report_production", deserialize_json=True)
 
-#
-# A quick successful test
-#
-run_python = BashOperator(
-    task_id="run_python",
-    bash_command="python3 ~/dags/python_scripts/atd_mds_monthly_report.py",
-    env=environment_vars,
-    dag=dag,
-)
+with DAG(
+        "atd_mds",
+        default_args=default_args,
+        schedule_interval="40 7 3 * *",
+        catchup=False,
+        tags=["production", "mds"],
+) as dag:
+        #
+        # Task: run_python
+        # Description: Gathers data from Hasura to generate report data and uploads to Knack.
+        #
+	run_python = BashOperator(
+	    task_id="run_python_script",
+	    bash_command="python3 ~/dags/python_scripts/atd_mds_monthly_report.py",
+	    env=environment_vars,
+	    dag=dag,
+	)
 
-#
-# Send an email when done
-#
-email_task = EmailOperator(
-    to=environment_vars.get("email_recipients", ""),
-    task_id="email_task",
-    subject="MDS Data Inserted in Knack: {{ ds }}",
-    mime_charset="utf-8",
-    html_content="The MDS Data has been inserted into Knack without errors. \n Task ID: {{ task_instance_key_str }} \n Test Mode: {{ test_mode }} \n Task Owner: {{ task.owner}} \n Hostname: {{ ti.hostname }}",
-    dag=dag,
-)
+        #
+        # Task: provider_sync_db
+        # Description: Emails users whenever the process is complete.
+        #
+	email_task = EmailOperator(
+	    to=environment_vars.get("email_recipients", ""),
+	    task_id="email_admin",
+	    subject="MDS Data Inserted in Knack: {{ ds }}",
+	    mime_charset="utf-8",
+	    html_content="The MDS Data has been inserted into Knack without errors",
+	    dag=dag,
+	)
 
-run_python >> email_task
-
-if __name__ == "__main__":
-    dag.cli()
+	run_python >> email_task
