@@ -21,7 +21,7 @@ default_args = {
 with DAG(
         'atd_visionzero_cr3_production',
         default_args=default_args,
-        schedule_interval="*/30 * * * *",
+        schedule_interval="*/5 * * * *",
         catchup=False,
         tags=["production", "visionzero"],
 ) as dag:
