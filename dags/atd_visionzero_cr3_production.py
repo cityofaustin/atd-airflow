@@ -31,7 +31,7 @@ with DAG(
         #
         t1 = DockerOperator(
                 task_id='docker_command',
-                image='atddocker/atd-vz-etl:master',
+                image='atddocker/atd-vz-etl:production',
                 api_version='auto',
                 auto_remove=True,
                 command="/app/process_cris_cr3.py",
