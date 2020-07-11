@@ -22,7 +22,8 @@ with DAG(
         'atd_visionzero_cr3_production',
         default_args=default_args,
         schedule_interval="*/5 * * * *",
-        catchup=False,
+        catchup=True,
+        max_active_runs=1,
         tags=["production", "visionzero"],
 ) as dag:
         #
