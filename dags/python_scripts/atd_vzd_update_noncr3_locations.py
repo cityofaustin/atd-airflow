@@ -22,7 +22,7 @@ def make_update() -> dict:
             "args": {
                 "sql": """
                     UPDATE atd_apd_blueform
-                        SET location_id = (SELECT location_id FROM find_location_for_noncr3_collision(case_id) LIMIT 1)::text
+                        SET location_id = (SELECT location_id FROM find_location_for_noncr3_collision(case_id) LIMIT 1)::text, updated_by = 'SYSTEM'
                         WHERE 1=1
                           AND location_id IS NULL
                           /* Update only if there is a location, otherwise ignore. */ 

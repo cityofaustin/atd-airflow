@@ -22,7 +22,7 @@ def make_update() -> dict:
             "args": {
                 "sql": """
                     UPDATE atd_txdot_crashes
-                        SET location_id = (SELECT location_id FROM find_location_for_cr3_collision(crash_id) LIMIT 1)::text
+                        SET location_id = (SELECT location_id FROM find_location_for_noncr3_collision(case_id) LIMIT 1)::text, updated_by = 'SYSTEM'
                         WHERE 1=1
                           AND location_id IS NULL
                           AND (SELECT location_id FROM find_location_for_cr3_collision(crash_id) LIMIT 1) IS NOT NULL;
