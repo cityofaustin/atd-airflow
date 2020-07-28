@@ -11,7 +11,7 @@ from airflow.utils.dates import days_ago
 from _slack_operators import task_fail_slack_alert
 
 # First, load our environment variables as a dictionary
-environment_vars = Variable.get("atd_visionzero_hasura_staging", deserialize_json=True)
+environment_vars = Variable.get("atd_visionzero_hasura_sql_staging", deserialize_json=True)
 
 args = {
     "owner": "airflow",
