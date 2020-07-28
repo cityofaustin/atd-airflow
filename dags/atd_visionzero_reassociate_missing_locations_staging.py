@@ -35,7 +35,7 @@ dag = DAG(
 # Our python code execution
 #
 process_noncr3 = BashOperator(
-    task_id="run_census_script",
+    task_id="process_noncr3",
     bash_command="python3 ~/dags/python_scripts/atd_vzd_update_noncr3_locations.py",
     env=environment_vars,
     dag=dag,
@@ -43,7 +43,7 @@ process_noncr3 = BashOperator(
 
 
 process_cr3 = BashOperator(
-    task_id="run_census_script",
+    task_id="process_cr3",
     bash_command="python3 ~/dags/python_scripts/atd_vzd_update_cr3_locations.py",
     env=environment_vars,
     dag=dag,
