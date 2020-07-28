@@ -23,7 +23,7 @@ args = {
 # Set up our dag
 #
 dag = DAG(
-    dag_id="atd_visionzero_reassociate_missing_locations",
+    dag_id="atd_visionzero_reassociate_missing_locations_staging",
     description="This script re-processes location associations in VZD",
     default_args=args,
     schedule_interval="0 3 * * *",
