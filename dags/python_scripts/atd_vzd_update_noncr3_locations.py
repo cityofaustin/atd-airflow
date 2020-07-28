@@ -48,9 +48,14 @@ def main():
         response = {
             "Error": str(e)
         }
+        exit(1)
 
+    response = json.dumps(response)
     print("Response: ")
-    print(json.dumps(response))
+    print(response)
+    if "errors" in response:
+        print("Error detected, exiting...")
+        exit(1)
 
     # Stop timer and print duration
     end = time.time()
