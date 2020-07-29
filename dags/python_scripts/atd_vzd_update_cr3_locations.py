@@ -45,9 +45,8 @@ def main():
         response = make_update()
     except Exception as e:
         response = {
-            "Error": str(e)
+            "errors": str(e)
         }
-        exit(1)
 
     response = json.dumps(response)
     print("Response: ")
