@@ -21,12 +21,52 @@ def make_update() -> dict:
             "type": "run_sql",
             "args": {
                 "sql": """
-                    UPDATE atd_txdot_crashes
-                        SET location_id = (SELECT location_id FROM find_location_for_noncr3_collision(case_id) LIMIT 1)::text, updated_by = 'SYSTEM'
-                        WHERE 1=1
-                          AND location_id IS NULL
-                          AND (SELECT location_id FROM find_location_for_cr3_collision(crash_id) LIMIT 1) IS NOT NULL;
-                """.strip()
+                    /*
+                        The script looks for any CR3 crashes that should have a location associated
+                        and that are not part of a main lane polygon.
+                    */
+                    UPDATE
+                        atd_txdot_crashes
+                    SET location_id = (SELECT location_id FROM find_location_for_cr3_collision(crash_id) LIMIT 1),
+                        updated_by  = 'SYSTEM'
+                    WHERE crash_id IN (
+                        WITH atc AS (
+                            /* Find any crashes that have:
+                                - coordinates
+                                - do not a location currently 
+                                - should have one, since it is available
+                            */
+                            SELECT crash_id,
+                                   position,
+                                   location_id
+                            FROM atd_txdot_crashes AS atc
+                            WHERE 1 = 1
+                              AND atc.position IS NOT NULL /* With coordinates */
+                              AND atc.location_id IS NULL  /* Without a current location */
+                              /* There is a location for it available */
+                              AND (SELECT location_id FROM find_location_for_cr3_collision(atc.crash_id) LIMIT 1) IS NOT NULL
+                        )
+                        /* From that short list, determine which are main-lanes and exclude */
+                        SELECT 
+                            atc.crash_id /* We only need the crash id */
+                        FROM atc
+                                LEFT OUTER JOIN cr3_mainlanes AS cr3m ON (
+                                atc.position && cr3m.geometry
+                                AND ST_Contains(
+                                        ST_Transform(
+                                                ST_Buffer(
+                                                        ST_Transform(cr3m.geometry, 2277),
+                                                        1,
+                                                        'endcap=flat join=round'
+                                                    ), 4326
+                                            ),
+                                        atc.position
+                                    )
+                            )
+                        /* Is not part of a main-lane */ 
+                        WHERE (CASE WHEN cr3m.geometry IS NULL THEN false ELSE true END) IS FALSE
+                    );
+                """
             }
         }
     )
