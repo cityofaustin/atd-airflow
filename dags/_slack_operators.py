@@ -7,7 +7,7 @@ SLACK_CONN_ID = 'slack'
 def task_fail_slack_alert_critical(context):
     slack_webhook_token = BaseHook.get_connection(SLACK_CONN_ID).password
     slack_msg = """
-            @channel :red_circle: Critical Failure
+            <!channel> :red_circle: Critical Failure
             *Task*: {task}  
             *Dag*: {dag} 
             *Execution Time*: {exec_date}  
