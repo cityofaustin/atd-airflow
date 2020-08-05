@@ -19,7 +19,7 @@ args = {
     "start_date": days_ago(2),
     "email": [environment_vars.get("EMAIL_RECIPIENT", "")],
     "email_on_failure": True,
-    "on_failure_callback": task_fail_slack_alert,
+    "on_failure_callback": task_fail_slack_alert_critical,
     "on_success_callback": task_success_slack_alert
 }
 
