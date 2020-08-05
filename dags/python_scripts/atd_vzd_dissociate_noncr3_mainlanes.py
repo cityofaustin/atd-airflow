@@ -24,6 +24,21 @@ def make_update() -> dict:
                     /*
                         This SQL query should dissociate any mainlane Non-CR3 from their current location.
                     */
+                    UPDATE atd_apd_blueform
+                    SET location_id = NULL
+                    WHERE case_id IN (
+                        SELECT case_id
+                        FROM atd_apd_blueform AS atc
+                                INNER JOIN non_cr3_mainlanes AS ncr3m ON (
+                                atc.position && ncr3m.geometry
+                                AND ST_Contains(
+                                        ST_Transform(ST_Buffer(ST_Transform(ncr3m.geometry, 2277), 1, 'endcap=flat join=round'),
+                                                     4326), /* transform into 2277 to buffer by a foot, not a degree */
+                                        atc.position)
+                            )
+                        WHERE 1 = 1
+                          AND location_id IS NOT NULL
+                    );
                 """
             }
         }
