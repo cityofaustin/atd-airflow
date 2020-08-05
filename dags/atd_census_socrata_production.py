@@ -20,7 +20,6 @@ args = {
     "email": [environment_vars.get("EMAIL_RECIPIENT", "")],
     "email_on_failure": True,
     "on_failure_callback": task_fail_slack_alert,
-    "on_success_callback": task_success_slack_alert
 }
 
 #
@@ -45,20 +44,7 @@ run_python = BashOperator(
     dag=dag,
 )
 
-#
-# Send an email when done
-#
-email_task = EmailOperator(
-    to=environment_vars.get("EMAIL_RECIPIENT", ""),
-    task_id="email_admin",
-    subject="Templated Subject: start_date {{ ds }}",
-    mime_charset="utf-8",
-    params={"content1": "random"},
-    html_content="Templated Content: content1 - {{ params.content1 }}  task_key - {{ task_instance_key_str }} test_mode - {{ test_mode }} task_owner - {{ task.owner}} hostname - {{ ti.hostname }}",
-    dag=dag,
-)
-
-run_python >> email_task
+run_python
 
 if __name__ == "__main__":
     dag.cli()
