@@ -34,16 +34,9 @@ dag = DAG(
 )
 
 #
-# Our python code execution
+# This process will find the locations for CR3 crashes that do not have one but
+# fall into a location and they are not mainlanes.
 #
-process_noncr3 = BashOperator(
-    task_id="process_noncr3",
-    bash_command="python3 ~/dags/python_scripts/atd_vzd_update_noncr3_locations.py",
-    env=environment_vars,
-    dag=dag,
-)
-
-
 process_cr3 = BashOperator(
     task_id="process_cr3",
     bash_command="python3 ~/dags/python_scripts/atd_vzd_update_cr3_locations.py",
@@ -52,7 +45,40 @@ process_cr3 = BashOperator(
 )
 
 
-process_noncr3 >> process_cr3
+#
+# This process will find the locations for Non-CR3 crashes that do not have one but
+# fall into a location and they are not mainlanes.
+#
+process_noncr3 = BashOperator(
+    task_id="process_noncr3",
+    bash_command="python3 ~/dags/python_scripts/atd_vzd_update_noncr3_locations.py",
+    env=environment_vars,
+    dag=dag,
+)
+
+#
+# This process will remove the location for CR3 crashes that are main-lanes.
+#
+dissociate_cr3 = BashOperator(
+    task_id="dissociate_cr3",
+    bash_command="python3 ~/dags/python_scripts/atd_vzd_dissociate_cr3_mainlanes.py",
+    env=environment_vars,
+    dag=dag,
+)
+
+#
+# This process will remove the location for Non-CR3 crashes that are main-lanes.
+#
+dissociate_noncr3 = BashOperator(
+    task_id="dissociate_noncr3",
+    bash_command="python3 ~/dags/python_scripts/atd_vzd_dissociate_noncr3_mainlanes.py",
+    env=environment_vars,
+    dag=dag,
+)
+
+
+process_cr3 >> process_noncr3 >> dissociate_cr3 >> dissociate_noncr3
+
 
 
 if __name__ == "__main__":
