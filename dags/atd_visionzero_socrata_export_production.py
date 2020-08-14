@@ -32,7 +32,7 @@ with DAG(
 
         socrata_backup_crashes = BashOperator(
                 task_id="socrata_backup_crashes",
-                bash_command="sh ~/dags/bash_scripts/vzv_backup_socrata_production.sh",
+                bash_command="sh ~/dags/bash_scripts/vzv_backup_socrata.sh",
                 env=vzv_data_query_vars
         )
 
