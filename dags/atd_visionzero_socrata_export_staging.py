@@ -12,7 +12,7 @@ vzv_data_query_vars = Variable.get("atd_visionzero_vzv_query_staging", deseriali
 
 default_args = {
         'owner'                 : 'airflow',
-        'description'           : 'Exports data from VZD into Socrata (production).',
+        'description'           : 'Exports data from VZD into Socrata (staging).',
         'depend_on_past'        : False,
         'start_date'            : datetime(2019, 1, 1),
         'email_on_failure'      : False,
@@ -23,7 +23,7 @@ default_args = {
 }
 
 with DAG(
-        'atd_visionzero_socrata_export_production',
+        'atd_visionzero_socrata_export_staging',
         default_args=default_args,
         schedule_interval="0 9 * * *",
         catchup=False,
