@@ -38,7 +38,7 @@ client.replace(SOCRATA_DATASET_UID, [])
 print(f"Opening backup file: '{MODE}.csv'")
 data = open(f"{MODE}.csv")
 print(f"Upserting data, this can take a few minutes")
-# client.replace(SOCRATA_DATASET_UID, data)
+client.replace(SOCRATA_DATASET_UID, data)
 
 # Terminate Socrata connection
 
