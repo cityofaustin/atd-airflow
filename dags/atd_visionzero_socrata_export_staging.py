@@ -27,13 +27,15 @@ with DAG(
         default_args=default_args,
         schedule_interval="0 9 * * *",
         catchup=False,
-        tags=["production", "visionzero"],
+        tags=["staging", "visionzero"],
 ) as dag:
 
         socrata_backup_crashes = BashOperator(
                 task_id="socrata_backup_crashes",
-                bash_command="sh ~/dags/bash_scripts/vzv_backup_socrata.sh",
-                env=vzv_data_query_vars
+                # Notice this line has a space ('vzv_backup_socrata.sh ') as the last character
+                # that is intended since somehow not keeping the space is breaking the template library.
+                bash_command="~/dags/bash_scripts/vzv_backup_socrata.sh ",
+                env={**vzv_data_query_vars, **environment_vars_staging}
         )
 
         #
