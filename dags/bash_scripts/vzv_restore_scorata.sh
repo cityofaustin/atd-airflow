@@ -1,7 +1,8 @@
-#
-# It should attempt to download the latest files
-#
+#!/usr/bin/env bash
 
+set -o errexit;
+
+# It should attempt to download the latest files
 function download_vzv_backup {
   TYPE=$1;
   echo "Downloading From S3: ${TYPE}";
@@ -12,6 +13,7 @@ function download_vzv_backup {
   head -10 $TYPE.csv;
 }
 
+# Attempts to upsert to socrata (not implemented)
 function upsert_socrata {
   TYPE=$1;
   echo "Upserting to Socrata: ${TYPE}";

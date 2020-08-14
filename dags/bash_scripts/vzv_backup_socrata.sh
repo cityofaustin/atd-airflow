@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-set -o errexit
+set -o errexit;
 
+# Attempts to download the full dataset (compressed)
 function create_backup_dataset {
   TYPE=$1;
   case "${TYPE}" in
@@ -26,6 +27,7 @@ function create_backup_dataset {
       --output $TYPE.csv.gz;
 }
 
+# Uploads to S3
 function upload_to_s3 {
   TYPE=$1;
   echo "Uploading to S3: ${TYPE}";
@@ -34,6 +36,7 @@ function upload_to_s3 {
   aws s3 cp $TYPE.csv.gz "s3://${VZV_DATA_BUCKET_BACKUPS}/latest-${TYPE}.csv.gz";
 }
 
+# Removes the csv.gz file
 function cleanup {
   TYPE=$1;
   echo "Removing temporary files: ${TYPE}";
