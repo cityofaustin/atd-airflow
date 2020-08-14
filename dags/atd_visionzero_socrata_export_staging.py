@@ -19,7 +19,7 @@ default_args = {
         'email_on_retry'        : False,
         'retries'               : 0,
         'retry_delay'           : timedelta(minutes=5),
-        # 'on_failure_callback'   : task_fail_slack_alert,
+        'on_failure_callback'   : task_fail_slack_alert,
 }
 
 with DAG(
@@ -30,6 +30,9 @@ with DAG(
         tags=["staging", "visionzero"],
 ) as dag:
 
+        #
+        # Downloads the entire datasets from Socrata and uploads to S3
+        #
         socrata_backup_crashes = BashOperator(
                 task_id="socrata_backup_crashes",
                 # Notice this line has a space ('vzv_backup_socrata.sh ') as the last character
@@ -41,40 +44,27 @@ with DAG(
         #
         # This task causes the ETL to break.
         # Executes only if all previous succeeded
-        upsert_to_staging = BashOperator(
+        #
+        upsert_to_socrata = BashOperator(
                 task_id='break_task',
                 bash_command="hello world ",
-                trigger='none_failed'
+                trigger_rule='none_failed',
         )
 
         #
-        # Task: docker_command
-        # Description: Runs a docker container with CentOS, and waits 30 seconds before being terminated.
+        # Task: upsert_to_socrata
+        # Description: Downloads data from VZD and attempts insertion to Socrata
         #
-        # upsert_to_staging = DockerOperator(
-        #         task_id='upsert_to_staging',
+        # upsert_to_socrata = DockerOperator(
+        #         task_id='upsert_to_socrata',
         #         image='atddocker/atd-vz-etl:production',
         #         api_version='auto',
         #         auto_remove=True,
         #         command="/app/process_socrata_export.py",
         #         docker_url="tcp://localhost:2376",
         #         network_mode="bridge",
-        #         environment=environment_vars_staging
-        # )
-
-        #
-        # Task: docker_command
-        # Description: Runs a docker container with CentOS, and waits 30 seconds before being terminated.
-        #
-        # upsert_to_production = DockerOperator(
-        #         task_id='upsert_to_production',
-        #         image='atddocker/atd-vz-etl:production',
-        #         api_version='auto',
-        #         auto_remove=True,
-        #         command="/app/process_socrata_export.py",
-        #         docker_url="tcp://localhost:2376",
-        #         network_mode="bridge",
-        #         environment=environment_vars_production
+        #         trigger_rule='none_failed',
+        #         environment=environment_vars_staging,
         # )
 
         # Executes if the last task fails
@@ -82,7 +72,8 @@ with DAG(
                 task_id='recover_on_error',
                 bash_command="~/dags/bash_scripts/vzv_restore_socrata.sh ",
                 trigger_rule='one_failed',
-                env={**vzv_data_query_vars, **environment_vars_staging}
+                env={**vzv_data_query_vars, **environment_vars_staging},
+                on_success_callback=task_success_slack_alert
         )
 
-        socrata_backup_crashes >> upsert_to_staging >> recover_on_error
+        socrata_backup_crashes >> upsert_to_socrata >> recover_on_error
