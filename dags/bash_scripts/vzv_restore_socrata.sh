@@ -2,9 +2,6 @@
 
 set -o errexit;
 
-
-echo "Hello";
-
 # It should attempt to download the latest files
 function download_vzv_backup {
   TYPE=$1;
