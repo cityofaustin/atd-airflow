@@ -34,7 +34,7 @@ client = Socrata(
 print("Connected!")
 
 print(f"Truncating crashes table...")
-# client.replace(SOCRATA_DATASET_UID, [])
+client.replace(SOCRATA_DATASET_UID, [])
 print(f"Opening backup file: '{MODE}.csv'")
 data = open(f"{MODE}.csv")
 print(f"Upserting data, this can take a few minutes")
