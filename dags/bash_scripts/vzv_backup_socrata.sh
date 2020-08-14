@@ -26,8 +26,8 @@ function create_backup_dataset {
       "https://data.austintexas.gov/resource/${DATASET_CODE}.csv?\$limit=9999999" \
       --output $TYPE.csv.gz;
 
-  echo "Backup sample:";                                                                                                                               |
-  zcat ${TYPE}.csv.gz | head -10;
+  echo "Backup sample: ";                                                                                                                              |
+  zcat $TYPE.csv.gz | head -10;
 }
 
 # Uploads to S3
