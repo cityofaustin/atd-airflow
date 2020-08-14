@@ -19,7 +19,7 @@ default_args = {
         'email_on_retry'        : False,
         'retries'               : 1,
         'retry_delay'           : timedelta(minutes=5),
-        'on_failure_callback'   : task_fail_slack_alert,
+        # 'on_failure_callback'   : task_fail_slack_alert,
 }
 
 with DAG(
@@ -76,4 +76,5 @@ with DAG(
                 bash_command='echo "Not Yet Implemented"',
         )
 
-        socrata_backup_crashes >> upsert_to_staging >> recover_on_error
+        # socrata_backup_crashes >> upsert_to_staging >> recover_on_error
+        socrata_backup_crashes >> recover_on_error
