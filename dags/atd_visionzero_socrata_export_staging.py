@@ -40,16 +40,16 @@ with DAG(
         # Task: docker_command
         # Description: Runs a docker container with CentOS, and waits 30 seconds before being terminated.
         #
-        upsert_to_staging = DockerOperator(
-                task_id='upsert_to_staging',
-                image='atddocker/atd-vz-etl:production',
-                api_version='auto',
-                auto_remove=True,
-                command="/app/process_socrata_export.py",
-                docker_url="tcp://localhost:2376",
-                network_mode="bridge",
-                environment=environment_vars_staging
-        )
+        # upsert_to_staging = DockerOperator(
+        #         task_id='upsert_to_staging',
+        #         image='atddocker/atd-vz-etl:production',
+        #         api_version='auto',
+        #         auto_remove=True,
+        #         command="/app/process_socrata_export.py",
+        #         docker_url="tcp://localhost:2376",
+        #         network_mode="bridge",
+        #         environment=environment_vars_staging
+        # )
 
         #
         # Task: docker_command
