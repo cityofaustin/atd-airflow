@@ -39,6 +39,15 @@ with DAG(
         )
 
         #
+        # This task causes the ETL to break.
+        # Executes only if all previous succeeded
+        upsert_to_staging = BashOperator(
+                task_id='break_task',
+                bash_command="hello world ",
+                trigger='none_failed'
+        )
+
+        #
         # Task: docker_command
         # Description: Runs a docker container with CentOS, and waits 30 seconds before being terminated.
         #
@@ -68,15 +77,12 @@ with DAG(
         #         environment=environment_vars_production
         # )
 
-        #
-        # Task: recover_on_error
-        # Description: We need to recover if the last task failed
-        #
+        # Executes if the last task fails
         recover_on_error = BashOperator(
-                task_id='report_errors',
+                task_id='recover_on_error',
+                bash_command="~/dags/bash_scripts/vzv_restore_socrata.sh ",
                 trigger_rule='one_failed',
-                bash_command='echo "Not Yet Implemented"',
+                env={**vzv_data_query_vars, **environment_vars_staging}
         )
 
-        # socrata_backup_crashes >> upsert_to_staging >> recover_on_error
-        socrata_backup_crashes >> recover_on_error
+        socrata_backup_crashes >> upsert_to_staging >> recover_on_error
