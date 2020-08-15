@@ -6,8 +6,7 @@ from airflow.operators.docker_operator import DockerOperator
 
 from _slack_operators import *
 
-environment_vars_production = Variable.get("atd_visionzero_cris_production", deserialize_json=True)
-environment_vars_staging = Variable.get("atd_visionzero_cris_staging", deserialize_json=True)
+environment_vars = Variable.get("atd_visionzero_cris_staging", deserialize_json=True)
 vzv_data_query_vars = Variable.get("atd_visionzero_vzv_query_staging", deserialize_json=True)
 
 default_args = {
@@ -38,23 +37,29 @@ with DAG(
                 # Notice this line has a space ('vzv_backup_socrata.sh ') as the last character
                 # that is intended since somehow not keeping the space is breaking the template library.
                 bash_command="~/dags/bash_scripts/vzv_backup_socrata.sh ",
-                env={**vzv_data_query_vars, **environment_vars_staging}
+                env={**vzv_data_query_vars, **environment_vars}
         )
 
         #
         # Task: upsert_to_socrata
         # Description: Downloads data from VZD and attempts insertion to Socrata
         #
-        upsert_to_socrata = DockerOperator(
-                task_id='upsert_to_socrata',
-                image='atddocker/atd-vz-etl:staging',
-                api_version='auto',
-                auto_remove=True,
-                command="/app/process_socrata_export.py",
-                docker_url="tcp://localhost:2376",
-                network_mode="bridge",
+        # upsert_to_socrata = DockerOperator(
+        #         task_id='upsert_to_socrata',
+        #         image='atddocker/atd-vz-etl:staging',
+        #         api_version='auto',
+        #         auto_remove=True,
+        #         command="/app/process_socrata_export.py",
+        #         docker_url="tcp://localhost:2376",
+        #         network_mode="bridge",
+        #         trigger_rule='none_failed',
+        #         environment=environment_vars,
+        # )
+
+        upsert_to_socrata = BashOperator(
+                task_id='break_task',
+                bash_command="hello world ",
                 trigger_rule='none_failed',
-                environment=environment_vars_staging,
         )
 
         # Executes if the last task fails
@@ -62,7 +67,7 @@ with DAG(
                 task_id='recover_on_error',
                 bash_command="~/dags/bash_scripts/vzv_restore_socrata.sh ",
                 trigger_rule='one_failed',
-                env={**vzv_data_query_vars, **environment_vars_staging},
+                env={**vzv_data_query_vars, **environment_vars},
                 # on_success_callback=task_success_slack_alert
         )
 
