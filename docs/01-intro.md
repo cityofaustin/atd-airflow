@@ -39,7 +39,7 @@ Node E could be sending an email to the DAG's owner.
 
 
 
-#### DAGs are degined in python fires in your DAG_FOLDER (usually ~/airflow/dags)
+#### DAGs are defined in python files in your DAG_FOLDER (usually ~/airflow/dags)
 
 DAG properties:
 dag_id - The unique identifier for your DAG
