@@ -23,27 +23,27 @@ function create_backup_dataset {
       --header "Accept: */*" \
       --header "Accept-Encoding: gzip, deflate, br" \
       --header "Connection: keep-alive" \
-      "https://data.austintexas.gov/resource/${DATASET_CODE}.csv?\$limit=9999999" \
-      --output $TYPE.csv.gz;
+      "https://data.austintexas.gov/resource/${DATASET_CODE}.json?\$limit=9999999" \
+      --output $TYPE.json.gz;
 
   echo "Backup sample: ";
-  zcat $TYPE.csv.gz | head -10;
+  zcat $TYPE.json.gz | head -10;
 }
 
 # Uploads to S3
 function upload_to_s3 {
   TYPE=$1;
   echo "Uploading to S3: ${TYPE}";
-  aws s3 cp $TYPE.csv.gz "s3://${VZV_DATA_BUCKET_BACKUPS}/socrata-${TYPE}-$(date +"%m-%d-%y").csv.gz";
+  aws s3 cp $TYPE.json.gz "s3://${VZV_DATA_BUCKET_BACKUPS}/socrata-${TYPE}-$(date +"%m-%d-%y").json.gz";
   echo "Uploading to S3: ${TYPE} (latest)";
-  aws s3 cp $TYPE.csv.gz "s3://${VZV_DATA_BUCKET_BACKUPS}/latest-${TYPE}.csv.gz";
+  aws s3 cp $TYPE.json.gz "s3://${VZV_DATA_BUCKET_BACKUPS}/latest-${TYPE}.json.gz";
 }
 
 # Removes the csv.gz file
 function cleanup {
   TYPE=$1;
   echo "Removing temporary files: ${TYPE}";
-  rm -rf $TYPE.csv.gz;
+  rm -rf $TYPE.json.gz;
 }
 
 
