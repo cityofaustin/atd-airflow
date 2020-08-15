@@ -42,30 +42,20 @@ with DAG(
         )
 
         #
-        # This task causes the ETL to break.
-        # Executes only if all previous succeeded
-        #
-        upsert_to_socrata = BashOperator(
-                task_id='break_task',
-                bash_command="hello world ",
-                trigger_rule='none_failed',
-        )
-
-        #
         # Task: upsert_to_socrata
         # Description: Downloads data from VZD and attempts insertion to Socrata
         #
-        # upsert_to_socrata = DockerOperator(
-        #         task_id='upsert_to_socrata',
-        #         image='atddocker/atd-vz-etl:production',
-        #         api_version='auto',
-        #         auto_remove=True,
-        #         command="/app/process_socrata_export.py",
-        #         docker_url="tcp://localhost:2376",
-        #         network_mode="bridge",
-        #         trigger_rule='none_failed',
-        #         environment=environment_vars_staging,
-        # )
+        upsert_to_socrata = DockerOperator(
+                task_id='upsert_to_socrata',
+                image='atddocker/atd-vz-etl:staging',
+                api_version='auto',
+                auto_remove=True,
+                command="/app/process_socrata_export.py",
+                docker_url="tcp://localhost:2376",
+                network_mode="bridge",
+                trigger_rule='none_failed',
+                environment=environment_vars_staging,
+        )
 
         # Executes if the last task fails
         recover_on_error = BashOperator(
