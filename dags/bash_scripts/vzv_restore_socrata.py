@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import os, sys, time
+import os, sys, time, json
 from sodapy import Socrata
 
 # First we need to get the first argument into the MODE variable: (crashes, persons)
@@ -28,17 +28,20 @@ client = Socrata(
     os.getenv("SOCRATA_APP_TOKEN", ""),
     username=os.getenv("SOCRATA_KEY_ID", ""),
     password=os.getenv("SOCRATA_KEY_SECRET", ""),
-    timeout=20,
 )
+
+# change the timeout variable to an arbitrarily large number of seconds
+client.timeout = 7200  # Two hours
 
 print("Connected!")
 
 print(f"Truncating crashes table...")
 client.replace(SOCRATA_DATASET_UID, [])
-print(f"Opening backup file: '{MODE}.csv'")
-data = open(f"{MODE}.csv", mode='r', encoding="utf-8")
-print(f"Upserting data, this can take a few minutes")
-client.replace(SOCRATA_DATASET_UID, data)
+print(f"Opening backup file: '{MODE}.json'")
+with open(f"{MODE}.json") as json_file:
+    data = json.load(json_file)
+    print(f"Upserting data, this can take a few minutes")
+    client.replace(SOCRATA_DATASET_UID, data)
 
 # Terminate Socrata connection
 
