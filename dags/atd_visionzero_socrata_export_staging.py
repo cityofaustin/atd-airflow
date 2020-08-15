@@ -19,7 +19,7 @@ default_args = {
         'email_on_retry'        : False,
         'retries'               : 0,
         'retry_delay'           : timedelta(minutes=5),
-        'on_failure_callback'   : task_fail_slack_alert,
+        # 'on_failure_callback'   : task_fail_slack_alert,
 }
 
 with DAG(
@@ -73,7 +73,7 @@ with DAG(
                 bash_command="~/dags/bash_scripts/vzv_restore_socrata.sh ",
                 trigger_rule='one_failed',
                 env={**vzv_data_query_vars, **environment_vars_staging},
-                on_success_callback=task_success_slack_alert
+                # on_success_callback=task_success_slack_alert
         )
 
         socrata_backup_crashes >> upsert_to_socrata >> recover_on_error
