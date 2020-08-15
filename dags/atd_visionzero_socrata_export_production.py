@@ -15,7 +15,7 @@ default_args = {
         'email_on_retry'        : False,
         'retries'               : 1,
         'retry_delay'           : timedelta(minutes=5),
-        'on_failure_callback'   : task_fail_slack_alert,
+        # 'on_failure_callback'   : task_fail_slack_alert,
 }
 
 environment_vars = Variable.get("atd_visionzero_cris_production", deserialize_json=True)
