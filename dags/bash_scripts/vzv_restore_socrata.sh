@@ -6,11 +6,11 @@ set -o errexit;
 function download_vzv_backup {
   TYPE=$1;
   echo "Downloading From S3: ${TYPE}";
-  aws s3 cp "s3://${VZV_DATA_BUCKET_BACKUPS}/latest-${TYPE}.csv.gz" $TYPE.csv.gz;
+  aws s3 cp "s3://${VZV_DATA_BUCKET_BACKUPS}/latest-${TYPE}.json.gz" $TYPE.json.gz;
   echo "Decompressing: ${TYPE}";
-  zcat $TYPE.csv.gz > $TYPE.csv;
+  zcat $TYPE.json.gz > $TYPE.json;
   echo "Quick Head Test (10 lines): ${TYPE}";
-  head -10 $TYPE.csv;
+  head -10 $TYPE.json;
 }
 
 # Attempts to upsert to socrata (not implemented)
