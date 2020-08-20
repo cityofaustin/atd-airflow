@@ -22,6 +22,7 @@ with DAG(
         'atd_visionzero_cr3_staging',
         default_args=default_args,
         schedule_interval="*/30 * * * *",
+        execution_timeout=timedelta(minutes=60),
         catchup=False,
         tags=["staging", "visionzero"],
 ) as dag:
