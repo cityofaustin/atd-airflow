@@ -45,22 +45,16 @@ with DAG(
         # Task: upsert_to_socrata
         # Description: Downloads data from VZD and attempts insertion to Socrata
         #
-        # upsert_to_socrata = DockerOperator(
-        #         task_id='upsert_to_socrata',
-        #         image='atddocker/atd-vz-etl:staging',
-        #         api_version='auto',
-        #         auto_remove=True,
-        #         command="/app/process_socrata_export.py",
-        #         docker_url="tcp://localhost:2376",
-        #         network_mode="bridge",
-        #         trigger_rule='none_failed',
-        #         environment=environment_vars,
-        # )
-
-        upsert_to_socrata = BashOperator(
-                task_id='break_task',
-                bash_command="hello world ",
+        upsert_to_socrata = DockerOperator(
+                task_id='upsert_to_socrata',
+                image='atddocker/atd-vz-etl:staging',
+                api_version='auto',
+                auto_remove=True,
+                command="/app/process_socrata_export.py",
+                docker_url="tcp://localhost:2376",
+                network_mode="bridge",
                 trigger_rule='none_failed',
+                environment=environment_vars,
         )
 
         # Executes if the last task fails
