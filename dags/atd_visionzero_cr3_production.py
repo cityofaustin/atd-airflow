@@ -22,7 +22,6 @@ with DAG(
         'atd_visionzero_cr3_production',
         default_args=default_args,
         schedule_interval="*/30 * * * *",
-        execution_timeout=timedelta(minutes=60),
         catchup=False,
         max_active_runs=1,
         tags=["production", "visionzero"],
@@ -39,7 +38,8 @@ with DAG(
                 command="/app/process_cris_cr3.py",
                 docker_url="tcp://localhost:2376",
                 network_mode="bridge",
-                environment=Variable.get("atd_visionzero_cris_production", deserialize_json=True)
+                environment=Variable.get("atd_visionzero_cris_production", deserialize_json=True),
+                execution_timeout=timedelta(minutes=60),
         )
 
         t1
