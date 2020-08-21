@@ -6,6 +6,9 @@ from airflow.operators.docker_operator import DockerOperator
 
 from _slack_operators import *
 
+environment_vars = Variable.get("atd_visionzero_cris_staging", deserialize_json=True)
+vzv_data_query_vars = Variable.get("atd_visionzero_vzv_query_staging", deserialize_json=True)
+
 default_args = {
         'owner'                 : 'airflow',
         'description'           : 'Exports data from VZD into Socrata (staging).',
@@ -13,9 +16,9 @@ default_args = {
         'start_date'            : datetime(2019, 1, 1),
         'email_on_failure'      : False,
         'email_on_retry'        : False,
-        'retries'               : 1,
+        'retries'               : 0,
         'retry_delay'           : timedelta(minutes=5),
-        'on_failure_callback'   : task_fail_slack_alert,
+        # 'on_failure_callback'   : task_fail_slack_alert,
 }
 
 with DAG(
@@ -27,27 +30,45 @@ with DAG(
 ) as dag:
 
         #
-        # Task: docker_command
-        # Description: Runs a docker container with CentOS, and waits 30 seconds before being terminated.
+        # Downloads the entire datasets from Socrata and uploads to S3
         #
-        t1 = DockerOperator(
-                task_id='docker_command',
-                image='atddocker/atd-vz-etl:master',
-                api_version='auto',
-                auto_remove=True,
-                command="/app/process_socrata_export.py",
-                docker_url="tcp://localhost:2376",
-                network_mode="bridge",
-                environment=Variable.get("atd_visionzero_cris_staging", deserialize_json=True)
+        socrata_backup_crashes = BashOperator(
+                task_id="socrata_backup_crashes",
+                # Notice this line has a space ('vzv_backup_socrata.sh ') as the last character
+                # that is intended since somehow not keeping the space is breaking the template library.
+                bash_command="~/dags/bash_scripts/vzv_backup_socrata.sh ",
+                env={**vzv_data_query_vars, **environment_vars}
         )
 
         #
-        # Task: report_errors
-        # Description: Sends a message to slack to report any errors.
+        # Task: upsert_to_socrata
+        # Description: Downloads data from VZD and attempts insertion to Socrata
         #
-        t2 = BashOperator(
-                task_id='report_errors',
-                bash_command='echo "Not Yet Implemented"'
+        # upsert_to_socrata = DockerOperator(
+        #         task_id='upsert_to_socrata',
+        #         image='atddocker/atd-vz-etl:staging',
+        #         api_version='auto',
+        #         auto_remove=True,
+        #         command="/app/process_socrata_export.py",
+        #         docker_url="tcp://localhost:2376",
+        #         network_mode="bridge",
+        #         trigger_rule='none_failed',
+        #         environment=environment_vars,
+        # )
+
+        upsert_to_socrata = BashOperator(
+                task_id='break_task',
+                bash_command="hello world ",
+                trigger_rule='none_failed',
         )
 
-        t1 >> t2
+        # Executes if the last task fails
+        recover_on_error = BashOperator(
+                task_id='recover_on_error',
+                bash_command="~/dags/bash_scripts/vzv_restore_socrata.sh ",
+                trigger_rule='one_failed',
+                env={**vzv_data_query_vars, **environment_vars},
+                # on_success_callback=task_success_slack_alert
+        )
+
+        socrata_backup_crashes >> upsert_to_socrata >> recover_on_error
