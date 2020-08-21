@@ -36,7 +36,7 @@ def make_update() -> dict:
 
 
 def main():
-    print("Dissociating CR3 records in the database")
+    print("Clearing Hasura event logs from the database")
     start = time.time()
 
     try:
