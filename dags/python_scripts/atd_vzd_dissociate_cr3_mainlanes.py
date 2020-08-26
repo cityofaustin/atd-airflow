@@ -51,6 +51,8 @@ def make_update() -> dict:
 def main():
     endpoint = os.getenv("HASURA_ENDPOINT")
     print("Dissociating CR3 records in the database")
+    print(f"Hasura Endpoint: {endpoint}")
+    print(f"Please wait, this could take a minute or two.")
     start = time.time()
 
     try:
