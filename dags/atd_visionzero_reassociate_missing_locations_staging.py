@@ -76,9 +76,17 @@ dissociate_noncr3 = BashOperator(
     dag=dag,
 )
 
+#
+# This process will find crashes having the wrong location_id and attempts to fix them
+#
+reassociate_wrong_locations = BashOperator(
+    task_id="reassociate_wrong_locations",
+    bash_command="python3 ~/dags/python_scripts/atd_vzd_reassociate_wrong_locations.py",
+    env=environment_vars,
+    dag=dag,
+)
 
-process_cr3 >> process_noncr3 >> dissociate_cr3 >> dissociate_noncr3
-
+process_cr3 >> process_noncr3 >> dissociate_cr3 >> dissociate_noncr3 >> reassociate_wrong_locations
 
 
 if __name__ == "__main__":
