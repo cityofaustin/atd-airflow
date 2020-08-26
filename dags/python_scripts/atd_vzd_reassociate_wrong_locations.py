@@ -27,7 +27,8 @@ def make_update() -> dict:
                     UPDATE
                         atd_txdot_crashes
                     SET
-                        location_id = find_location_id_for_cr3_collision(crash_id)
+                        location_id = find_location_id_for_cr3_collision(crash_id),
+                        updated_by = 'SYSTEM'
                     WHERE
                       crash_id IN (
                         SELECT
