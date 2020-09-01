@@ -14,13 +14,20 @@ default_args = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
-    "on_failure_callback"   : task_fail_slack_alert,
+    "on_failure_callback": task_fail_slack_alert,
 }
 
-current_time_min = datetime.now()
-current_time_max = datetime.now() + timedelta(days=-1, hours=-8)
-time_min = f"{current_time_min.year}-{current_time_min.month}-01-01"
+current_time = datetime.now()
+current_time_min = current_time + timedelta(days=-30)
+current_time_max = current_time + timedelta(days=-1, hours=-8)
+time_min = f"{current_time_min.year}-{current_time_min.month}-{current_time_min.day}-01"
 time_max = f"{current_time_max.year}-{current_time_max.month}-{current_time_max.day}-{current_time_max.hour}"
+
+# Calculate the dates we need to gather data for
+socrata_sync_date_start = current_time + timedelta(days=-30)
+socrata_sync_date_end = current_time + timedelta(days=1)
+socrata_sync_date_format = "%Y-%m-%d"
+
 environment_vars = Variable.get("atd_mds_config_production", deserialize_json=True)
 docker_image = "atddocker/atd-mds-etl:production"
 
@@ -38,7 +45,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"./provider_runtool.py --provider 'lime' --time-max '{time_max}' --time-min '{time_min}' --incomplete-only --no-logs",
+        command=f"./provider_runtool.py --provider 'lime' --time-min '{time_min}' --time-max '{time_max}' --incomplete-only --no-logs",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=environment_vars,
@@ -51,7 +58,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"./provider_runtool.py --provider 'jump' --time-max '{time_max}' --time-min '{time_min}' --incomplete-only --no-logs",
+        command=f"./provider_runtool.py --provider 'jump' --time-min '{time_min}' --time-max '{time_max}' --incomplete-only --no-logs",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=environment_vars,
@@ -64,7 +71,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"./provider_runtool.py --provider 'bird' --time-max '{time_max}' --time-min '{time_min}' --incomplete-only --no-logs",
+        command=f"./provider_runtool.py --provider 'bird' --time-min '{time_min}' --time-max '{time_max}' --incomplete-only --no-logs",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=environment_vars,
@@ -77,7 +84,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"./provider_runtool.py --provider 'lyft' --time-max '{time_max}' --time-min '{time_min}' --incomplete-only --no-logs",
+        command=f"./provider_runtool.py --provider 'lyft' --time-min '{time_min}' --time-max '{time_max}' --incomplete-only --no-logs",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=environment_vars,
@@ -90,7 +97,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"./provider_runtool.py --provider 'wheels' --time-max '{time_max}' --time-min '{time_min}' --incomplete-only --no-logs",
+        command=f"./provider_runtool.py --provider 'wheels' --time-min '{time_min}' --time-max '{time_max}' --incomplete-only --no-logs",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=environment_vars,
@@ -103,7 +110,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"./provider_runtool.py --provider 'spin' --time-max '{time_max}' --time-min '{time_min}' --incomplete-only --no-logs",
+        command=f"./provider_runtool.py --provider 'spin' --time-min '{time_min}' --time-max '{time_max}' --incomplete-only --no-logs",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=environment_vars,
@@ -116,10 +123,33 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"./provider_runtool.py --provider 'ojo' --time-max '{time_max}' --time-min '{time_min}' --incomplete-only --no-logs",
+        command=f"./provider_runtool.py --provider 'ojo' --time-min '{time_min}' --time-max '{time_max}' --incomplete-only --no-logs",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=environment_vars,
     )
 
-    jump >> lime >> bird >> lyft >> wheels >> spin >> ojo
+    #
+    # Task: socrata_sync
+    # Description: Syncs the mast month
+    socrata_time_min = socrata_sync_date_start.strftime(socrata_sync_date_format)
+    socrata_time_max = socrata_sync_date_end.strftime(socrata_sync_date_format)
+    socrata_sync = DockerOperator(
+        task_id="socrata_sync",
+        image=docker_image,
+        api_version="auto",
+        auto_remove=True,
+        command=f"./provider_full_db_sync_socrata.py  --time-min '{socrata_time_min}' --time-max '{socrata_time_max}'",
+        docker_url="tcp://localhost:2376",
+        network_mode="bridge",
+        environment=environment_vars,
+    )
+
+    # lyft >> \
+    # jump >> \
+    lime >> \
+    bird >> \
+    wheels >> \
+    spin >> \
+    ojo >> \
+    socrata_sync
