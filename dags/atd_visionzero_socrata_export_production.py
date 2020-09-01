@@ -47,7 +47,7 @@ with DAG(
         #
         upsert_to_socrata = DockerOperator(
                 task_id='upsert_to_socrata',
-                image='atddocker/atd-vz-etl:staging',
+                image='atddocker/atd-vz-etl:production',
                 api_version='auto',
                 auto_remove=True,
                 command="/app/process_socrata_export.py",
