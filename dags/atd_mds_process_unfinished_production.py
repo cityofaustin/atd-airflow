@@ -129,27 +129,10 @@ with DAG(
         environment=environment_vars,
     )
 
-    #
-    # Task: socrata_sync
-    # Description: Syncs the mast month
-    socrata_time_min = socrata_sync_date_start.strftime(socrata_sync_date_format)
-    socrata_time_max = socrata_sync_date_end.strftime(socrata_sync_date_format)
-    socrata_sync = DockerOperator(
-        task_id="socrata_sync",
-        image=docker_image,
-        api_version="auto",
-        auto_remove=True,
-        command=f"./provider_full_db_sync_socrata.py  --time-min '{socrata_time_min}' --time-max '{socrata_time_max}'",
-        docker_url="tcp://localhost:2376",
-        network_mode="bridge",
-        environment=environment_vars,
-    )
-
     # lyft >> \
     # jump >> \
     lime >> \
     bird >> \
     wheels >> \
     spin >> \
-    ojo >> \
-    socrata_sync
+    ojo

@@ -144,11 +144,8 @@ with DAG(
         environment=environment_vars,
     )
 
-    # lyft >> \
-    # jump >> \
     lime >> \
     bird >> \
     wheels >> \
     spin >> \
-    ojo >> \
-    socrata_sync
+    ojo
