@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 
-import os
-import boto3
-from typing import Optional, List
+import os, json, boto3, datetime, requests
+from typing import Optional, Set
 from string import Template
-import datetime
 
 PDF_MIME_COMMAND = Template("/usr/bin/file -b --mime $PDF_FILE")
-
 S3_CLIENT = boto3.client('s3')
 
 
@@ -48,7 +45,7 @@ def download_file(crash_id: int) -> bool:
     """
     Downloads a CR3 PDF file into disk
     :param int crash_id: The crash id of the record to be downloaded
-    :returns bool: True if it succeeds, false otherwise.
+    :return bool: True if it succeeds, false otherwise.
     """
     try:
         if is_crash_id(crash_id):
@@ -64,7 +61,7 @@ def delete_file(crash_id: int) -> bool:
     """
     Deletes a CR3 PDF file from disk
     :param int crash_id: The crash id of the file to be deleted
-    :returns bool:
+    :return bool:
     """
     if is_crash_id(crash_id) and file_exists(crash_id):
         os.remove(f"./{crash_id}.pdf")
@@ -76,7 +73,7 @@ def delete_file(crash_id: int) -> bool:
 def get_mime_attributes(crash_id: int) -> dict:
     """
     Runs a shell command and returns a dictionary with mime attributes
-    :returns dict:
+    :return dict:
     """
     # Make sure the id is an integer and that the file exists...
     if not is_crash_id(crash_id) or not file_exists(crash_id):
@@ -146,37 +143,158 @@ def process_record(crash_id: int) -> bool:
     Controls the process for a single file
     """
     if not is_crash_id(crash_id):
+        print(f"Invalid crash_id: {crash_id}")
         return False
 
     # 1. Download file to disk
     if not download_file(crash_id):
+        print(f"Could not find CR3 file for crash_id: {crash_id}")
+        return False
+
+    if not file_exists(crash_id):
+        print(f"The PDF file for crash_id: {crash_id} does not exist. Skipping.")
         return False
 
     # 2. Generate file metadata
     metadata = get_file_metadata(crash_id)
     if not is_valid_metadata(metadata):
+        print(f"Invalid metadata for file for crash_id: {crash_id}")
         return False
 
     # 3. Execute GraphQL with new metadata
+    update_metadata(crash_id, metadata)
 
     # 4. Delete the file from disk
     delete_file(crash_id)
     return True
 
 
-def get_records(limit: int = 100) -> List[int]:
+def get_file_metadata_cloud(crash_id: int) -> Optional[dict]:
+    """
+    Attempts to retrieve the metadata from the database, which can be NULL.
+    :param int crash_id: The crash_id to retrieve it from
+    :return dict:
+    """
+    if not is_crash_id(crash_id):
+        # If the crash id is not valid, return None
+        return None
+
+    # Executes GraphQL to fetch any crashes without CR3 PDF metadata, with a limit as indicated
+    query_get_record = """
+        query getUnverifiedCr3($crash_id:Int!) {
+          atd_txdot_crashes(where: {crash_id: {_eq:$crash_id}}) {
+            cr3_file_metadata
+          }
+        }
+    """
+    response = requests.post(
+        url=os.getenv("HASURA_ENDPOINT"),
+        headers={
+            "Accept": "*/*",
+            "content-type": "application/json",
+            "x-hasura-admin-secret": os.getenv("HASURA_ADMIN_KEY")
+        },
+        json={
+            "query": query_get_record,
+            "variables": {
+                "crash_id": int(crash_id)
+            }
+        }
+    )
+    response.encoding = "utf-8"
+    try:
+        return response.json()["data"]["atd_txdot_crashes"][0]["cr3_file_metadata"]
+    except (IndexError, TypeError, KeyError):
+        return None
+
+
+def get_records(limit: int = 100) -> Set[int]:
     """
     Returns a list of all CR3 crashes without CR3 PDF metadata
-    :return List[int]:
+    :return Set[int]:
     """
+    if not str(limit).isdigit() or limit == 0:
+        return set()
+
     # Executes GraphQL to fetch any crashes without CR3 PDF metadata, with a limit as indicated
-    return []
+    query_get_records = """
+        query getUnverifiedCr3($limit:Int!) {
+          atd_txdot_crashes(where: {cr3_file_metadata: {_is_null: true}, cr3_stored_flag: {_eq: "Y"}}, limit: $limit, order_by: {crash_id: desc}) {
+            crash_id
+          }
+        }
+    """
+    response = requests.post(
+        url=os.getenv("HASURA_ENDPOINT"),
+        headers={
+            "Accept": "*/*",
+            "content-type": "application/json",
+            "x-hasura-admin-secret": os.getenv("HASURA_ADMIN_KEY")
+        },
+        json={
+            "query": query_get_records,
+            "variables": {
+                "limit": int(limit)
+            }
+        }
+    )
+    response.encoding = "utf-8"
+    records = response.json()
+
+    return set(map(lambda x: x["crash_id"], records["data"]["atd_txdot_crashes"]))
+
+
+def update_metadata(crash_id: int, metadata: dict) -> bool:
+    """
+    Returns True if it manages to update the metadata for an object.
+    :param int crash_id: The crash id to be updated
+    :param dict metadata: The metadata to be set
+    :return bool: 
+    """
+    if not is_crash_id(crash_id) \
+            or not isinstance(metadata, dict) \
+            or not is_valid_metadata(metadata):
+        return False
+
+    print(f"Updating crash_id: {crash_id}, with metadata: {json.dumps(metadata)}")
+
+    mutation_update_crash_cr3_metadata = """
+        mutation updateCrashCr3Metadata($crash_id:Int!, $metadata: jsonb) {
+          update_atd_txdot_crashes(where:{crash_id:{_eq: $crash_id}}, _set: {cr3_file_metadata: $metadata}){
+            affected_rows
+          }
+        }
+    """
+    response = requests.post(
+        url=os.getenv("HASURA_ENDPOINT"),
+        headers={
+            "Accept": "*/*",
+            "content-type": "application/json",
+            "x-hasura-admin-secret": os.getenv("HASURA_ADMIN_KEY")
+        },
+        json={
+            "query": mutation_update_crash_cr3_metadata,
+            "variables": {
+                "crash_id": int(crash_id),
+                "metadata": metadata
+            }
+        }
+    )
+    response.encoding = "utf-8"
+    try:
+        return response.json()["data"]["update_atd_txdot_crashes"]["affected_rows"] > 0
+    except (KeyError, TypeError):
+        return False
 
 
 def main():
     """
     Main Loop
     """
-    # Get list of all records, with a limit
     # Processes each one of these crashes using process_record function
-    pass
+    for crash_id in get_records(10):
+        process_record(crash_id)
+
+
+if __name__ == "__main__":
+    main()
