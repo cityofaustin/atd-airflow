@@ -1,6 +1,7 @@
 {
 	"images": [
 		"atddocker/atd-vz-etl",
-		"atddocker/atd-mds-etl"
+		"atddocker/atd-mds-etl",
+		"atddocker/atd-knack-services"
 	]
 }
