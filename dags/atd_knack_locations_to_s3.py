@@ -42,6 +42,7 @@ with DAG(
         api_version="auto",
         auto_remove=True,
         command=f"./services/services/{script}.py -a {app_name} -c {container}  -e {env} -d {date}",
+        docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
     )
