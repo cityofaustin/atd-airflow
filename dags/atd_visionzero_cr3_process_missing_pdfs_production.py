@@ -50,13 +50,13 @@ dag = DAG(
 #
 process_cr3_temp = BashOperator(
     task_id="process_cr3_temp",
-    bash_command="python3 ~/dags/python_scripts/atd_vzd_temp_record_remove_cr3_pdf.py",
+    bash_command="python3 ~/dags/python_scripts/atd_vzd_cr3_temp_record_remove_pdf.py",
     env=environment_vars,
     dag=dag,
 )
 
 #
-# This second process will scan for any records .
+# This second process will scan for PDFs and make metadata annotations.
 #
 process_cr3_scan = BashOperator(
     task_id="process_cr3_scan",
