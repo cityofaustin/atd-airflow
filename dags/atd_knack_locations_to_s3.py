@@ -27,7 +27,7 @@ container = "object_11"
 env = "prod"
 
 with DAG(
-    dag_id="locations_to_s3",
+    dag_id="atd_knack_locations_to_s3",
     default_args=default_args,
     schedule_interval="05 01 * * *",
     dagrun_timeout=timedelta(minutes=60),
@@ -37,7 +37,7 @@ with DAG(
     date = "{{ prev_execution_date_success }}"
 
     t1 = DockerOperator(
-        task_id="locations_to_s3",
+        task_id="atd_knack_locations_to_s3",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
