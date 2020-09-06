@@ -37,7 +37,7 @@ args = {
 # Set up our dag
 #
 dag = DAG(
-    dag_id="atd_visionzero_process_missing_cr3_pdf_production",
+    dag_id="atd_visionzero_cr3_process_missing_pdfs_production",
     description="This script processes invalid CR3 PDFs",
     default_args=args,
     schedule_interval="0 3 * * *",
