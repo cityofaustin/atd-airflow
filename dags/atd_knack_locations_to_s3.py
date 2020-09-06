@@ -11,14 +11,14 @@ default_args = {
     "start_date": datetime(2018, 1, 1),
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 1,
+    "retries": 0,
     "retry_delay": timedelta(minutes=5),
 }
 
 docker_image = "atddocker/atd-knack-services"
 
 # gather env vars
-env_vars = Variable.get("atd_knack_services", deserialize_json=False)
+env_vars = Variable.get("atd_knack_services", deserialize_json=True)
 
 # define command args
 script = "records_to_s3"
