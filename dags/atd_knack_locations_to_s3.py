@@ -18,12 +18,7 @@ default_args = {
 docker_image = "atddocker/atd-knack-services"
 
 # gather env vars
-env_vars = {}
-env_vars["KNACK_CREDIENTIALS"] = Variable.get("KNACK_CREDENTIALS", deserialize_json=False)
-env_vars["SOCRATA_USERNAME"] = Variable.get("SOCRATA_USERNAME")
-env_vars["SOCRATA_PASSWORD"] = Variable.get("SOCRATA_PASSWORD")
-env_vars["aws_access_key_id"] = Variable.get("aws_access_key_id")
-env_vars["aws_secret_access_key"] = Variable.get("aws_secret_access_key")
+env_vars = Variable.get("atd_knack_services", deserialize_json=False)
 
 # define command args
 script = "records_to_s3"
