@@ -41,7 +41,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"./services/{script}.py -a {app_name} -c {container}  -e {env} -d {date}",
+        command=f"./atd-knack-services/services/{script}.py -a {app_name} -c {container}  -e {env} -d {date}",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
