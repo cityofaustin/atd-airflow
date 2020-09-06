@@ -15,7 +15,7 @@ default_args = {
     "retry_delay": timedelta(minutes=5),
 }
 
-docker_image = "atddocker/atd-knack-services"
+docker_image = "atddocker/atd-knack-services:production"
 
 # gather env vars
 env_vars = Variable.get("atd_knack_services", deserialize_json=True)
