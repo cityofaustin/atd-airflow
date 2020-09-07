@@ -51,6 +51,7 @@ with DAG(
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
+        tty=True
     )
 
     t1
