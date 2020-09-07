@@ -12,6 +12,7 @@ default_args = {
     "email_on_retry": False,
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
+    "catchup": False,
 }
 
 docker_image = "atddocker/atd-knack-services:production"
