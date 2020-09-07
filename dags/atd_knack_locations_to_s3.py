@@ -37,7 +37,7 @@ with DAG(
     default_args=default_args,
     schedule_interval="05 01 * * *",
     dagrun_timeout=timedelta(minutes=60),
-    tags=["production"],
+    tags=["production", "knack"],
 ) as dag:
 
     date = "{{ prev_execution_date_success or '1970-01-01' }}"
@@ -47,7 +47,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"./atd-knack-services/services/{script}.py -a {app_name} -c {container}  -e {env} -d {date}",  # noqa
+        command=f"./atd-knack-services/services/{script}.py -a {app_name} -c {container}  -e {env} -d \"{date}\"",  # noqa
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
