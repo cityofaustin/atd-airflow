@@ -28,8 +28,8 @@ env_vars_aws = Variable.get("atd_knack_aws", deserialize_json=True)
 env_vars = {**env_vars_socrata, **env_vars_aws}
 # unpack knack auth
 atd_knack_auth = Variable.get("atd_knack_auth", deserialize_json=True)
-env_vars["knack_app_id"] = atd_knack_auth[app_name][env]["app_id"]
-env_vars["knack_api_key"] = atd_knack_auth[app_name][env]["api_key"]
+env_vars["app_id"] = atd_knack_auth[app_name][env]["app_id"]
+env_vars["api_key"] = atd_knack_auth[app_name][env]["api_key"]
 
 with DAG(
     dag_id="atd_knack_locations_to_s3",
