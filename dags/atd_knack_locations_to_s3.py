@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 from airflow.models import DAG
 from airflow.models import Variable
 from airflow.operators.docker_operator import DockerOperator
-from airflow.utils.dates import days_ago
 
 default_args = {
     "owner": "airflow",
@@ -17,14 +16,20 @@ default_args = {
 
 docker_image = "atddocker/atd-knack-services:production"
 
-# gather env vars
-env_vars = Variable.get("atd_knack_services", deserialize_json=True)
-
-# define command args
+# command args
 script = "records_to_s3"
 app_name = "data-tracker"
 container = "object_11"
 env = "prod"
+
+# assemble env vars
+env_vars_socrata = Variable.get("atd_knack_socrata", deserialize_json=True)
+env_vars_aws = Variable.get("atd_knack_aws", deserialize_json=True)
+env_vars = {**env_vars_socrata, **env_vars_aws}
+# unpack knack auth
+atd_knack_auth = Variable.get("atd_knack_auth", deserialize_json=True)
+env_vars["knack_app_id"] = atd_knack_auth["app_name"][env]["app_id"]
+env_vars["knack_api_key"] = atd_knack_auth["app_name"][env]["api_key"]
 
 with DAG(
     dag_id="atd_knack_locations_to_s3",
@@ -41,7 +46,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"./atd-knack-services/services/{script}.py -a {app_name} -c {container}  -e {env} -d {date}",
+        command=f"./atd-knack-services/services/{script}.py -a {app_name} -c {container}  -e {env} -d {date}",  # noqa
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
