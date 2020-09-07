@@ -39,7 +39,7 @@ with DAG(
     tags=["production"],
 ) as dag:
 
-    date = "{{ prev_execution_date_success }}"
+    date = "{{ prev_execution_date_success or '1970-01-01' }}"
 
     t1 = DockerOperator(
         task_id="atd_knack_locations_to_s3",
