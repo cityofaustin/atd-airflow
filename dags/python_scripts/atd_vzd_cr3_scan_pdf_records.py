@@ -272,7 +272,15 @@ def update_metadata(crash_id: int, metadata: dict) -> bool:
 
     mutation_update_crash_cr3_metadata = """
         mutation updateCrashCr3Metadata($crash_id:Int!, $metadata: jsonb) {
-          update_atd_txdot_crashes(where:{crash_id:{_eq: $crash_id}}, _set: {cr3_file_metadata: $metadata}){
+          update_atd_txdot_crashes(
+            where: {
+                crash_id:{_eq: $crash_id}
+            },
+            _set: {
+                cr3_file_metadata: $metadata
+                updated_by: "SYSTEM"
+            }
+          ){
             affected_rows
           }
         }
