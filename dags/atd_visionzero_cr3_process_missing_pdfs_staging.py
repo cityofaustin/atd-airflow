@@ -32,7 +32,7 @@ process_missing_vars = Variable.get("atd_visionzero_cr3_process_missing_staging"
 args = {
     "owner": "airflow",
     "start_date": days_ago(2),
-    # "on_failure_callback": task_fail_slack_alert
+    "on_failure_callback": task_fail_slack_alert
 }
 
 #
@@ -42,9 +42,9 @@ dag = DAG(
     dag_id="atd_visionzero_cr3_process_missing_pdfs_staging",
     description="This script processes invalid CR3 PDFs",
     default_args=args,
-    schedule_interval="0 3 * * *",
+    schedule_interval="*/5 * * * *",
     dagrun_timeout=timedelta(minutes=60),
-    tags=["production", "visionzero"],
+    tags=["staging", "visionzero"],
     catchup=False,
     max_active_runs=1,
 )
