@@ -35,7 +35,7 @@ env_vars["api_key"] = atd_knack_auth[app_name][env]["api_key"]
 with DAG(
     dag_id="atd_knack_signals_to_s3",
     default_args=default_args,
-    schedule_interval="05 01 * * *",
+    schedule_interval="11 01 * * *",
     dagrun_timeout=timedelta(minutes=60),
     tags=["production", "knack"],
 ) as dag:
