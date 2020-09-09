@@ -25,8 +25,9 @@ from airflow.utils.dates import days_ago
 from _slack_operators import task_fail_slack_alert
 
 # First, load our environment variables as a dictionary
-environment_vars = Variable.get("atd_visionzero_hasura_sql_staging", deserialize_json=True)
-process_missing_vars = Variable.get("atd_visionzero_cr3_process_missing_staging", deserialize_json=True)
+environment_vars_sql = Variable.get("atd_visionzero_hasura_sql_production", deserialize_json=True)
+environment_vars_graphql = Variable.get("atd_visionzero_cris_production", deserialize_json=True)
+process_missing_vars = Variable.get("atd_visionzero_cr3_process_missing_production", deserialize_json=True)
 
 args = {
     "owner": "airflow",
@@ -41,7 +42,7 @@ dag = DAG(
     dag_id="atd_visionzero_cr3_process_missing_pdfs_production",
     description="This script processes invalid CR3 PDFs",
     default_args=args,
-    schedule_interval="0 3 * * *",
+    schedule_interval="*/5 * * * *",
     dagrun_timeout=timedelta(minutes=60),
     tags=["production", "visionzero"],
     catchup=False,
@@ -54,7 +55,7 @@ dag = DAG(
 process_cr3_temp = BashOperator(
     task_id="process_cr3_temp",
     bash_command="python3 ~/dags/python_scripts/atd_vzd_cr3_temp_record_remove_pdf.py",
-    env=environment_vars,
+    env=environment_vars_sql,
     dag=dag,
 )
 
@@ -64,7 +65,7 @@ process_cr3_temp = BashOperator(
 process_cr3_scan = BashOperator(
     task_id="process_cr3_scan",
     bash_command="python3 ~/dags/python_scripts/atd_vzd_cr3_scan_pdf_records.py",
-    env={**environment_vars, **process_missing_vars},
+    env={**environment_vars_graphql, **process_missing_vars},
     dag=dag,
     execution_timeout=timedelta(minutes=60),
 )
