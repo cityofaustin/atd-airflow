@@ -5,7 +5,11 @@ from typing import Optional, Set
 from string import Template
 
 PDF_MIME_COMMAND = Template("/usr/bin/file -b --mime $PDF_FILE")
-S3_CLIENT = boto3.client('s3')
+PDF_MAX_RECORDS = os.getenv("PDF_MAX_RECORDS", 100)
+
+AWS_BUCKET_NAME = os.getenv("AWS_BUCKET_NAME", "")
+AWS_BUCKET_ENVIRONMENT = os.getenv("AWS_BUCKET_ENVIRONMENT", "")
+AWS_S3_CLIENT = boto3.client('s3')
 
 
 def is_crash_id(crash_id: int) -> bool:
@@ -49,7 +53,11 @@ def download_file(crash_id: int) -> bool:
     """
     try:
         if is_crash_id(crash_id):
-            S3_CLIENT.download_file('atd-vision-zero-editor', f"production/cris-cr3-files/{crash_id}.pdf", f"{crash_id}.pdf")
+            AWS_S3_CLIENT.download_file(
+                AWS_BUCKET_NAME,
+                f"{AWS_BUCKET_ENVIRONMENT}/cris-cr3-files/{crash_id}.pdf",
+                f"{crash_id}.pdf"
+            )
             return file_exists(crash_id)
         else:
             return False
@@ -292,7 +300,7 @@ def main():
     Main Loop
     """
     # Processes each one of these crashes using process_record function
-    for crash_id in get_records(10):
+    for crash_id in get_records(PDF_MAX_RECORDS):
         process_record(crash_id)
 
 
