@@ -31,7 +31,7 @@ process_missing_vars = Variable.get("atd_visionzero_cr3_process_missing_staging"
 args = {
     "owner": "airflow",
     "start_date": days_ago(2),
-    "on_failure_callback": task_fail_slack_alert
+    # "on_failure_callback": task_fail_slack_alert
 }
 
 #
