@@ -249,7 +249,11 @@ def get_records(limit: int = 100) -> Set[int]:
     response.encoding = "utf-8"
     records = response.json()
 
-    return set(map(lambda x: x["crash_id"], records["data"]["atd_txdot_crashes"]))
+    try:
+        return set(map(lambda x: x["crash_id"], records["data"]["atd_txdot_crashes"]))
+    except (KeyError, TypeError):
+        print("No data available. Response: ", records)
+        return set()
 
 
 def update_metadata(crash_id: int, metadata: dict) -> bool:
