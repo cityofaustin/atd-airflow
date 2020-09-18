@@ -12,7 +12,6 @@ default_args = {
     "email_on_retry": False,
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
-    "catchup": False,
 }
 
 docker_image = "atddocker/atd-knack-services:production"
@@ -38,6 +37,7 @@ with DAG(
     schedule_interval="05 01 * * *",
     dagrun_timeout=timedelta(minutes=60),
     tags=["production", "knack"],
+    catchup=False,
 ) as dag:
 
     date = "{{ prev_execution_date_success or '1970-01-01' }}"
@@ -47,11 +47,11 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"./atd-knack-services/services/{script}.py -a {app_name} -c {container}  -e {env} -d \"{date}\"",  # noqa
+        command=f'./atd-knack-services/services/{script}.py -a {app_name} -c {container}  -e {env} -d "{date}"',  # noqa
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
-        tty=True
+        tty=True,
     )
 
     t1

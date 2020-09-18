@@ -12,7 +12,6 @@ default_args = {
     "email_on_retry": False,
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
-    "catchup": False,
 }
 
 docker_image = "atddocker/atd-knack-services:production"
@@ -38,6 +37,7 @@ with DAG(
     schedule_interval="11 01 * * *",
     dagrun_timeout=timedelta(minutes=60),
     tags=["production", "knack"],
+    catchup=False,
 ) as dag:
 
     date = "{{ prev_execution_date_success or '1970-01-01' }}"
