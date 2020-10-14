@@ -15,7 +15,7 @@ default_args = {
 }
 
 docker_image = "atddocker/atd-service-bot:production"
-app_name = "dts_portal"
+app_name = "dts-portal"
 env = "test"
 
 # assemble env vars
