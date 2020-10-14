@@ -19,11 +19,11 @@ docker_image = "atddocker/atd-service-bot:production"
 env_vars = {}
 env_vars["GITHUB_ACCESS_TOKEN"] = Variable.get("atd_service_bot_github_token")
 env_vars["ZENHUB_ACCESS_TOKEN"] = Variable.get("zenhub_access_token")
-env_vars["SOCRATA_API_KEY_ID"] = os.environ["atd_service_bot_socrata_api_key_id"]
-env_vars["SOCRATA_API_KEY_SECRET"] = os.environ[
+env_vars["SOCRATA_API_KEY_ID"] = Variable.get("atd_service_bot_socrata_api_key_id"]
+env_vars["SOCRATA_API_KEY_SECRET"] = Variable.get(
     "atd_service_bot_socrata_api_key_secret"
 ]
-env_vars["SOCRATA_APP_TOKEN"] = os.environ["atd_service_bot_socrata_app_token"]
+env_vars["SOCRATA_APP_TOKEN"] = Variable.get("atd_service_bot_socrata_app_token"]
 
 with DAG(
     dag_id="atd_service_bot_github_to_socrata_production",
