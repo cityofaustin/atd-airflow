@@ -22,7 +22,7 @@ env_vars = {}
 KNACK_AUTH = Variable.get("atd_knack_auth", deserialize_json=True)
 env_vars["KNACK_API_KEY"] = KNACK_AUTH[app_name][env]["app_id"]
 env_vars["KNACK_APP_ID"] = KNACK_AUTH[app_name][env]["api_key"]
-env_vars["GH_ACCESS_TOKEN"] = Variable.get("atd_service_bot_github_token")
+env_vars["GITHUB_ACCESS_TOKEN"] = Variable.get("atd_service_bot_github_token")
 env_vars["KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME"] = Variable.get(
     "knack_dts_portal_service_bot_username"
 )
