@@ -31,11 +31,11 @@ env_vars["KNACK_DTS_PORTAL_SERVICE_BOT_PASSWORD"] = Variable.get(
 )
 
 with DAG(
-    dag_id="atd_service_bot",
+    dag_id="atd_service_bot_production",
     default_args=default_args,
     schedule_interval="* * * * *",
     dagrun_timeout=timedelta(minutes=5),
-    tags=["staging", "knack", "atd-service-bot", "github"],
+    tags=["production", "knack", "atd-service-bot", "github"],
     catchup=False,
 ) as dag:
 
