@@ -6,12 +6,11 @@ from airflow.operators.docker_operator import DockerOperator
 default_args = {
     "owner": "airflow",
     "description": "Fetch new DTS service requests and create Github issues",
-    "depend_on_past": False,
-    "start_date": datetime(2020, 9, 1),
+    "depends_on_past": False,
+    "start_date": datetime(2015, 12, 1),
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "retry_delay": timedelta(minutes=5),
 }
 
 docker_image = "atddocker/atd-service-bot:production"
@@ -35,7 +34,7 @@ with DAG(
     dag_id="atd_service_bot",
     default_args=default_args,
     schedule_interval="* * * * *",
-    dagrun_timeout=timedelta(minutes=60),
+    dagrun_timeout=timedelta(minutes=5),
     tags=["staging", "knack", "atd-service-bot", "github"],
     catchup=False,
 ) as dag:
