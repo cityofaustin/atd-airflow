@@ -9,6 +9,9 @@ from _slack_operators import *
 environment_vars = Variable.get("atd_visionzero_cris_staging", deserialize_json=True)
 vzv_data_query_vars = Variable.get("atd_visionzero_vzv_query_staging", deserialize_json=True)
 
+# Download the Hasura Production endpoint and key
+vzd_endpoint_production = Variable.get("atd_visionzero_hasura_sql_production", deserialize_json=True)
+
 default_args = {
         'owner'                 : 'airflow',
         'description'           : 'Exports data from VZD into Socrata (staging).',
@@ -49,11 +52,11 @@ with DAG(
                 image='atddocker/atd-vz-etl:staging',
                 api_version='auto',
                 auto_remove=True,
-                command="/app/process_socrata_export.py",
+                command="/app/process_socrata_export.py --no-time-constraint",
                 docker_url="tcp://localhost:2376",
                 network_mode="bridge",
                 trigger_rule='none_failed',
-                environment=environment_vars,
+                environment={**environment_vars, **vzd_endpoint_production},
         )
 
         # Executes if the last task fails
