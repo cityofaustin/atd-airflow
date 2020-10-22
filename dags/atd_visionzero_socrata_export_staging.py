@@ -12,6 +12,10 @@ vzv_data_query_vars = Variable.get("atd_visionzero_vzv_query_staging", deseriali
 # Download the Hasura Production endpoint and key
 vzd_endpoint_production = Variable.get("atd_visionzero_hasura_sql_production", deserialize_json=True)
 
+# Override the values (it fails if you merge dictionaries?)
+environment_vars["HASURA_ENDPOINT"] = vzd_endpoint_production["HASURA_ENDPOINT"]
+environment_vars["HASURA_ADMIN_KEY"] = vzd_endpoint_production["HASURA_ADMIN_KEY"]
+
 default_args = {
         'owner'                 : 'airflow',
         'description'           : 'Exports data from VZD into Socrata (staging).',
@@ -56,7 +60,7 @@ with DAG(
                 docker_url="tcp://localhost:2376",
                 network_mode="bridge",
                 trigger_rule='none_failed',
-                environment={**environment_vars, **vzd_endpoint_production},
+                environment=environment_vars,
         )
 
         # Executes if the last task fails
