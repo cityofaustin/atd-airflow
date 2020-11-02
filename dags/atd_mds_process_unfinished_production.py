@@ -53,16 +53,16 @@ with DAG(
 
     # Task: process_unfinished_jump
     # Description: Processes unfinished schedule blocks assigned to Jump
-    jump = DockerOperator(
-        task_id="process_unfinished_jump",
-        image=docker_image,
-        api_version="auto",
-        auto_remove=True,
-        command=f"./provider_runtool.py --provider 'jump' --time-min '{time_min}' --time-max '{time_max}' --incomplete-only --no-logs",
-        docker_url="tcp://localhost:2376",
-        network_mode="bridge",
-        environment=environment_vars,
-    )
+    # jump = DockerOperator(
+    #     task_id="process_unfinished_jump",
+    #     image=docker_image,
+    #     api_version="auto",
+    #     auto_remove=True,
+    #     command=f"./provider_runtool.py --provider 'jump' --time-min '{time_min}' --time-max '{time_max}' --incomplete-only --no-logs",
+    #     docker_url="tcp://localhost:2376",
+    #     network_mode="bridge",
+    #     environment=environment_vars,
+    # )
 
     # Task: process_unfinished_bird
     # Description: Processes unfinished schedule blocks assigned to Bird
@@ -79,16 +79,16 @@ with DAG(
 
     # Task: process_unfinished_lyft
     # Description: Processes unfinished schedule blocks assigned to Lyft
-    lyft = DockerOperator(
-        task_id="process_unfinished_lyft",
-        image=docker_image,
-        api_version="auto",
-        auto_remove=True,
-        command=f"./provider_runtool.py --provider 'lyft' --time-min '{time_min}' --time-max '{time_max}' --incomplete-only --no-logs",
-        docker_url="tcp://localhost:2376",
-        network_mode="bridge",
-        environment=environment_vars,
-    )
+    # lyft = DockerOperator(
+    #     task_id="process_unfinished_lyft",
+    #     image=docker_image,
+    #     api_version="auto",
+    #     auto_remove=True,
+    #     command=f"./provider_runtool.py --provider 'lyft' --time-min '{time_min}' --time-max '{time_max}' --incomplete-only --no-logs",
+    #     docker_url="tcp://localhost:2376",
+    #     network_mode="bridge",
+    #     environment=environment_vars,
+    # )
 
     # Task: process_unfinished_wheels
     # Description: Processes unfinished schedule blocks assigned to Wheels
