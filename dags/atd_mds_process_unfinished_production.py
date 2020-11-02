@@ -18,13 +18,13 @@ default_args = {
 }
 
 current_time = datetime.now()
-current_time_min = current_time + timedelta(days=-30)
+current_time_min = current_time + timedelta(days=-35)
 current_time_max = current_time + timedelta(days=-1, hours=-8)
 time_min = f"{current_time_min.year}-{current_time_min.month}-{current_time_min.day}-01"
 time_max = f"{current_time_max.year}-{current_time_max.month}-{current_time_max.day}-{current_time_max.hour}"
 
 # Calculate the dates we need to gather data for
-socrata_sync_date_start = current_time + timedelta(days=-30)
+socrata_sync_date_start = current_time + timedelta(days=-35)
 socrata_sync_date_end = current_time + timedelta(days=1)
 socrata_sync_date_format = "%Y-%m-%d"
 
@@ -129,10 +129,22 @@ with DAG(
         environment=environment_vars,
     )
 
+    revel = DockerOperator(
+        task_id="process_unfinished_revel",
+        image=docker_image,
+        api_version="auto",
+        auto_remove=True,
+        command=f"./provider_runtool.py --provider 'revel' --time-min '{time_min}' --time-max '{time_max}' --incomplete-only --no-logs",
+        docker_url="tcp://localhost:2376",
+        network_mode="bridge",
+        environment=environment_vars,
+    )
+
     # lyft >> \
     # jump >> \
     lime >> \
     bird >> \
     wheels >> \
     spin >> \
-    ojo
+    ojo >> \
+    revel
