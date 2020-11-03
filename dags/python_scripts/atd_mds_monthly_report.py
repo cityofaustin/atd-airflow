@@ -84,6 +84,9 @@ def clean_up_record(record):
     :param dict record:
     :return dict:
     """
+    if record is None:
+        return record
+
     # The provider ID is actually nested, we need to move it one level up.
     record["field_62"] = record["field_62"]["knack_id"]
     # We don't need the month number, but the month name:
@@ -118,11 +121,6 @@ data = list(
 print("Inserting records into knack...")
 for record in data:
     print("Processing: ", record)
-    response = knackpy.record(
-        record,
-        obj_key=os.getenv("knack_object"),
-        app_id=os.getenv("knack_app_id"),
-        api_key=os.getenv("knack_api_key"),
-        method='create'
-    )
-    print("Response: ", record, "\n")
+    app = knackpy.App(app_id=os.getenv("knack_app_id"),  api_key=os.getenv("knack_api_key"))
+    response = app.record(method="create", data=record, obj=os.getenv("knack_object"))
+    print("Response: ", response, "\n")
