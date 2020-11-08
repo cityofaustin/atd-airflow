@@ -3,6 +3,7 @@
 		"atddocker/atd-vz-etl",
 		"atddocker/atd-mds-etl",
 		"atddocker/atd-knack-services",
-		"atddocker/atd-service-bot"
+		"atddocker/atd-service-bot",
+		"atddocker/atd-finance-data"
 	]
 }
