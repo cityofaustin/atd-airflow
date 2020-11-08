@@ -42,7 +42,43 @@ with DAG(
         tty=True,
     )
 
-    t1
+    t2 = DockerOperator(
+        task_id="units",
+        image=docker_image,
+        api_version="auto",
+        auto_remove=True,
+        command="python /app/upload_to_s3.py units",
+        docker_url="tcp://localhost:2376",
+        network_mode="bridge",
+        environment=env_vars,
+        tty=True,
+    )
+
+    t3 = DockerOperator(
+        task_id="objects",
+        image=docker_image,
+        api_version="auto",
+        auto_remove=True,
+        command="python /app/upload_to_s3.py objects",
+        docker_url="tcp://localhost:2376",
+        network_mode="bridge",
+        environment=env_vars,
+        tty=True,
+    )
+
+    t4 = DockerOperator(
+        task_id="master_agreements",
+        image=docker_image,
+        api_version="auto",
+        auto_remove=True,
+        command="python /app/upload_to_s3.py master_agreements",
+        docker_url="tcp://localhost:2376",
+        network_mode="bridge",
+        environment=env_vars,
+        tty=True,
+    )
+
+    t1 >> t2 >> t3 >> t4
 
 if __name__ == "__main__":
     dag.cli()
