@@ -7,7 +7,7 @@ import sys
 import json
 import boto3
 import argparse
-import psycopg2
+import requests
 from   pdf2image import convert_from_path, convert_from_bytes
 import pytesseract
 
@@ -15,62 +15,150 @@ import pytesseract
 parser = argparse.ArgumentParser(description='Extract CR3 diagrams and narratives')
 parser.add_argument('-v', action='store_true', help='Be verbose')
 parser.add_argument('--cr3-source', metavar=('bucket', 'path'), nargs=2, required=True, help='Where can we hope to find CR3 files on S3?')
-parser.add_argument('--batch-size', metavar='int', required=True, help='How many cr3s to attempt to process?')
+parser.add_argument('--batch-size', metavar='int', default=1, help='How many cr3s to attempt to process?')
 parser.add_argument('--update-narrative', action='store_true', help='Update narrative in database')
 parser.add_argument('--update-timestamp', action='store_true', help='Update timestamp in database')
 parser.add_argument('--save-diagram', metavar=('bucket', 'path'), nargs=2, help='Save diagram PNG in a S3 bucket and path')
-parser.add_argument('--crash-id', metavar='int', type=int, nargs=1, help='Specific crash ID to operate on')
-parser.add_argument('--db-host', metavar='string', nargs=1, required=True, help='DB: host')
-parser.add_argument('--db-database', metavar='string', nargs=1, required=True, help='DB: database name')
-parser.add_argument('--db-username', metavar='string', nargs=1, required=True, help='DB: username')
-parser.add_argument('--db-password', metavar='string', nargs=1, required=True, help='DB: password')
+parser.add_argument('--crash-id', metavar='int', type=int, nargs=1, default=[0], help='Specific crash ID to operate on')
 args = parser.parse_args()
 
 s3 = boto3.client('s3')
 
-# connect to a postgres database expecting atd_txdot_crashes
-pg = psycopg2.connect(host=args.db_host[0], database=args.db_database[0], user=args.db_username[0], password=args.db_password[0])
+def update_crash_processed_date(crash_id: int) -> bool:
+    if (args.v):
+        print("update_crash_processed_date(" + str(crash_id) + ")")
+    query = """
+    mutation update_crash_processsed_date($crash_id: Int) {
+        update_atd_txdot_crashes(where: {crash_id: {_eq: $crash_id}}, _set: {cr3_ocr_extraction_date: "now"}) {
+	    affected_rows
+        }
+    }
+    """
+    response = requests.post(
+        url=os.getenv("HASURA_ENDPOINT"),
+        headers={
+            "Accept": "*/*",
+            "content-type": "application/json",
+            "x-hasura-admin-secret": os.getenv("HASURA_ADMIN_KEY")
+            },
+        json={
+            "query": query,
+            "variables": {
+                "crash_id": crash_id
+                }
+            }
+        )
+    try:
+        return response.json()["data"]["update_atd_txdot_crashes"]["affected_rows"] > 0
+    except (KeyError, TypeError):
+        sys.stderr.write("ERROR")
+        sys.stderr.write(response.json())
 
-# either, get the next N crashes which have not been processed, as known by checking if "processed_date" is null or not
-next_group = 'select crash_id from atd_txdot_crashes where processed_date is null order by crash_id desc limit ' + str(args.batch_size)
-# or, select a certain crash
-set_group = 'select crash_id from atd_txdot_crashes where crash_id in (%s) order by crash_id desc limit ' + str(args.batch_size)
 
-# iterate through the crashes returned
-crashes = pg.cursor()
-crashes.execute(set_group if args.crash_id else next_group, (args.crash_id))
-crash = crashes.fetchone()
-while crash is not None:
-    crash_id = crash[0]
+def update_crash_narrative(crash_id: int, narrative: str, metadata: dict) -> bool:
+    if (args.v):
+        print("update_crash_narrative(crash_id: " + str(crash_id) + ", ...)")
+
+    if not(isinstance(metadata, dict)):
+        metadata = {}
+    metadata['narrative'] = narrative
+
+    query = """
+    mutation update_crash_narrative($crash_id: Int, $metadata: jsonb) {
+        update_atd_txdot_crashes(where: {crash_id: {_eq: $crash_id}}, _set: {cr3_file_metadata: $metadata}) {
+	    affected_rows
+        }
+    }
+    """
+    response = requests.post(
+        url=os.getenv("HASURA_ENDPOINT"),
+        headers={
+            "Accept": "*/*",
+            "content-type": "application/json",
+            "x-hasura-admin-secret": os.getenv("HASURA_ADMIN_KEY")
+            },
+        json={
+            "query": query,
+            "variables": {
+                "crash_id": crash_id,
+                "metadata": metadata
+                }
+            }
+        )
+    try:
+        return response.json()["data"]["update_atd_txdot_crashes"]["affected_rows"] > 0
+    except (KeyError, TypeError):
+        sys.stderr.write("ERROR")
+        sys.stderr.write(response.json())
 
 
-    # load up the next row, in case something fails and we continue back up to the top of the loop
-    crash = crashes.fetchone()
 
+get_batch = """
+query find_cr3s($limit: Int) {
+  atd_txdot_crashes(where: {
+      cr3_ocr_extraction_date: {_is_null: true},
+      crash_id: {_gt: 10000}
+      crash_date: {_gte: "2015-01-01"}
+      },
+    limit: $limit) {
+      crash_id,
+      cr3_ocr_extraction_date,
+      cr3_file_metadata
+  }
+}
+"""
+batch_variables = { "limit": int(args.batch_size) }
 
+get_single_cr3 = """
+query find_cr3s($crash_id: Int, $limit: Int) {
+  atd_txdot_crashes(where: {
+      crash_id: {_eq: $crash_id}
+      },
+    limit: $limit) {
+      crash_id,
+      cr3_ocr_extraction_date,
+      cr3_file_metadata
+  }
+}
+"""
+single_cr3_variables = { "crash_id": args.crash_id[0], "limit": int(args.batch_size) }
+
+graphql = ''
+variables = {}
+
+if (args.crash_id[0]):
+    graphql = get_single_cr3
+    variables = single_cr3_variables
+else:
+    graphql = get_batch
+    variables = batch_variables
+
+response = requests.post(
+  url=os.getenv("HASURA_ENDPOINT"),
+  headers={
+    "Accept": "*/*",
+    "content-type": "application/json",
+    "x-hasura-admin-secret": os.getenv("HASURA_ADMIN_KEY")
+    },
+  json={
+    "query": graphql,
+    "variables": variables
+    }
+  )
+
+for crash in response.json()['data']['atd_txdot_crashes']:
     # be verbose
     if (args.v):
-        print("\n")
-        print('Preparing to operate on crash_id: ' + str(crash_id))
-
+        print('Preparing to operate on crash_id: ' + str(crash['crash_id']))
 
     # do we want to indicate in the database that an attempt was made to process the CR3.
     if (args.update_timestamp):
-        try:
-            ts = pg.cursor()
-            ts.execute('update atd_txdot_crashes set processed_date = now() where crash_id = %s', [crash_id])
-            pg.commit()
-            ts.close()
-        except (Exception, psycopg2.DatabaseError) as error:
-            sys.stderr.write("Error: Failed updating the timestamp for this process running\n")
-            print(error)
-        finally:
-            if ts is not None:
-                ts.close()
-
+        update_crash_processed_date(crash['crash_id'])
 
     # build url and download the CR3
-    key = args.cr3_source[1] + '/' + str(crash_id) + '.pdf'
+    if (args.v):
+        print('Pulling CR3 PDF from S3');
+    key = args.cr3_source[1] + '/' + str(crash['crash_id']) + '.pdf'
     obj = []
     try:
         pdf = s3.get_object(Bucket=args.cr3_source[0], Key=key)
@@ -78,32 +166,37 @@ while crash is not None:
         sys.stderr.write("Error: Failed to get PDF from the S3 object\n")
         continue
 
-
     # render the pdf into an array of raster images
+    if (args.v):
+        print('Rendering PDF into images');
     pages = []
     try:
         pages = convert_from_bytes(pdf['Body'].read(), 150)
     except: 
-        sys.stderr.write("Error: PDF Read for crash_id (" + str(crash_id) + ") failed.\n")
+        sys.stderr.write("Error: PDF Read for crash_id (" + str(crash['crash_id']) + ") failed.\n")
         continue
 
 
     # crop out the narrative and diagram into PIL.Image objects
+    if (args.v):
+        print('Cropping narrative and diagram from images');
     try:
-        narrative = pages[1].crop((96,3683,2580,6049))
-        diagram = pages[1].crop((2589,3531,5001,6048))
+        narrative_image = pages[1].crop((96,3683,2580,6049))
+        diagram_image = pages[1].crop((2589,3531,5001,6048))
     except:
         sys.stderr.write("Error: Failed to extract the image of the narative and diagram from image in memory\n")
         continue
 
 
     # use tesseract to OCR the text
-    text = ''
+    if (args.v):
+        print('OCRing narrative')
+    narrative = ''
     try:
-        text = (pytesseract.image_to_string(narrative))
+        narrative = (pytesseract.image_to_string(narrative_image))
         if (args.v):
             print("Extracted Text:\n")
-            print(text)
+            print(narrative)
     except:
         sys.stderr.write("Error: Failed to OCR the narrative\n")
         continue
@@ -111,26 +204,20 @@ while crash is not None:
 
     # do we want to save a PNG file from the image data that was cropped out where the crash diagram is expected to be?
     if (args.save_diagram):
+        if (args.v):
+            print('Saving PNG of diagram to S3')
         try:
             # never touch the disk; store the image data in a few steps to get to a variable of binary data
             buffer = io.BytesIO()
-            diagram.save(buffer, format='PNG')
-            output_diagram = s3.put_object(Body=buffer.getvalue(), Bucket=args.save_diagram[0], Key=args.save_diagram[1] + '/' + str(crash_id) + '.png')
+            diagram_image.save(buffer, format='PNG')
+            output_diagram = s3.put_object(Body=buffer.getvalue(), Bucket=args.save_diagram[0], Key=args.save_diagram[1] + '/' + str(crash['crash_id']) + '.png')
         except:
             sys.stderr.write("Error: Faild setting s3 object containing the diagram PNG file\n")
             continue
 
-
     # do we want to store the OCR'd text results from the attempt in the database for the current crash id?
     if (args.update_narrative):
-        try:
-            narrative = pg.cursor()
-            narrative.execute('update atd_txdot_crashes set ocr_narrative = %s where crash_id = %s', (text, crash_id))
-            pg.commit()
-            narrative.close()
-        except (Exception, psycopg2.DatabaseError) as error:
-            sys.stderr.write("Error: Failed updating the narrative from the OCR output\n")
-            print(error)
-        finally:
-            if narrative is not None:
-                narrative.close()
+        update_crash_narrative(crash['crash_id'], narrative, crash['cr3_file_metadata'])
+
+    if (args.v):
+        print("\n")
