@@ -19,6 +19,7 @@ env = "prod"
 
 # assemble env vars
 env_vars = Variable.get("atd_knack_aws", deserialize_json=True)
+env_vars.update(Variable.get("controllers_office_finance_db", deserialize_json=True))
 atd_knack_auth = Variable.get("atd_knack_auth", deserialize_json=True)
 env_vars["KNACK_APP_ID"] = atd_knack_auth[app_name][env]["app_id"]
 env_vars["KNACK_API_KEY"] = atd_knack_auth[app_name][env]["api_key"]
