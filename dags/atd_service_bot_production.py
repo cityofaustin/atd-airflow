@@ -3,6 +3,8 @@ from airflow.models import DAG
 from airflow.models import Variable
 from airflow.operators.docker_operator import DockerOperator
 
+from _slack_operators import *
+
 default_args = {
     "owner": "airflow",
     "description": "Fetch new DTS service requests and create Github issues",
@@ -11,6 +13,7 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
+    "on_failure_callback": task_fail_slack_alert,
 }
 
 docker_image = "atddocker/atd-service-bot:production"
