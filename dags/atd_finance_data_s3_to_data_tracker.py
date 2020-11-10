@@ -49,7 +49,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command="python /app/s3_to_knack.py task_orders units",
+        command=f"python /app/s3_to_knack.py units {app_name}",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
