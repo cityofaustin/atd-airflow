@@ -25,7 +25,7 @@ env_vars = {**env_vars_finance_db, **env_vars_aws}
 with DAG(
     dag_id="atd_finance_data_to_s3",
     default_args=default_args,
-    schedule_interval="13 4 * * *",
+    schedule_interval="13 12 * * *",
     dagrun_timeout=timedelta(minutes=60),
     tags=["production", "atd-finance-data"],
     catchup=False,
