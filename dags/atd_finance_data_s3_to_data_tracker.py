@@ -15,6 +15,7 @@ default_args = {
 
 docker_image = "atddocker/atd-finance-data:production"
 app_name = "data-tracker"
+env = "prod"
 
 # assemble env vars
 env_vars = Variable.get("atd_knack_aws", deserialize_json=True)
@@ -35,7 +36,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command="python /app/s3_to_knack.py task_orders data-tracker",
+        command=f"python /app/s3_to_knack.py task_orders {app_name}",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
