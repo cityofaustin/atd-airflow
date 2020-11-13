@@ -36,7 +36,7 @@ env_vars["SOCRATA_APP_TOKEN"] = Variable.get("atd_service_bot_socrata_app_token"
 with DAG(
     dag_id="atd_knack_mmc_activities_to_s3",
     default_args=default_args,
-    schedule_interval="05 01 * * *",
+    schedule_interval="55 01 * * *",
     dagrun_timeout=timedelta(minutes=60),
     tags=["production", "knack"],
     catchup=False,
