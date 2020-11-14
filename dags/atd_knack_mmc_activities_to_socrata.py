@@ -34,7 +34,7 @@ env_vars["SOCRATA_API_KEY_SECRET"] = Variable.get(
 env_vars["SOCRATA_APP_TOKEN"] = Variable.get("atd_service_bot_socrata_app_token")
 
 with DAG(
-    dag_id="atd_knack_mmc_activities_to_s3",
+    dag_id="atd_knack_mmc_activities_to_socrata",
     default_args=default_args,
     schedule_interval="55 01 * * *",
     dagrun_timeout=timedelta(minutes=60),
@@ -45,7 +45,7 @@ with DAG(
     date = "{{ prev_execution_date_success or '1970-01-01' }}"
 
     t1 = DockerOperator(
-        task_id="atd_knack_mmc_activities_to_s3",
+        task_id="atd_knack_mmc_activities_to_socrata",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
