@@ -36,15 +36,22 @@ with DAG(
     tags=["production", "knack"],
     catchup=False,
 ) as dag:
-
-    date = "{{ prev_execution_date_success or '1970-01-01' }}"
+    # completely replace data on 15th day of every month
+    # this is a failsafe catch records that may have been missed via
+    # incremental loading
+    execution_date = "{{ execution_date }}"
+    execution_dt = datetime.fromisoformat(execution_date)
+    if execution_date.days == 15:
+        date_filter = "1970-01-01"
+    else:
+        date_filter = "{{ prev_execution_date_success or '1970-01-01' }}"
 
     t1 = DockerOperator(
         task_id="atd_knack_signals_to_s3",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f'./atd-knack-services/services/{script}.py -a {app_name} -c {container}  -e {env} -d "{date}"',  # noqa
+        command=f'./atd-knack-services/services/{script}.py -a {app_name} -c {container}  -e {env} -d "{date_filter}"',  # noqa
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
