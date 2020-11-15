@@ -37,15 +37,8 @@ with DAG(
     catchup=False,
 ) as dag:
     # completely replace data on 15th day of every month
-    # this is a failsafe catch records that may have been missed via
-    # incremental loading
-    execution_date = "{{ execution_date }}"
-    execution_dt = datetime.fromisoformat(execution_date)
-    if execution_date.days == 15:
-        date_filter = "1970-01-01"
-    else:
-        date_filter = "{{ prev_execution_date_success or '1970-01-01' }}"
-
+    # this is a failsafe catch records that may have been missed via incremental loading
+    date_filter = "{{ '1970-01-01' if ds.endswith('15') else prev_execution_date_success or '1970-01-01' }}"
     t1 = DockerOperator(
         task_id="atd_knack_signals_to_s3",
         image=docker_image,
