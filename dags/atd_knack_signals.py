@@ -77,7 +77,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f'./atd-knack-services/services/{script_task_3}.py -a {app_name} -c {container}  -e {env} -d "{date_filter}"',  # noqa
+        command=f'./atd-knack-services/services/{script_task_3}.py -a {app_name} -c {container}  -e {env}',  # noqa
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
