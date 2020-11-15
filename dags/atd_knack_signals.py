@@ -38,7 +38,7 @@ env_vars["AGOL_USERNAME"] = Variable.get("agol_username")
 env_vars["AGOL_PASSWORD"] = Variable.get("agol_password")
 
 with DAG(
-    dag_id="atd_knack_signals_to_s3",
+    dag_id="atd_knack_signals",
     default_args=default_args,
     schedule_interval="11 01 * * *",
     dagrun_timeout=timedelta(minutes=60),
