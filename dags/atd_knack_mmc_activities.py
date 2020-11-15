@@ -10,7 +10,7 @@ default_args = {
     "start_date": datetime(2020, 9, 1),
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 0,
+    "retries": 1,
     "retry_delay": timedelta(minutes=5),
 }
 
@@ -36,8 +36,8 @@ env_vars["SOCRATA_APP_TOKEN"] = Variable.get("atd_service_bot_socrata_app_token"
 with DAG(
     dag_id="atd_knack_mmc_activities_to_s3_to_socrata",
     default_args=default_args,
-    schedule_interval="33 01 * * *",
-    dagrun_timeout=timedelta(minutes=60),
+    schedule_interval="33 06 * * *",
+    dagrun_timeout=timedelta(minutes=300),
     tags=["production", "knack"],
     catchup=False,
 ) as dag:
