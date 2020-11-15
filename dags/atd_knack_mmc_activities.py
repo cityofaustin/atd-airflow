@@ -17,7 +17,8 @@ default_args = {
 docker_image = "atddocker/atd-knack-services:production"
 
 # command args
-script = "records_to_s3"
+task_1_script = "records_to_s3"
+task_2_script = "records_to_socrata"
 app_name = "data-tracker"
 container = "view_2681"
 env = "prod"
@@ -49,7 +50,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f'./atd-knack-services/services/{script}.py -a {app_name} -c {container}  -e {env} -d "{date}"',  # noqa
+        command=f'./atd-knack-services/services/{task_1_script}.py -a {app_name} -c {container}  -e {env} -d "{date}"',  # noqa
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
@@ -61,7 +62,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f'./atd-knack-services/services/{script}.py -a {app_name} -c {container}  -e {env} -d "{date}"',  # noqa
+        command=f'./atd-knack-services/services/{task_2_script}.py -a {app_name} -c {container}  -e {env} -d "{date}"',  # noqa
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
