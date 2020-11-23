@@ -26,10 +26,9 @@ def make_update() -> dict:
                         and that are not part of a main lane polygon.
                     */
                     UPDATE
-                        atd_txdot_crashes
-                    SET location_id = (SELECT location_id FROM find_location_for_noncr3_collision(crash_id) LIMIT 1),
-                        updated_by  = 'SYSTEM'
-                    WHERE crash_id IN (
+                        atd_apd_blueform
+                    SET location_id = (SELECT location_id FROM find_location_for_noncr3_collision(case_id) LIMIT 1)
+                    WHERE case_id IN (
                         WITH atc AS (
                             /* Find any crashes that have:
                                 - coordinates
