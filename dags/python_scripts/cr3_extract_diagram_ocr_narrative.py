@@ -14,6 +14,7 @@ import pytesseract
 # Configure the available arguments to the program
 parser = argparse.ArgumentParser(description='Extract CR3 diagrams and narratives')
 parser.add_argument('-v', action='store_true', help='Be verbose')
+parser.add_argument('-d', action='store_true', help='Check for digitally created PDFs')
 parser.add_argument('--cr3-source', metavar=('bucket', 'path'), nargs=2, required=True, help='Where can we hope to find CR3 files on S3?')
 parser.add_argument('--batch-size', metavar='int', default=1, help='How many cr3s to attempt to process?')
 parser.add_argument('--update-narrative', action='store_true', help='Update narrative in database')
@@ -175,6 +176,29 @@ for crash in response.json()['data']['atd_txdot_crashes']:
     except: 
         sys.stderr.write("Error: PDF Read for crash_id (" + str(crash['crash_id']) + ") failed.\n")
         continue
+
+
+    # write a rendered image to disk for debugging
+    #pages[1].save('/home/frank/Desktop/page.png')
+
+    if (args.d):
+        if (args.v):
+            print('Excuting a check for a digitally created PDF');
+        digital_end_to_end = True
+        # these pixels are expected to be black on digitally created PDFs
+        pixels = [(110,3520), (3080, 3046), (3050, 2264), (2580, 6056), (1252, 154), (2582, 4166), (1182, 1838)]
+        for pixel in pixels:
+            rgb_pixel = pages[1].getpixel(pixel)
+            if not(rgb_pixel[0] == 0 and rgb_pixel[1] == 0 and rgb_pixel[2] == 0):
+                digital_end_to_end = False
+            if (args.v):
+                print('Pixel' + "(%04d,%04d)" % pixel + ': ' + str(rgb_pixel))
+        if (args.v):
+            print('PDF Digital End to End?: ' + str(digital_end_to_end));
+        if not(digital_end_to_end):
+            if (args.v):
+                sys.stderr.write("Error: Non-digitally created PDF detected.\n")
+            continue
 
 
     # crop out the narrative and diagram into PIL.Image objects
