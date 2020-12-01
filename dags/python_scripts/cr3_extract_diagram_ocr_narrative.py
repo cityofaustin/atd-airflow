@@ -19,7 +19,8 @@ parser.add_argument('--cr3-source', metavar=('bucket', 'path'), nargs=2, require
 parser.add_argument('--batch-size', metavar='int', default=1, help='How many cr3s to attempt to process?')
 parser.add_argument('--update-narrative', action='store_true', help='Update narrative in database')
 parser.add_argument('--update-timestamp', action='store_true', help='Update timestamp in database')
-parser.add_argument('--save-diagram', metavar=('bucket', 'path'), nargs=2, help='Save diagram PNG in a S3 bucket and path')
+parser.add_argument('--save-diagram-s3', metavar=('bucket', 'path'), nargs=2, help='Save diagram PNG in a S3 bucket and path')
+parser.add_argument('--save-diagram-disk', metavar=('path'), nargs=1, help='Save diagram PNG to disk in a certain directory')
 parser.add_argument('--crash-id', metavar='int', type=int, nargs=1, default=[0], help='Specific crash ID to operate on')
 args = parser.parse_args()
 
@@ -225,19 +226,28 @@ for crash in response.json()['data']['atd_txdot_crashes']:
         sys.stderr.write("Error: Failed to OCR the narrative\n")
         continue
 
-
     # do we want to save a PNG file from the image data that was cropped out where the crash diagram is expected to be?
-    if (args.save_diagram):
+    if (args.save_diagram_s3):
         if (args.v):
             print('Saving PNG of diagram to S3')
         try:
             # never touch the disk; store the image data in a few steps to get to a variable of binary data
             buffer = io.BytesIO()
             diagram_image.save(buffer, format='PNG')
-            output_diagram = s3.put_object(Body=buffer.getvalue(), Bucket=args.save_diagram[0], Key=args.save_diagram[1] + '/' + str(crash['crash_id']) + '.png')
+            output_diagram = s3.put_object(Body=buffer.getvalue(), Bucket=args.save_diagram_s3[0], Key=args.save_diagram_s3[1] + '/' + str(crash['crash_id']) + '.png')
         except:
             sys.stderr.write("Error: Faild setting s3 object containing the diagram PNG file\n")
             continue
+
+    # do we want to save a PNG file from the image data to disk?
+    if (args.save_diagram_disk):
+        if (args.v):
+            print('Saving PNG of diagram to disk')
+        try:
+            path = args.save_diagram_disk[0] + '/' + str(crash['crash_id']) + '.png'
+            diagram_image.save(path)
+        except:
+            sys.stderr.write("Error: Faild diagram PNG file to disk\n")
 
     # do we want to store the OCR'd text results from the attempt in the database for the current crash id?
     if (args.update_narrative):
