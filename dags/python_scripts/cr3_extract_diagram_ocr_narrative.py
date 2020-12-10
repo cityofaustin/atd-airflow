@@ -5,6 +5,7 @@ import os
 import re
 import sys
 import json
+from   uuid import uuid4
 import boto3
 import argparse
 import requests
@@ -63,24 +64,52 @@ def update_crash_processed_date(crash_id: int) -> bool:
         sys.stderr.write(response.json())
 
 
-def update_crash_narrative(crash_id: int, narrative: str, metadata: dict) -> bool:
+def update_crash_narrative(crash_id: int, narrative: str) -> bool:
     """
-    Store the OCR extracted crash narative in the metadata field, returning a boolean indicating success..
+    Store the OCR extracted crash narative in the investigator_narrative field, returning a boolean indicating success.
 
     :param int: Crash ID
-    :param str: Crash Narrative
+    :param str: Narrative
+    """
+
+    query = """
+    mutation update_crash_narrative($crash_id: Int, $narrative: String) {
+        update_atd_txdot_crashes(where: {crash_id: {_eq: $crash_id}}, _set: {investigator_narrative: $narrative}) {
+	    affected_rows
+        }
+    }
+    """
+    response = requests.post(
+        url=os.getenv("HASURA_ENDPOINT"),
+        headers={
+            "Accept": "*/*",
+            "content-type": "application/json",
+            "x-hasura-admin-secret": os.getenv("HASURA_ADMIN_KEY")
+            },
+        json={
+            "query": query,
+            "variables": {
+                "crash_id": crash_id,
+                "narrative": narrative
+                }
+            }
+        )
+    try:
+        return response.json()["data"]["update_atd_txdot_crashes"]["affected_rows"] > 0
+    except (KeyError, TypeError):
+        sys.stderr.write("ERROR")
+        sys.stderr.write(response.json())
+
+def update_crash_metadata(crash_id: int, metadata: dict) -> bool:
+    """
+    Store the extracted crash diagram in the metadata field, returning a boolean indicating success.
+
+    :param int: Crash ID
     :param dict: Metadata
     """
 
-    if (args.v):
-        print("update_crash_narrative(crash_id: " + str(crash_id) + ", ...)")
-
-    if not(isinstance(metadata, dict)):
-        metadata = {}
-    metadata['narrative'] = narrative
-
     query = """
-    mutation update_crash_narrative($crash_id: Int, $metadata: jsonb) {
+    mutation update_crash_metadata($crash_id: Int, $metadata: jsonb) {
         update_atd_txdot_crashes(where: {crash_id: {_eq: $crash_id}}, _set: {cr3_file_metadata: $metadata}) {
 	    affected_rows
         }
@@ -192,9 +221,6 @@ for crash in response.json()['data']['atd_txdot_crashes']:
         continue
 
 
-    # write a rendered image to disk for debugging
-    #pages[1].save('/home/frank/Desktop/page.png')
-
     if (args.d):
         if (args.v):
             print('Excuting a check for a digitally created PDF');
@@ -239,15 +265,23 @@ for crash in response.json()['data']['atd_txdot_crashes']:
         sys.stderr.write("Error: Failed to OCR the narrative\n")
         continue
 
+
     # do we want to save a PNG file from the image data that was cropped out where the crash diagram is expected to be?
     if (args.save_diagram_s3):
+        diagram_uuid = uuid4()
         if (args.v):
             print('Saving PNG of diagram to S3')
         try:
             # never touch the disk; store the image data in a few steps to get to a variable of binary data
             buffer = io.BytesIO()
             diagram_image.save(buffer, format='PNG')
-            output_diagram = s3.put_object(Body=buffer.getvalue(), Bucket=args.save_diagram_s3[0], Key=args.save_diagram_s3[1] + '/' + str(crash['crash_id']) + '.png')
+            output_diagram = s3.put_object(Body=buffer.getvalue(), Bucket=args.save_diagram_s3[0], Key=args.save_diagram_s3[1] + '/' + str(diagram_uuid) + '.png')
+            if (args.v):
+                print("update_crash_metadata(crash_id: " + str(crash['crash_id']) + ", ...) with diagram filename")
+            if not(isinstance(crash['cr3_file_metadata'], dict)):
+                crash['cr3_file_metadata'] = {}
+            crash['cr3_file_metadata']['diagram_s3_file'] = str(diagram_uuid) + '.png'
+            update_crash_metadata(crash['crash_id'], crash['cr3_file_metadata'])
         except:
             sys.stderr.write("Error: Faild setting s3 object containing the diagram PNG file\n")
             continue
@@ -262,9 +296,20 @@ for crash in response.json()['data']['atd_txdot_crashes']:
         except:
             sys.stderr.write("Error: Faild diagram PNG file to disk\n")
 
+
     # do we want to store the OCR'd text results from the attempt in the database for the current crash id?
     if (args.update_narrative):
-        update_crash_narrative(crash['crash_id'], narrative, crash['cr3_file_metadata'])
+        update_crash_narrative(crash['crash_id'], narrative)
+
+    '''
+    if (args.save_diagram_s3 and args.update_narrative):
+        if (args.v):
+            print("update_crash_metadata(crash_id: " + str(crash['crash_id']) + ", ...) with success flag")
+        if not(isinstance(crash['cr3_file_metadata'], dict)):
+            crash['cr3_file_metadata'] = {}
+        crash['cr3_file_metadata']['successful_ocr_diagram_extraction'] = True
+        update_crash_metadata(crash['crash_id'], crash['cr3_file_metadata'])
+    '''
 
     if (args.v):
         print("\n")
