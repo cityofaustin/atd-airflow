@@ -51,6 +51,8 @@ RUN set -ex \
         inetutils-ping \
         libspatialindex-dev \
         file \
+        poppler-utils \
+        tesseract-ocr \
     && sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen \
     && locale-gen \
     && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
@@ -70,6 +72,8 @@ RUN set -ex \
     && pip install knackpy \
     && pip install csvkit \
     && pip install SQLAlchemy \
+    && pip install pdf2image \
+    && pip install pytesseract \
     && pip install apache-airflow[crypto,celery,postgres,hive,jdbc,mysql,s3,ssh${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}]==${AIRFLOW_VERSION} \
     && pip install 'redis==3.2' \
     && if [ -n "${PYTHON_DEPS}" ]; then pip install ${PYTHON_DEPS}; fi \
