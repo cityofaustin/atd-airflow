@@ -27,6 +27,12 @@ args = parser.parse_args()
 s3 = boto3.client('s3')
 
 def update_crash_processed_date(crash_id: int) -> bool:
+    """
+    Update the timestamp in the database for a given crash to indicate the CR3 has been processed, returning a boolean indicating success.
+
+    :param int: crash_id
+    """
+
     if (args.v):
         print("update_crash_processed_date(" + str(crash_id) + ")")
     query = """
@@ -58,6 +64,14 @@ def update_crash_processed_date(crash_id: int) -> bool:
 
 
 def update_crash_narrative(crash_id: int, narrative: str, metadata: dict) -> bool:
+    """
+    Store the OCR extracted crash narative in the metadata field, returning a boolean indicating success..
+
+    :param int: Crash ID
+    :param str: Crash Narrative
+    :param dict: Metadata
+    """
+
     if (args.v):
         print("update_crash_narrative(crash_id: " + str(crash_id) + ", ...)")
 
@@ -92,7 +106,6 @@ def update_crash_narrative(crash_id: int, narrative: str, metadata: dict) -> boo
     except (KeyError, TypeError):
         sys.stderr.write("ERROR")
         sys.stderr.write(response.json())
-
 
 
 get_batch = """
