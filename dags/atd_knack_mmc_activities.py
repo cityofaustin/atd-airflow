@@ -17,14 +17,14 @@ default_args = {
 docker_image = "atddocker/atd-knack-services:production"
 
 # command args
-task_1_script = "records_to_s3"
+task_1_script = "records_to_postgrest"
 task_2_script = "records_to_socrata"
 app_name = "data-tracker"
 container = "view_2681"
 env = "prod"
 
 # assemble env vars
-env_vars = Variable.get("atd_knack_aws", deserialize_json=True)
+env_vars = Variable.get("atd_knack_services_postgrest", deserialize_json=True)
 atd_knack_auth = Variable.get("atd_knack_auth", deserialize_json=True)
 env_vars["KNACK_APP_ID"] = atd_knack_auth[app_name][env]["app_id"]
 env_vars["KNACK_API_KEY"] = atd_knack_auth[app_name][env]["api_key"]
@@ -46,7 +46,7 @@ with DAG(
     date = "{{ prev_execution_date_success or '1970-01-01' }}"
 
     t1 = DockerOperator(
-        task_id="atd_knack_mmc_activities_to_s3",
+        task_id="atd_knack_mmc_activities_to_postgrest",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
