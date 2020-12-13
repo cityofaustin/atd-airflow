@@ -5,7 +5,7 @@ from airflow.operators.docker_operator import DockerOperator
 
 default_args = {
     "owner": "airflow",
-    "description": "Load mmc activities from Knack to S3 to Socrata",
+    "description": "Load mmc activities from Knack to Poostgres to Socrata",
     "depend_on_past": False,
     "start_date": datetime(2020, 9, 1),
     "email_on_failure": False,
