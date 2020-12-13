@@ -5,7 +5,7 @@ from airflow.operators.docker_operator import DockerOperator
 
 default_args = {
     "owner": "airflow",
-    "description": "Load signals (view_197) records from Knack to S3 to AGOL and Socata",
+    "description": "Load signals (view_197) records from Knack to Postgrest to AGOL and Socata",  # noqa:E501
     "depend_on_past": False,
     "start_date": datetime(2020, 9, 1),
     "email_on_failure": False,
@@ -17,7 +17,7 @@ default_args = {
 docker_image = "atddocker/atd-knack-services:production"
 
 # command args
-script_task_1 = "records_to_s3"
+script_task_1 = "records_to_postgrest"
 script_task_2 = "records_to_socrata"
 script_task_3 = "records_to_agol"
 app_name = "data-tracker"
@@ -25,7 +25,7 @@ container = "view_197"
 env = "prod"
 
 # assemble env vars
-env_vars = Variable.get("atd_knack_aws", deserialize_json=True)
+env_vars = Variable.get("atd_knack_services_postgrest", deserialize_json=True)
 atd_knack_auth = Variable.get("atd_knack_auth", deserialize_json=True)
 env_vars["KNACK_APP_ID"] = atd_knack_auth[app_name][env]["app_id"]
 env_vars["KNACK_API_KEY"] = atd_knack_auth[app_name][env]["api_key"]
@@ -47,13 +47,13 @@ with DAG(
 ) as dag:
     # completely replace data on 15th day of every month
     # this is a failsafe catch records that may have been missed via incremental loading
-    date_filter = "{{ '1970-01-01' if ds.endswith('15') else prev_execution_date_success or '1970-01-01' }}"
+    date_filter = "{{ '1970-01-01' if ds.endswith('15') else prev_execution_date_success or '1970-01-01' }}"  # noqa:E501
     t1 = DockerOperator(
-        task_id="atd_knack_signals_to_s3",
+        task_id="atd_knack_signals_to_postgrest",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f'./atd-knack-services/services/{script_task_1}.py -a {app_name} -c {container}  -e {env} -d "{date_filter}"',  # noqa
+        command=f'./atd-knack-services/services/{script_task_1}.py -a {app_name} -c {container}  -e {env} -d "{date_filter}"',  # noqa:E501
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
@@ -77,7 +77,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f'./atd-knack-services/services/{script_task_3}.py -a {app_name} -c {container}  -e {env}',  # noqa
+        command=f"./atd-knack-services/services/{script_task_3}.py -a {app_name} -c {container}  -e {env}",  # noqa:E501
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
