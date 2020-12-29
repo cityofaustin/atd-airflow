@@ -143,9 +143,10 @@ query find_cr3s($limit: Int) {
       cr3_ocr_extraction_date: {_is_null: true},
       crash_id: {_gt: 10000}
       crash_date: {_gte: "2015-01-01"}
-      },
-    order_by: {crash_date: desc},
-    limit: $limit) {
+      cr3_file_metadata:{_is_null: false}
+  },
+  order_by: {crash_date: desc},
+  limit: $limit) {
       crash_id,
       cr3_ocr_extraction_date,
       cr3_file_metadata
