@@ -37,7 +37,7 @@ with DAG(
     catchup=False,
 ) as dag:
 
-    date_filter = "{{ prev_execution_date_success or '2020-01-01' }}"
+    date_filter = "{{ prev_execution_date_success or '2020-12-31' }}"
 
     t1 = DockerOperator(
         task_id="road_conditions_socrata",
