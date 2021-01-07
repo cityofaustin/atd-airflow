@@ -18,7 +18,7 @@ docker_image = "atddocker/atd-road-conditions:production"
 
 
 # assemble env vars
-env_vars = Variable.get("atd_knack_services_postgrest", deserialize_json=True)
+env_vars = Variable.get("atd_road_conditions_postgrest", deserialize_json=True)
 atd_knack_auth = Variable.get("atd_knack_auth", deserialize_json=True)
 env_vars["KNACK_APP_ID"] = atd_knack_auth["data-tracker"]["prod"]["app_id"]
 env_vars["KNACK_API_KEY"] = atd_knack_auth["data-tracker"]["prod"]["api_key"]
