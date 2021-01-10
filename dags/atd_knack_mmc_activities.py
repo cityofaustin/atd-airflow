@@ -50,7 +50,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f'./atd-knack-services/services/{task_1_script}.py -a {app_name} -c {container}  -e {env} -d "{date}"',  # noqa
+        command=f'./atd-knack-services/services/{task_1_script}.py -a {app_name} -c {container} -d "{date}"',  # noqa
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
@@ -62,7 +62,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f'./atd-knack-services/services/{task_2_script}.py -a {app_name} -c {container}  -e {env} -d "{date}"',  # noqa
+        command=f'./atd-knack-services/services/{task_2_script}.py -a {app_name} -c {container} -d "{date}"',  # noqa
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
