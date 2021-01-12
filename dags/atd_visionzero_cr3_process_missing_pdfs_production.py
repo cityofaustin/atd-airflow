@@ -42,7 +42,7 @@ dag = DAG(
     dag_id="atd_visionzero_cr3_process_missing_pdfs_production",
     description="This script processes invalid CR3 PDFs",
     default_args=args,
-    schedule_interval="*/5 * * * *",
+    schedule_interval="*/30 * * * *",
     dagrun_timeout=timedelta(minutes=60),
     tags=["production", "visionzero"],
     catchup=False,
