@@ -5,6 +5,7 @@
     "atddocker/atd-knack-services",
     "atddocker/atd-service-bot",
     "atddocker/atd-finance-data",
-    "atddocker/atd-road-conditions"
+    "atddocker/atd-road-conditions",
+    "atddocker/atd-kits"
   ]
 }
