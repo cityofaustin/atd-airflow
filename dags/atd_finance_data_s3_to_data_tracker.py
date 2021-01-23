@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from airflow.models import DAG
 from airflow.models import Variable
 from airflow.operators.docker_operator import DockerOperator
+from _slack_operators import task_fail_slack_alert
 
 default_args = {
     "owner": "airflow",
@@ -11,6 +12,7 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
+    "on_failure_callback": task_fail_slack_alert,
 }
 
 docker_image = "atddocker/atd-finance-data:production"
