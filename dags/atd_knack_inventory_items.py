@@ -21,6 +21,7 @@ app_name_src = "finance-purchasing"
 app_name_dest = "data-tracker"
 container_dest = "view_2863"
 container_src = "view_788"
+env = "prod"
 
 # assemble env vars
 env_vars = Variable.get("atd_knack_services_postgrest", deserialize_json=True)
