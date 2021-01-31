@@ -30,7 +30,7 @@ atd_knack_auth = Variable.get("atd_knack_auth", deserialize_json=True)
 with DAG(
     dag_id="atd_knack_data_tracker_signals_to_vza",
     default_args=default_args,
-    schedule_interval="* 6 * * *",
+    schedule_interval="* 7 * * *",
     dagrun_timeout=timedelta(minutes=60),
     tags=["production", "knack"],
     catchup=False,
