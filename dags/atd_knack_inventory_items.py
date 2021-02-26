@@ -1,3 +1,4 @@
+from copy import deepcopy
 from datetime import datetime, timedelta
 from airflow.models import DAG
 from airflow.models import Variable
@@ -37,8 +38,9 @@ with DAG(
 ) as dag:
 
     date = "{{ prev_execution_date_success or '1970-01-01' }}"
-    env_vars["KNACK_APP_ID"] = atd_knack_auth[app_name_src][env]["app_id"]
-    env_vars["KNACK_API_KEY"] = atd_knack_auth[app_name_src][env]["api_key"]
+    env_vars_t1 = deepcopy(env_vars)
+    env_vars_t1["KNACK_APP_ID"] = atd_knack_auth[app_name_src][env]["app_id"]
+    env_vars_t1["KNACK_API_KEY"] = atd_knack_auth[app_name_src][env]["api_key"]
 
     t1 = DockerOperator(
         task_id="atd_knack_finance_inventory_items_to_postgrest",
@@ -48,12 +50,13 @@ with DAG(
         command=f'./atd-knack-services/services/records_to_postgrest.py -a {app_name_src} -c {container_src} -d "{date}"',  # noqa
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
-        environment=env_vars,
+        environment=env_vars_t1,
         tty=True,
     )
-    
-    env_vars["KNACK_APP_ID"] = atd_knack_auth[app_name_dest][env]["app_id"]
-    env_vars["KNACK_API_KEY"] = atd_knack_auth[app_name_dest][env]["api_key"]
+
+    env_vars_t2 = deepcopy(env_vars)
+    env_vars_t2["KNACK_APP_ID"] = atd_knack_auth[app_name_dest][env]["app_id"]
+    env_vars_t2["KNACK_API_KEY"] = atd_knack_auth[app_name_dest][env]["api_key"]
 
     t2 = DockerOperator(
         task_id="atd_knack_data_tracker_inventory_items_to_postgrest",
@@ -63,14 +66,14 @@ with DAG(
         command=f'./atd-knack-services/services/records_to_postgrest.py -a {app_name_dest} -c {container_dest} -d "{date}"',  # noqa
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
-        environment=env_vars,
+        environment=env_vars_t2,
         tty=True,
     )
 
     env_vars["KNACK_APP_ID_SRC"] = atd_knack_auth[app_name_src][env]["app_id"]
     env_vars["KNACK_APP_ID_DEST"] = atd_knack_auth[app_name_dest][env]["app_id"]
     env_vars["KNACK_API_KEY_DEST"] = atd_knack_auth[app_name_dest][env]["api_key"]
-    
+
     t3 = DockerOperator(
         task_id="atd_knack_update_data_tracker_inventory_items_from_finance_inventory",
         image=docker_image,
