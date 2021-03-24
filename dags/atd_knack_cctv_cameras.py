@@ -6,9 +6,9 @@ from _slack_operators import task_fail_slack_alert
 
 default_args = {
     "owner": "airflow",
-    "description": "Load signals (view_197) records from Knack to Postgrest to AGOL and Socata",  # noqa:E501
+    "description": "Load CCTV camera records from Knack to Postgrest to AGOL and Socata",  # noqa:E501
     "depend_on_past": False,
-    "start_date": datetime(2020, 9, 1),
+    "start_date": datetime(2021, 1, 1),
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
@@ -21,8 +21,9 @@ docker_image = "atddocker/atd-knack-services:production"
 # command args
 script_task_1 = "records_to_postgrest"
 script_task_2 = "records_to_socrata"
+script_task_3 = "records_to_agol"
 app_name = "data-tracker"
-container = "view_2892"
+container = "view_395"
 env = "prod"
 
 # assemble env vars
@@ -39,16 +40,18 @@ env_vars["AGOL_USERNAME"] = Variable.get("agol_username")
 env_vars["AGOL_PASSWORD"] = Variable.get("agol_password")
 
 with DAG(
-    dag_id="atd_knack_mmc_issues",
+    dag_id="atd_knack_cctv_cameras",
     default_args=default_args,
-    schedule_interval="10 6 * * *",
+    schedule_interval="55 6 * * *",
     dagrun_timeout=timedelta(minutes=60),
     tags=["production", "knack"],
     catchup=False,
 ) as dag:
-    date_filter = "{{ prev_execution_date_success or '2020-12-28' }}"
+    # completely replace data on 15th day of every month
+    # this is a failsafe catch records that may have been missed via incremental loading
+    date_filter = "{{ '1970-01-01' if ds.endswith('15') else prev_execution_date_success or '1970-01-01' }}"  # noqa:E501
     t1 = DockerOperator(
-        task_id="atd_knack_mmc_issues_to_postgrest",
+        task_id="atd_knack_cctv_cameras_to_postgrest",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
@@ -60,18 +63,30 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id="atd_knack_mmc_issues_to_socrata",
+        task_id="atd_knack_cctv_cameras_to_socrata",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f'./atd-knack-services/services/{script_task_2}.py -a {app_name} -c {container} -d "{date_filter}"',  # noqa:E501
+        command=f'./atd-knack-services/services/{script_task_2}.py -a {app_name} -c {container} -d "{date_filter}"',  # noqa
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
         tty=True,
     )
 
-    t1 >> t2
+    t3 = DockerOperator(
+        task_id="atd_knack_cctv_cameras_to_agol",
+        image=docker_image,
+        api_version="auto",
+        auto_remove=True,
+        command=f"./atd-knack-services/services/{script_task_3}.py -a {app_name} -c {container} -d '{date_filter}'",  # noqa:E501
+        docker_url="tcp://localhost:2376",
+        network_mode="bridge",
+        environment=env_vars,
+        tty=True,
+    )
+
+    t1 >> [t2, t3]
 
 if __name__ == "__main__":
     dag.cli()

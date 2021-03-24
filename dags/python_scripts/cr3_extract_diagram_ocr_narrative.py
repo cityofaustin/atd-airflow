@@ -66,7 +66,7 @@ def update_crash_processed_date(crash_id: int) -> bool:
 
 def update_crash_narrative(crash_id: int, narrative: str) -> bool:
     """
-    Store the OCR extracted crash narative in the investigator_narrative field, returning a boolean indicating success.
+    Store the OCR extracted crash narative in the investigator_narrative_ocr field, returning a boolean indicating success.
 
     :param int: Crash ID
     :param str: Narrative
@@ -74,7 +74,7 @@ def update_crash_narrative(crash_id: int, narrative: str) -> bool:
 
     query = """
     mutation update_crash_narrative($crash_id: Int, $narrative: String) {
-        update_atd_txdot_crashes(where: {crash_id: {_eq: $crash_id}}, _set: {investigator_narrative: $narrative}) {
+        update_atd_txdot_crashes(where: {crash_id: {_eq: $crash_id}}, _set: {investigator_narrative_ocr: $narrative}) {
 	    affected_rows
         }
     }

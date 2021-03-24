@@ -20,7 +20,7 @@ default_args = {
 with DAG(
         'atd_visionzero_cr3_diagram_narrative_production',
         default_args=default_args,
-        schedule_interval="*/10 18-23,0-5 * * *",
+        schedule_interval="*/10 18-18,20-23,0-5 * * *",
         catchup=False,
         max_active_runs=1,
         tags=["production", "visionzero"],

@@ -2,44 +2,48 @@ from datetime import datetime, timedelta
 from airflow.models import DAG
 from airflow.models import Variable
 from airflow.operators.docker_operator import DockerOperator
-from _slack_operators import task_fail_slack_alert
+from _slack_operators import *
 
 default_args = {
     "owner": "airflow",
-    "description": "Download finance data from S3 and upsert to AMD Data Tracker.",
-    "depends_on_past": False,
-    "start_date": datetime(2015, 12, 1),
+    "description": "Publish sign work order specifications to Postgres, AGOL",
+    "depend_on_past": False,
+    "start_date": datetime(2020, 12, 31),
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 0,
+    "retries": 2,
+    "retry_delay": timedelta(minutes=5),
     "on_failure_callback": task_fail_slack_alert,
 }
 
-docker_image = "atddocker/atd-finance-data:production"
-app_name = "data-tracker"
+docker_image = "atddocker/atd-knack-services:production"
+app_name = "signs-markings"
 env = "prod"
+container = "view_3106"
 
-# assemble env vars
-env_vars = Variable.get("atd_knack_aws", deserialize_json=True)
-env_vars.update(Variable.get("controllers_office_finance_db", deserialize_json=True))
+env_vars = Variable.get("atd_knack_services_postgrest", deserialize_json=True)
+env_vars["AGOL_USERNAME"] = Variable.get("agol_username")
+env_vars["AGOL_PASSWORD"] = Variable.get("agol_password")
 atd_knack_auth = Variable.get("atd_knack_auth", deserialize_json=True)
 env_vars["KNACK_APP_ID"] = atd_knack_auth[app_name][env]["app_id"]
 env_vars["KNACK_API_KEY"] = atd_knack_auth[app_name][env]["api_key"]
 
 with DAG(
-    dag_id="atd_finance_data_to_data_tracker",
+    dag_id="atd_knack_signs_work_order_specifications",
     default_args=default_args,
-    schedule_interval="21 4 * * *",
+    schedule_interval="35 6 * * *",
     dagrun_timeout=timedelta(minutes=60),
-    tags=["production", "atd-finance-data", "knack"],
+    tags=["production", "knack"],
     catchup=False,
 ) as dag:
+    date_filter = "{{ prev_execution_date_success or '2020-12-31' }}"
+
     t1 = DockerOperator(
-        task_id="task_orders",
+        task_id="signs_asset_specs_to_postgrest",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"python /app/s3_to_knack.py task_orders {app_name}",
+        command=f'./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} -d "{date_filter}"',  # noqa:E501
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
@@ -47,11 +51,11 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id="units",
+        task_id="signs_asset_specs_to_agol",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"python /app/s3_to_knack.py units {app_name}",
+        command=f'./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container} -d "{date_filter}"',  # noqa
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,

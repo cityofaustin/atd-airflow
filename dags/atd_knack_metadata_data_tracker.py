@@ -32,7 +32,7 @@ env_vars["KNACK_APP_ID"] = atd_knack_auth[app_name][env]["app_id"]
 with DAG(
     dag_id="atd_knack_metadata_data_tracker_to_postgrest",
     default_args=default_args,
-    schedule_interval="01 01 * * *",
+    schedule_interval="55 5 * * *",
     dagrun_timeout=timedelta(minutes=60),
     tags=["production", "knack"],
     catchup=False,
@@ -43,7 +43,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"./atd-knack-services/services/{script}.py -a {app_name} -e {env}",  # noqa
+        command=f"./atd-knack-services/services/{script}.py",  # noqa
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,

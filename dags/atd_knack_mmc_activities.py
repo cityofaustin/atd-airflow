@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from airflow.models import DAG
 from airflow.models import Variable
 from airflow.operators.docker_operator import DockerOperator
+from _slack_operators import task_fail_slack_alert
 
 default_args = {
     "owner": "airflow",
@@ -12,6 +13,7 @@ default_args = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
+    "on_failure_callback": task_fail_slack_alert,
 }
 
 docker_image = "atddocker/atd-knack-services:production"
@@ -37,7 +39,7 @@ env_vars["SOCRATA_APP_TOKEN"] = Variable.get("atd_service_bot_socrata_app_token"
 with DAG(
     dag_id="atd_knack_mmc_activities_to_s3_to_socrata",
     default_args=default_args,
-    schedule_interval="33 06 * * *",
+    schedule_interval="20 6 * * *",
     dagrun_timeout=timedelta(minutes=300),
     tags=["production", "knack"],
     catchup=False,
@@ -50,7 +52,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f'./atd-knack-services/services/{task_1_script}.py -a {app_name} -c {container}  -e {env} -d "{date}"',  # noqa
+        command=f'./atd-knack-services/services/{task_1_script}.py -a {app_name} -c {container} -d "{date}"',  # noqa
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
@@ -62,7 +64,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f'./atd-knack-services/services/{task_2_script}.py -a {app_name} -c {container}  -e {env} -d "{date}"',  # noqa
+        command=f'./atd-knack-services/services/{task_2_script}.py -a {app_name} -c {container} -d "{date}"',  # noqa
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
