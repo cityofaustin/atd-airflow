@@ -63,7 +63,7 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id="atd_knack_signals_to_socrata",
+        task_id="atd_knack_dms_to_socrata",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
@@ -75,7 +75,7 @@ with DAG(
     )
 
     t3 = DockerOperator(
-        task_id="atd_knack_signals_to_agol",
+        task_id="atd_knack_dms_to_agol",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
