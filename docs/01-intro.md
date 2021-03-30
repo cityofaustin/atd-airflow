@@ -17,11 +17,11 @@ In Airflow:
 
 An example:
 
-Node A could be downloading data
-Node B could be sending data for processing
-Node C could be monitoring the data processing
-Node D could be generating a report
-Node E could be sending an email to the DAG's owner.
+- Node A could be downloading data
+- Node B could be sending data for processing
+- Node C could be monitoring the data processing
+- Node D could be generating a report
+- Node E could be sending an email to the DAG's owner.
 
 ```
 (A) -> (B) -> (C) -> (D) -> (E)
@@ -42,12 +42,12 @@ Node E could be sending an email to the DAG's owner.
 #### DAGs are defined in python files in your DAG_FOLDER (usually ~/airflow/dags)
 
 DAG properties:
-dag_id - The unique identifier for your DAG
-description - the description of your DAG
-start_date - establishes when the DAG should start
-schedule interval - defines how often your DAG should run
-depend_on_past - run the next DAGRun if the previous is completed successfully.
-default_args - a dictionary of values to be used as the constuctor keyword parameter when initializing operators
+- dag_id - The unique identifier for your DAG
+- description - the description of your DAG
+- start_date - establishes when the DAG should start
+- schedule interval - defines how often your DAG should run
+- depend_on_past - run the next DAGRun if the previous is completed successfully.
+- default_args - a dictionary of values to be used as the constuctor keyword parameter when initializing operators
 
 
 ### Executors
@@ -87,14 +87,14 @@ If you're running native Airflow, adopting a CeleryExecutor means you'll have to
     - High availability
     - Built for horizontal scaling
 - Cons:
-    - Harder to Maintain
+    - Harder to maintain
     - It's pricier
     - It takes some work to set up
     - Worker maintenance
 
 ### Operators
 
-An operator is basically a single task. Think of a DAG is a collection of tasks, therefore a DAG is a collection of operators.
+An operator is basically a single task. Think of a DAG as a collection of tasks, therefore a DAG is a collection of operators.
 
 Operators are defined in python, but they can be written in many different languages and tools.
 
