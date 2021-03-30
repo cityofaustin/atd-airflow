@@ -1,14 +1,14 @@
 from datetime import datetime, timedelta
 from airflow.models import DAG
 from airflow.models import Variable
-from airflow.operators.docker_operator import DockerOperator
+from airflow.operators.docker_operator import DockerOperator # deprecated module?
 from _slack_operators import task_fail_slack_alert
 
 default_args = {
     "owner": "airflow",
     "description": "Load dms (view_1564) records from Knack to Postgrest to AGOL and Socata",  # noqa:E501
     "depend_on_past": False,
-    "start_date": datetime(2020, 9, 1), # TODO: check
+    "start_date": datetime(2021, 3, 31), # TODO: check
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
@@ -40,9 +40,9 @@ env_vars["AGOL_USERNAME"] = Variable.get("agol_username")
 env_vars["AGOL_PASSWORD"] = Variable.get("agol_password")
 
 with DAG(
-    dag_id="atd_knack_signals", # TODO: update / check all of these
+    dag_id="atd_knack_dms", # TODO: update / check all of these
     default_args=default_args,
-    schedule_interval="0 6 * * *",
+    schedule_interval="10 3 * * *",
     dagrun_timeout=timedelta(minutes=60),
     tags=["production", "knack"],
     catchup=False,
@@ -51,7 +51,7 @@ with DAG(
     # this is a failsafe catch records that may have been missed via incremental loading
     date_filter = "{{ '1970-01-01' if ds.endswith('15') else prev_execution_date_success or '1970-01-01' }}"  # noqa:E501
     t1 = DockerOperator(
-        task_id="atd_knack_signals_to_postgrest",
+        task_id="atd_knack_dms_to_postgrest",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
