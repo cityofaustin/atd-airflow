@@ -39,7 +39,7 @@ env_vars["SOCRATA_APP_TOKEN"] = Variable.get("atd_service_bot_socrata_app_token"
 with DAG(
     dag_id="atd_knack_signal_work_orders",
     default_args=default_args,
-    schedule_interval="50 * * * *",
+    schedule_interval="50 8 * * *",
     dagrun_timeout=timedelta(minutes=60),
     tags=["production", "knack"],
     catchup=False,
