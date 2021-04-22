@@ -44,10 +44,7 @@ with DAG(
     tags=["production", "knack"],
     catchup=False,
 ) as dag:
-    # completely replace data on 15th day of every month
-    # this is a failsafe catch records that may have been missed via incremental loading
-    # do I take out the date filter completely or set it to 1970-01-01
-    # date_filter = "{{ '1970-01-01' if ds.endswith('15') else prev_execution_date_success or '1970-01-01' }}"  # noqa:E501
+    # completely replace data on every run
     t1 = DockerOperator(
         task_id="atd_knack_signal_retiming_to_postgrest",
         image=docker_image,
