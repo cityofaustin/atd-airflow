@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from airflow.models import DAG
 from airflow.models import Variable
 from airflow.operators.docker_operator import DockerOperator
+from _slack_operators import task_fail_slack_alert
 
 default_args = {
     "owner": "airflow",
@@ -12,8 +13,9 @@ default_args = {
     "start_date": datetime(2020, 9, 1),
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 0,
+    "retries": 2,
     "retry_delay": timedelta(minutes=5),
+    "on_failure_callback": task_fail_slack_alert,
 }
 
 docker_image = "atddocker/atd-knack-services:production"
