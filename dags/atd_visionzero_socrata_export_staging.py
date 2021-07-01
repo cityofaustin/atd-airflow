@@ -58,6 +58,7 @@ with DAG(
                 network_mode="bridge",
                 trigger_rule='none_failed',
                 environment={**environment_vars, **vzd_endpoint_production},
+                on_failure_callback=task_fail_slack_alert
         )
 
         # Executes if the last task fails
