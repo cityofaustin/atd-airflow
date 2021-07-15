@@ -246,8 +246,18 @@ def get_records(limit: int = 100) -> Set[int]:
             }
         }
     )
-    response.encoding = "utf-8"
-    records = response.json()
+
+    try:
+        response.encoding = "utf-8"
+        records = response.json()
+
+    except Exception as e:
+        print("Error: " + str(e))
+        records = {
+            "data": {
+                "atd_txdot_crashes": []
+            }
+        }
 
     try:
         return set(map(lambda x: x["crash_id"], records["data"]["atd_txdot_crashes"]))
