@@ -140,11 +140,23 @@ with DAG(
         environment=environment_vars,
     )
 
+    scoobi = DockerOperator(
+        task_id="process_unfinished_scoobi",
+        image=docker_image,
+        api_version="auto",
+        auto_remove=True,
+        command=f"./provider_runtool.py --provider 'scoobi' --time-min '{time_min}' --time-max '{time_max}' --incomplete-only --no-logs",
+        docker_url="tcp://localhost:2376",
+        network_mode="bridge",
+        environment=environment_vars,
+    )
+
     # lyft >> \
     # jump >> \
+    # revel >> \
     lime >> \
     bird >> \
     wheels >> \
     spin >> \
     ojo >> \
-    revel
+    scoobi
