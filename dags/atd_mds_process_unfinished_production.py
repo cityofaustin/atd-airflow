@@ -153,10 +153,10 @@ with DAG(
 
     # lyft >> \
     # jump >> \
+    # revel >> \
     lime >> \
     bird >> \
     wheels >> \
     spin >> \
     ojo >> \
-    revel >> \
     scoobi
