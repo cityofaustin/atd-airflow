@@ -6,7 +6,7 @@ from _slack_operators import task_fail_slack_alert
 
 default_args = {
     "owner": "airflow",
-    "description": "Load signs markings time logs (view_3516) records from Knack to Postgrest to Socrata",  # noqa:E501
+    "description": "Load work orders markings jobs (view_3100) records from Knack to Postgrest to Socrata",  # noqa:E501
     "depend_on_past": False,
     "start_date": datetime(2021, 7, 28),
     "email_on_failure": False,
@@ -22,7 +22,7 @@ docker_image = "atddocker/atd-knack-services:production"
 script_task_1 = "records_to_postgrest"
 script_task_2 = "records_to_socrata"
 app_name = "signs-markings"
-container = "view_3516"
+container = "view_3100"
 env = "prod"
 
 # assemble env vars
@@ -37,7 +37,7 @@ env_vars["SOCRATA_API_KEY_SECRET"] = Variable.get(
 env_vars["SOCRATA_APP_TOKEN"] = Variable.get("atd_service_bot_socrata_app_token")
 
 with DAG(
-    dag_id="atd_knack_signs_markings_time_logs",
+    dag_id="atd_knack_work_orders_markings_jobs",
     default_args=default_args,
     schedule_interval="0 15,19 * * *", # runs once at 10a cst and again at 2pm cst
     dagrun_timeout=timedelta(minutes=60),
@@ -48,7 +48,7 @@ with DAG(
     # this is a failsafe catch records that may have been missed via incremental loading
     date_filter = "{{ '1970-01-01' if ds.endswith('15') else prev_execution_date_success or '1970-01-01' }}"  # noqa:E501
     t1 = DockerOperator(
-        task_id="atd_knack_signs_markings_time_logs_to_postgrest",
+        task_id="atd_knack_work_orders_markings_jobs_to_postgrest",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
@@ -60,7 +60,7 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id="atd_knack_signs_markings_time_logs_to_socrata",
+        task_id="atd_knack_work_orders_markings_jobs_to_socrata",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
