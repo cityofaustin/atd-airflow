@@ -6,7 +6,7 @@ from _slack_operators import task_fail_slack_alert
 
 DEFAULT_ARGS = {
     "owner": "airflow",
-    "description": "Load work orders markings jobs (view_3100) records from Knack to Postgrest to Socrata",  # noqa:E501
+    "description": "Load work orders markings (view_3099) records from Knack to Postgrest to AGOL, Socrata",  # noqa:E501
     "depend_on_past": False,
     "start_date": datetime(2020, 9, 1),
     "email_on_failure": False,
@@ -27,7 +27,7 @@ APP_NAME = "signs-markings"
 ENV = "prod"
 POOL_KNACK = "knack_signs_markings"
 POOL_POSTGREST = "atd_knack_postgrest_pool"
-CONTAINER = "view_3100"
+CONTAINER = "view_3099"
 
 env_vars = Variable.get("atd_knack_services_postgrest", deserialize_json=True)
 atd_knack_auth = Variable.get("atd_knack_auth", deserialize_json=True)
@@ -43,10 +43,10 @@ env_vars["SOCRATA_APP_TOKEN"] = Variable.get("atd_service_bot_socrata_app_token"
 
 
 with DAG(
-    dag_id="atd_knack_markings_work_orders_jobs",
-    description="Loads markings work order jobs records from Knack to Postgrest to AGOL",  # noqa:E501
+    dag_id="atd_knack_work_orders_markings",
+    description="Loads work orders markings records from Knack to Postgrest to AGOL, Socrata",  # noqa:E501
     default_args=DEFAULT_ARGS,
-    schedule_interval="40 14,18 * * *",
+    schedule_interval="30 14,18 * * *",
     dagrun_timeout=timedelta(minutes=60),
     tags=["production", "knack", "agol"],
     catchup=False,
@@ -57,7 +57,7 @@ with DAG(
     date_filter = "{{ '1970-01-01' if ds.endswith('15') else prev_execution_date_success or '1970-01-01' }}"  # noqa:E501
 
     t1 = DockerOperator(
-        task_id=f"markings_work_orders_{SCRIPT_TASK_1}",
+        task_id=f"work_orders_markings_{SCRIPT_TASK_1}",
         image=DOCKER_IMAGE,
         api_version="auto",
         auto_remove=True,
@@ -71,7 +71,7 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id=f"markings_work_orders_{SCRIPT_TASK_2}",
+        task_id=f"work_orders_markings_{SCRIPT_TASK_2}",
         image=DOCKER_IMAGE,
         api_version="auto",
         auto_remove=True,
@@ -85,11 +85,11 @@ with DAG(
     )
 
     t3 = DockerOperator(
-        task_id=f"markings_work_orders_{SCRIPT_TASK_3}",
+        task_id=f"work_orders_markings_{SCRIPT_TASK_3}",
         image=DOCKER_IMAGE,
         api_version="auto",
         auto_remove=True,
-        command=f'./atd-knack-services/services/{SCRIPT_TASK_3}.py -l markings_work_orders -d "{date_filter}"',  # noqa:E501
+        command=f'./atd-knack-services/services/{SCRIPT_TASK_3}.py -l markings_jobs -d "{date_filter}"',  # noqa:E501
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
@@ -99,7 +99,7 @@ with DAG(
     )
 
     t4 = DockerOperator(
-        task_id="atd_knack_work_orders_markings_jobs_to_socrata",
+        task_id="atd_knack_work_orders_markings_to_socrata",
         image=DOCKER_IMAGE,
         api_version="auto",
         auto_remove=True,
