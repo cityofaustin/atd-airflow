@@ -78,6 +78,27 @@ def delete_file(crash_id: int) -> bool:
         return False
 
 
+def is_failed_cris_download(filename: str) -> bool:
+    """
+    Attempts to read the data in the file and to read certain keywords.
+    :param filename:
+    :return:
+    """
+    try:
+        fileHandle = open(filename)
+        contents = fileHandle.read()
+
+        keywords = ["TxDOT Login", "CRIS", "Please enter your username and password to continue", "html", "HTML",
+                    "script", "SCRIPT", "<!DOCTYPE html>"]
+
+        for kw in keywords:
+            if kw in contents:
+                return True
+    except Exception as e:
+        print("isFailedCrisDownload() Exception while reading the file: " + str(e))
+        return False
+
+
 def get_mime_attributes(crash_id: int) -> dict:
     """
     Runs a shell command and returns a dictionary with mime attributes
@@ -137,12 +158,13 @@ def get_file_metadata(crash_id: int) -> dict:
     timestamp = get_timestamp()
     file_size = get_file_size(crash_id)
     mime_attr = get_mime_attributes(crash_id)
+    failed_download = is_failed_cris_download(f"./{crash_id}.pdf")
 
     return {
         "last_update": timestamp,
-        "file_size": file_size,
-        "mime_type": mime_attr.get("mime_type", None),
-        "encoding": mime_attr.get("encoding", None)
+        "file_size": file_size if not failed_download else 0,
+        "mime_type": mime_attr.get("mime_type", None) if not failed_download else "text/html",
+        "encoding": mime_attr.get("encoding", None) if not failed_download else "us-ascii"
     }
 
 
