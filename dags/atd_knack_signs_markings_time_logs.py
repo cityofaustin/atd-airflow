@@ -22,7 +22,7 @@ docker_image = "atddocker/atd-knack-services:production"
 script_task_1 = "records_to_postgrest"
 script_task_2 = "records_to_socrata"
 app_name = "signs-markings"
-container = "view_3516"
+container = "view_3307"
 env = "prod"
 
 # assemble env vars
