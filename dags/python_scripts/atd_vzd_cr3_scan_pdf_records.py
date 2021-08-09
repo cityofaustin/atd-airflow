@@ -81,22 +81,26 @@ def delete_file(crash_id: int) -> bool:
 def is_failed_cris_download(filename: str) -> bool:
     """
     Attempts to read the data in the file and to read certain keywords.
-    :param filename:
-    :return:
+    :param filename: The file name to be scanned
+    :return bool: True if the file contains a keyword, False otherwise
     """
     try:
-        fileHandle = open(filename)
-        contents = fileHandle.read()
+        file_handle = open(filename)
+        contents = file_handle.read()
 
         keywords = ["TxDOT Login", "CRIS", "Please enter your username and password to continue", "html", "HTML",
                     "script", "SCRIPT", "<!DOCTYPE html>"]
-
+        # For every keyword in keywords
         for kw in keywords:
+            # Check if the keyword can be found in contents
             if kw in contents:
+                # If so, return true immediately
                 return True
     except Exception as e:
         print("isFailedCrisDownload() Exception while reading the file: " + str(e))
-        return False
+
+    # If we reach this point, the file is valid or an exception has occurred
+    return False
 
 
 def get_mime_attributes(crash_id: int) -> dict:
