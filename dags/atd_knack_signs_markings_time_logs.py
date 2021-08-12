@@ -22,8 +22,13 @@ docker_image = "atddocker/atd-knack-services:production"
 script_task_1 = "records_to_postgrest"
 script_task_2 = "records_to_socrata"
 app_name = "signs-markings"
-container = "view_3307"
+container_markings = "view_3307"
+container_signs = "view_3528"
 env = "prod"
+
+# use pooling to throttel DB load
+POOL_KNACK = "knack_signs_markings"
+POOL_POSTGREST = "atd_knack_postgrest_pool"
 
 # assemble env vars
 env_vars = Variable.get("atd_knack_services_postgrest", deserialize_json=True)
@@ -48,31 +53,58 @@ with DAG(
     # this is a failsafe catch records that may have been missed via incremental loading
     date_filter = "{{ '1970-01-01' if ds.endswith('15') else prev_execution_date_success or '1970-01-01' }}"  # noqa:E501
     t1 = DockerOperator(
-        task_id="atd_knack_signs_markings_time_logs_to_postgrest",
+        task_id="atd_knack_markings_time_logs_to_postgrest",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f'./atd-knack-services/services/{script_task_1}.py -a {app_name} -c {container} -d "{date_filter}"',  # noqa:E501
+        command=f'./atd-knack-services/services/{script_task_1}.py -a {app_name} -c {container_markings} -d "{date_filter}"',  # noqa:E501
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
+        pool=POOL_POSTGREST,
         tty=True,
     )
 
     t2 = DockerOperator(
-        task_id="atd_knack_signs_markings_time_logs_to_socrata",
+        task_id="atd_knack_markings_time_logs_to_socrata",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f'./atd-knack-services/services/{script_task_2}.py -a {app_name} -c {container} -d "{date_filter}"',  # noqa
+        command=f'./atd-knack-services/services/{script_task_2}.py -a {app_name} -c {container_markings} -d "{date_filter}"',  # noqa
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
+        pool=POOL_KNACK,
         tty=True,
     )
 
+    t3 = DockerOperator(
+        task_id="atd_knack_signs_time_logs_to_postgrest",
+        image=docker_image,
+        api_version="auto",
+        auto_remove=True,
+        command=f'./atd-knack-services/services/{script_task_1}.py -a {app_name} -c {container_signs} -d "{date_filter}"',  # noqa:E501
+        docker_url="tcp://localhost:2376",
+        network_mode="bridge",
+        environment=env_vars,
+        pool=POOL_POSTGREST,
+        tty=True,
+    )
 
-    t1 >> t2
+    t4 = DockerOperator(
+        task_id="atd_knack_signs_time_logs_to_socrata",
+        image=docker_image,
+        api_version="auto",
+        auto_remove=True,
+        command=f'./atd-knack-services/services/{script_task_2}.py -a {app_name} -c {container_signs} -d "{date_filter}"',  # noqa
+        docker_url="tcp://localhost:2376",
+        network_mode="bridge",
+        environment=env_vars,
+        pool=POOL_KNACK,
+        tty=True,
+    )
+
+    t1 >> t2 >> t3 >> t4
 
 if __name__ == "__main__":
     dag.cli()
