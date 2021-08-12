@@ -26,7 +26,7 @@ container_markings = "view_3307"
 container_signs = "view_3528"
 env = "prod"
 
-# use pooling to throttel DB load
+# use pooling to throttle DB load
 POOL_KNACK = "knack_signs_markings"
 POOL_POSTGREST = "atd_knack_postgrest_pool"
 
