@@ -49,6 +49,7 @@ def generate_graphql_query():
             field_66: trip_duration_avg
             field_67: trips_zero_distance
             field_68: trips_long_distance
+            field_106: date_received
           }
         }
     """).substitute(
