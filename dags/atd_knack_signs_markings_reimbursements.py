@@ -41,9 +41,7 @@ env_vars["SOCRATA_API_KEY_SECRET"] = Variable.get(
 )
 env_vars["SOCRATA_APP_TOKEN"] = Variable.get("atd_service_bot_socrata_app_token")
 
-# we process all records every dag run—this dataset does not have a modified date field
-# to use as a basis for incrementing
-date_filter = "1970-01-01"
+date_filter = "{{ '1970-01-01' if ds.endswith('15') else prev_execution_date_success or '1970-01-01' }}"  # noqa:E501
 
 with DAG(
     dag_id="atd_knack_signs_markings_reimbursements",
@@ -58,7 +56,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"./atd-knack-services/services/{script_task_1}.py -a {app_name} -c {container_signs}",  # noqa:E501
+        command=f'./atd-knack-services/services/{script_task_1}.py -a {app_name} -c {container_signs} -d "{date_filter}"',  # noqa:E501
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
