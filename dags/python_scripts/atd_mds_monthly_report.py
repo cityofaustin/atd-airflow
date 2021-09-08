@@ -1,7 +1,10 @@
 import json
 import os
 import datetime
+import time
+
 import requests
+import random
 
 # Other libraries
 from string import Template
@@ -122,6 +125,16 @@ data = list(
 print("Inserting records into knack...")
 for record in data:
     print("Processing: ", record)
-    app = knackpy.App(app_id=os.getenv("knack_app_id"),  api_key=os.getenv("knack_api_key"))
-    response = app.record(method="create", data=record, obj=os.getenv("knack_object"))
-    print("Response: ", response, "\n")
+    done = False
+    while not done:
+        try:
+            app = knackpy.App(app_id=os.getenv("knack_app_id"),  api_key=os.getenv("knack_api_key"))
+            response = app.record(method="create", data=record, obj=os.getenv("knack_object"))
+            print("Response: ", response, "\n")
+            done = True
+        except requests.exceptions.HTTPError as e:
+            print("Error: ", str(e), "\n")
+            lapse = random.randrange(10, 15)
+            print("Trying again in " + str(lapse) + " seconds")
+            time.sleep(lapse)
+            done = False
