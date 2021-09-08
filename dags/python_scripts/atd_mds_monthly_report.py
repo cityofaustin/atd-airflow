@@ -1,7 +1,10 @@
 import json
 import os
 import datetime
+import time
+
 import requests
+import random
 
 # Other libraries
 from string import Template
@@ -119,9 +122,34 @@ data = list(
 #
 # Insert to knack
 #
+"""
+    Dealing with Knack failures.
+
+    Whenever we deal with a Knack 503 failure, we have at least two good options:
+    1. Roll back any previous changes and try again (hoping that next run will go smooth).
+    2. Re-attempt every failed run until knack responds with an HTTP 200-OK.
+    
+    The first option requires a lot more code that needs testing, and I am not confident it's
+    the best way moving forward. The second option I think gives us less code to write
+    and we have the freedom to re-attempt to insert a single record as many times as needed.
+    
+    This report is important so I think it needs to keep trying to insert as many times as it
+    has to until either Knack has time to respond to the request or the DAG gives up.
+"""
+
 print("Inserting records into knack...")
 for record in data:
     print("Processing: ", record)
-    app = knackpy.App(app_id=os.getenv("knack_app_id"),  api_key=os.getenv("knack_api_key"))
-    response = app.record(method="create", data=record, obj=os.getenv("knack_object"))
-    print("Response: ", response, "\n")
+    done = False
+    while not done:
+        try:
+            app = knackpy.App(app_id=os.getenv("knack_app_id"),  api_key=os.getenv("knack_api_key"))
+            response = app.record(method="create", data=record, obj=os.getenv("knack_object"))
+            print("Response: ", response, "\n")
+            done = True
+        except requests.exceptions.HTTPError as e:
+            print("Error: ", str(e), "\n")
+            lapse = random.randrange(10, 15)
+            print("Trying again in " + str(lapse) + " seconds")
+            time.sleep(lapse)
+            done = False
