@@ -40,7 +40,7 @@ env_vars["KNACK_API_KEY"] = atd_knack_auth[app_name][env]["api_key"]
 with DAG(
     dag_id="atd_knack_banner",
     default_args=default_args, #check this
-    schedule_interval="0 5 * * 0", #todo: update, weekly on sunday? when
+    schedule_interval="0 5 * * 0", # is a weekly on sunday update enough?
     dagrun_timeout=timedelta(minutes=60),
     tags=["production", "knack", "banner"],
     catchup=False,
@@ -48,13 +48,13 @@ with DAG(
     t1 = DockerOperator(
         task_id="atd_knack_banner_update_employees",
         image=docker_image,
-        api_version="auto", #check this
-        auto_remove=True, #and this
+        api_version="auto",
+        auto_remove=True,
         command=f'./atd-knack-banner/update_employees.py',  # noqa:E501
-        docker_url="tcp://localhost:2376", #check this
-        network_mode="bridge", # check this
+        docker_url="tcp://localhost:2376", # check this
+        network_mode="bridge",
         environment=env_vars,
-        tty=True, #hm?
+        tty=True,
     )
 
     t1
