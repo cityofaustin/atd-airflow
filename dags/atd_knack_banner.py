@@ -48,7 +48,7 @@ with DAG(
         api_version="auto",
         auto_remove=True,
         command=f'./atd-knack-banner/update_employees.py',  # noqa:E501
-        docker_url="tcp://localhost:2376", # check this
+        docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
         tty=True,
