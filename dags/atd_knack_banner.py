@@ -16,30 +16,27 @@ default_args = {
     "on_failure_callback": task_fail_slack_alert,
 }
 
-docker_image = "atddocker/atd-knack-banner" # the old one said atd-knack-services:production, what is the : for?
+docker_image = "atddocker/atd-knack-banner"
 
 # command args
 app_name = "hr"
 env = "prod"
 
 # assemble env vars
-env_vars = Variable.get("atd_knack_services_postgrest", deserialize_json=True) # check the format of this
-env_vars = {} # ? 
+env_vars = Variable.get("atd_knack_banner", deserialize_json=True)
 atd_knack_auth = Variable.get("atd_knack_auth", deserialize_json=True)
+atd_shared_drive = Variable.get("atd_shared_drive", deserialize_json=True)
 env_vars["KNACK_APP_NAME"] = app_name
 env_vars["KNACK_APP_ID"] = atd_knack_auth[app_name][env]["app_id"]
 env_vars["KNACK_API_KEY"] = atd_knack_auth[app_name][env]["api_key"]
-
-# BANNER_API_KEY=
-# BANNER_URL=
-# SHAREDDRIVE_USERNAME=
-# SHAREDDRIVE_PASSWORD=
-# SHAREDDRIVE_FILEPATH=
+env_vars["SHAREDDRIVE_USERNAME"] = atd_shared_drive["SHAREDDRIVE_USERNAME"]
+env_vars["SHAREDDRIVE_PASSWORD"] = atd_shared_drive["SHAREDDRIVE_PASSWORD"]
+env_vars["SHAREDDRIVE_FILEPATH"] = atd_shared_drive["SHAREDDRIVE_FILEPATH"]
 
 
 with DAG(
     dag_id="atd_knack_banner",
-    default_args=default_args, #check this
+    default_args=default_args,
     schedule_interval="0 5 * * 0", # is a weekly on sunday update enough?
     dagrun_timeout=timedelta(minutes=60),
     tags=["production", "knack", "banner"],
