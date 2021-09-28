@@ -16,7 +16,7 @@ default_args = {
     "on_failure_callback": task_fail_slack_alert,
 }
 
-docker_image = "atddocker/atd-knack-banner"
+docker_image = "atddocker/atd-knack-banner:production"
 
 # command args
 app_name = "hr"
