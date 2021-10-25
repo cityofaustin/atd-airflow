@@ -6,7 +6,7 @@ from _slack_operators import *
 
 default_args = {
     "owner": "airflow",
-    "description": "Load work orders signs (view_3107) records from Knack to Postgrest to AGOL, Socrata",  # noqa:E501
+    "description": "Fetch metrobike trip data from dropbox and publish to Socrata",
     "depend_on_past": False,
     "start_date": datetime(2020, 12, 31),
     "email_on_failure": False,
