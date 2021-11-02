@@ -8,6 +8,7 @@
     "atddocker/atd-road-conditions",
     "atddocker/atd-kits",
     "atddocker/atd-knack-banner",
-    "atddocker/atd-metrobike"
+    "atddocker/atd-metrobike",
+    "atddocker/amanda-reporting:production"
   ]
 }
