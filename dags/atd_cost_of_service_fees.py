@@ -26,7 +26,7 @@ with DAG(
     default_args=default_args,
     schedule_interval="7 4 * * *",  # daily at 4:07 am UTC
     dagrun_timeout=timedelta(minutes=60),
-    tags=["production", "metrobike"],
+    tags=["production", "amanda", "knack"],
     catchup=False,
 ) as dag:
     t1 = DockerOperator(
