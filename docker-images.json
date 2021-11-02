@@ -7,6 +7,7 @@
     "atddocker/atd-finance-data",
     "atddocker/atd-road-conditions",
     "atddocker/atd-kits",
-    "atddocker/atd-knack-banner"
+    "atddocker/atd-knack-banner",
+    "atddocker/atd-metrobike"
   ]
 }
