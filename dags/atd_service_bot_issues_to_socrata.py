@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from airflow.models import DAG
 from airflow.models import Variable
 from airflow.operators.docker_operator import DockerOperator
-from _slack_operators import *
+from _slack_operators import task_fail_slack_alert
 
 default_args = {
     "owner": "airflow",
