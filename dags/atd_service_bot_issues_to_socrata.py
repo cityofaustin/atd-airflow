@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from airflow.models import DAG
 from airflow.models import Variable
 from airflow.operators.docker_operator import DockerOperator
+from _slack_operators import task_fail_slack_alert
 
 default_args = {
     "owner": "airflow",
@@ -10,7 +11,8 @@ default_args = {
     "start_date": datetime(2015, 12, 1),
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 0,
+    "retries": 1,
+    "on_failure_callback": task_fail_slack_alert,
 }
 
 docker_image = "atddocker/atd-service-bot:production"
@@ -28,7 +30,7 @@ env_vars["SOCRATA_APP_TOKEN"] = Variable.get("atd_service_bot_socrata_app_token"
 with DAG(
     dag_id="atd_service_bot_github_to_socrata_production",
     default_args=default_args,
-    schedule_interval="20 * * * *",
+    schedule_interval="21 5 * * *",
     dagrun_timeout=timedelta(minutes=60),
     tags=["production", "socrata", "atd-service-bot", "github"],
     catchup=False,

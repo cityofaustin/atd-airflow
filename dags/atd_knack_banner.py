@@ -16,7 +16,7 @@ default_args = {
     "on_failure_callback": task_fail_slack_alert,
 }
 
-docker_image = "atddocker/atd-knack-banner"
+docker_image = "atddocker/atd-knack-banner:production"
 
 # command args
 app_name = "hr"
@@ -37,7 +37,7 @@ env_vars["SHAREDDRIVE_FILEPATH"] = atd_shared_drive["SHAREDDRIVE_FILEPATH"]
 with DAG(
     dag_id="atd_knack_banner",
     default_args=default_args,
-    schedule_interval="0 5 * * 0", # is a weekly on sunday update enough?
+    schedule_interval="45 12 * * *",
     dagrun_timeout=timedelta(minutes=60),
     tags=["production", "knack", "banner"],
     catchup=False,
