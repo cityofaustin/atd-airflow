@@ -37,7 +37,7 @@ env_vars["SHAREDDRIVE_FILEPATH"] = atd_shared_drive["SHAREDDRIVE_FILEPATH"]
 with DAG(
     dag_id="atd_knack_banner",
     default_args=default_args,
-    schedule_interval="45 12 * * *",
+    schedule_interval="45 13 * * *",
     dagrun_timeout=timedelta(minutes=60),
     tags=["production", "knack", "banner"],
     catchup=False,
