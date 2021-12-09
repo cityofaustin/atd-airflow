@@ -29,16 +29,14 @@ with DAG(
     tags=["production", "parking"],
     catchup=False,
 ) as dag:
-    start_date = "{{ prev_execution_date_success }}"
-    command = f"python txn_history.py --env prod"
-    command = f"{command} --start {start_date}" if start_date != "None" else command
+    start_date = "{{ prev_execution_date_success or '2021-12-01' }}"
 
     t1 = DockerOperator(
         task_id="parking_transaction_history_to_s3",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=command,
+        command=f"txn_history.py --env prod --start {start_date}",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
