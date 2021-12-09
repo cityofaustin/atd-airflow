@@ -31,7 +31,7 @@ with DAG(
 ) as dag:
     start_date = "{{ prev_execution_date_success }}"
     command = f"python txn_history.py --env prod"
-    command = f"{command} --start {start_date}" if start_date else command
+    command = f"{command} --start {start_date}" if start_date != "None" else command
 
     t1 = DockerOperator(
         task_id="parking_transaction_history_to_s3",
