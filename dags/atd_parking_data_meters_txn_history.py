@@ -8,7 +8,7 @@ default_args = {
     "owner": "airflow",
     "description": "Publish sign work order specifications to Postgres, AGOL",
     "depend_on_past": False,
-    "start_date": datetime(2020, 12, 31),
+    "start_date": datetime(2021, 12, 1),
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 2,
