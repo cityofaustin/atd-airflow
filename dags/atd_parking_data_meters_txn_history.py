@@ -29,15 +29,15 @@ with DAG(
     tags=["production", "parking"],
     catchup=False,
 ) as dag:
-    # fetch 
+    # fetch
     start_date = "{{ prev_execution_date_success }}"
-    
+
     t1 = DockerOperator(
         task_id="parking_transaction_history_to_s3",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f'txn_history.py --env prod --start {start_date}',
+        command=f"txn_history.py --env prod --start {start_date}",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
