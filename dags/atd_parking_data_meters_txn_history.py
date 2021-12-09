@@ -36,7 +36,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"txn_history.py --env prod --start {start_date}",
+        command=f"python txn_history.py --env prod --start {start_date}",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
