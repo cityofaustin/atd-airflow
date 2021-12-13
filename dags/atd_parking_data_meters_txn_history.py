@@ -18,7 +18,6 @@ default_args = {
 
 docker_image = "atddocker/atd-parking-data-meters:production"
 env = "prod"
-
 env_vars = Variable.get("atd_parking_data_meters", deserialize_json=True)
 
 with DAG(
@@ -29,7 +28,7 @@ with DAG(
     tags=["production", "parking"],
     catchup=False,
 ) as dag:
-    start_date = "{{ prev_execution_date_success.to_date_string() if prev_execution_date_success else '2021-12-01'}}"
+    start_date = "{{ datetime.strftime(prev_execution_date_success, '%Y-%m-%d') if prev_execution_date_success else '2021-12-01'}}"
 
     t1 = DockerOperator(
         task_id="parking_transaction_history_to_s3",
