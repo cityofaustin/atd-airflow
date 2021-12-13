@@ -13,7 +13,7 @@ default_args = {
     "email_on_retry": False,
     "retries": 2,
     "retry_delay": timedelta(minutes=5),
-    # "on_failure_callback": task_fail_slack_alert,
+    "on_failure_callback": task_fail_slack_alert,
 }
 
 docker_image = "atddocker/atd-parking-data-meters:production"
