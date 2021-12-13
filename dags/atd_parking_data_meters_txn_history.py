@@ -29,7 +29,7 @@ with DAG(
     tags=["production", "parking"],
     catchup=False,
 ) as dag:
-    start_date = "{{ prev_execution_date_success | ds or '2021-12-01' }}"
+    start_date = "{{ prev_execution_date_success.to_date_string() if prev_execution_date_success else '2021-12-01'}}"
 
     t1 = DockerOperator(
         task_id="parking_transaction_history_to_s3",
