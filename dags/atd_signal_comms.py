@@ -43,7 +43,7 @@ with DAG(
     )
 
     detectors_s3 = DockerOperator(
-        task_id="run_comm_check_cameras",
+        task_id="run_comm_check_detectors",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
@@ -55,7 +55,7 @@ with DAG(
     )
 
     cameras_socrata = DockerOperator(
-        task_id="run_comm_check_cameras",
+        task_id="socata_pub_cameras",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
@@ -67,7 +67,7 @@ with DAG(
     )
 
     detectors_socrata = DockerOperator(
-        task_id="run_comm_check_cameras",
+        task_id="socrata_pub_detectors",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
