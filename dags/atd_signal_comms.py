@@ -28,21 +28,61 @@ with DAG(
     tags=["production", "amd"],
     catchup=False,
 ) as dag:
-    # start_date = "{{ prev_execution_date_success.strftime('%Y-%m-%d') if prev_execution_date_success else '2021-12-01'}}"
+    start_date = "{{ prev_execution_date_success.strftime('%Y-%m-%d') if prev_execution_date_success else '2021-12-13'}}"
 
-    t1 = DockerOperator(
+    cameras_s3 = DockerOperator(
         task_id="run_comm_check_cameras",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"python atd-signal-comms/run_comm_check.py camera --env prod -v",
+        command="python atd-signal-comms/run_comm_check.py camera --env prod",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
         tty=True,
     )
 
-    t1
+    detectors_s3 = DockerOperator(
+        task_id="run_comm_check_cameras",
+        image=docker_image,
+        api_version="auto",
+        auto_remove=True,
+        command="python atd-signal-comms/run_comm_check.py detector --env prod",
+        docker_url="tcp://localhost:2376",
+        network_mode="bridge",
+        environment=env_vars,
+        tty=True,
+    )
+
+    cameras_socrata = DockerOperator(
+        task_id="run_comm_check_cameras",
+        image=docker_image,
+        api_version="auto",
+        auto_remove=True,
+        command=f"python atd-signal-comms/socrata_pub.py camera --start {start_date} --env prod",
+        docker_url="tcp://localhost:2376",
+        network_mode="bridge",
+        environment=env_vars,
+        tty=True,
+    )
+
+    detectors_socrata = DockerOperator(
+        task_id="run_comm_check_cameras",
+        image=docker_image,
+        api_version="auto",
+        auto_remove=True,
+        command=f"python atd-signal-comms/socrata_pub.py detector --start {start_date} --env prod",
+        docker_url="tcp://localhost:2376",
+        network_mode="bridge",
+        environment=env_vars,
+        tty=True,
+    )
+
+    """
+    the socrata pub is more likely to fail than ping/s3 upload, so run those first
+    socrata can be backfilled but ping attempts are point-in-time only
+    """
+    cameras_s3 >> detectors_s3 >> cameras_socrata >> detectors_socrata
 
 if __name__ == "__main__":
     dag.cli()
