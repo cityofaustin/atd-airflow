@@ -8,11 +8,11 @@ default_args = {
     "owner": "airflow",
     "description": "Ping network devices and publish to S3, then socrata",
     "depend_on_past": False,
-    "start_date": datetime(2021, 12, 1),
+    "start_date": datetime(2021, 12, 13),
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 2,
-    "retry_delay": timedelta(minutes=5),
+    "retry_delay": timedelta(minutes=1),
     # "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -23,19 +23,19 @@ env_vars = Variable.get("atd_signal_comms", deserialize_json=True)
 with DAG(
     dag_id="atd_signal_comms",
     default_args=default_args,
-    schedule_interval="35 3 * * *",
+    schedule_interval="7 7 * * *",
     dagrun_timeout=timedelta(minutes=60),
-    tags=["production", "parking"],
+    tags=["production", "amd"],
     catchup=False,
 ) as dag:
     # start_date = "{{ prev_execution_date_success.strftime('%Y-%m-%d') if prev_execution_date_success else '2021-12-01'}}"
-    
+
     t1 = DockerOperator(
         task_id="run_comm_check_cameras",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"python atd-signal-comms/run_comm_check.py camera --env prod",
+        command=f"python atd-signal-comms/run_comm_check.py camera --env prod -v",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
