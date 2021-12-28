@@ -55,7 +55,7 @@ with DAG(
     )
 
     dms_s3 = DockerOperator(
-        task_id="run_comm_check_detectors",
+        task_id="run_comm_check_dms",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
@@ -67,7 +67,7 @@ with DAG(
     )
 
     battery_backup_s3 = DockerOperator(
-        task_id="run_comm_check_detectors",
+        task_id="run_comm_check_battery_backup",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
@@ -103,7 +103,7 @@ with DAG(
     )
 
     dms_socrata = DockerOperator(
-        task_id="socrata_pub_detectors",
+        task_id="socrata_pub_dms",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
@@ -115,7 +115,7 @@ with DAG(
     )
 
     battery_backup_socrata = DockerOperator(
-        task_id="socrata_pub_detectors",
+        task_id="socrata_pub_battery_backup",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
