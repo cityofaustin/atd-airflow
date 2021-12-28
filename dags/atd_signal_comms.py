@@ -66,6 +66,18 @@ with DAG(
         tty=True,
     )
 
+    battery_backup_s3 = DockerOperator(
+        task_id="run_comm_check_detectors",
+        image=docker_image,
+        api_version="auto",
+        auto_remove=True,
+        command="python atd-signal-comms/run_comm_check.py cabinet_battery_backup --env prod",
+        docker_url="tcp://localhost:2376",
+        network_mode="bridge",
+        environment=env_vars,
+        tty=True,
+    )
+
     cameras_socrata = DockerOperator(
         task_id="socata_pub_cameras",
         image=docker_image,
@@ -96,6 +108,18 @@ with DAG(
         api_version="auto",
         auto_remove=True,
         command=f"python atd-signal-comms/socrata_pub.py digital_message_sign --start {start_date} --env prod",
+        docker_url="tcp://localhost:2376",
+        network_mode="bridge",
+        environment=env_vars,
+        tty=True,
+    )
+
+    battery_backup_socrata = DockerOperator(
+        task_id="socrata_pub_detectors",
+        image=docker_image,
+        api_version="auto",
+        auto_remove=True,
+        command=f"python atd-signal-comms/socrata_pub.py cabinet_battery_backup --start {start_date} --env prod",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
