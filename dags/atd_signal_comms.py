@@ -130,7 +130,7 @@ with DAG(
     the socrata pub is more likely to fail than ping/s3 upload, so run ping/s3 first
     socrata can be backfilled but ping attempts are point-in-time only
     """
-    cameras_s3 >> detectors_s3 >> dms_s3 >> cameras_socrata >> detectors_socrata >> dms_socrata
+    cameras_s3 >> detectors_s3 >> dms_s3 >> battery_backup_s3 >> cameras_socrata >> detectors_socrata >> dms_socrata >> battery_backup_socrata
 
 if __name__ == "__main__":
     dag.cli()
