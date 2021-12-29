@@ -28,21 +28,35 @@ with DAG(
     tags=["production", "parking"],
     catchup=False,
 ) as dag:
-    start_date = "{{ prev_execution_date_success.strftime('%Y-%m-%d') if prev_execution_date_success else '2021-12-01'}}"
+    # query 7 days ago to present. some transactions are not available at endpoint
+    # until a few days after they have occurred
+    start_date = "{{ (prev_execution_date_success - timedelta(days=7)).strftime('%Y-%m-%d') if prev_execution_date_success else '2021-12-01'}}"
 
     t1 = DockerOperator(
         task_id="parking_transaction_history_to_s3",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"python txn_history.py -v --env prod --start {start_date}",
+        command=f"python txn_history.py -v --report transactions --env prod --start {start_date}",
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
         tty=True,
     )
 
-    t1
+    t2 = DockerOperator(
+        task_id="parking_payment_history_to_s3",
+        image=docker_image,
+        api_version="auto",
+        auto_remove=True,
+        command=f"python txn_history.py -v --report payments --env prod --start {start_date}",
+        docker_url="tcp://localhost:2376",
+        network_mode="bridge",
+        environment=env_vars,
+        tty=True,
+    )
+
+    t1 >> t2
 
 if __name__ == "__main__":
     dag.cli()
