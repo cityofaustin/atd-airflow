@@ -29,14 +29,8 @@ with DAG(
     catchup=False,
 ) as dag:
     # extact prev exec date
-    start_date_str = "{{ prev_execution_date_success }}"
-    print(f"start_date_str: {start_date_str}")
-    # start_date_str = start_date_str[0:10] if start_date_str else "2021-12-01"
-    # convert it back to a datetime obj
-    # start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
-    # subtract 7 days and convert back to a string
-    # start_date = (start_date - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
-    start_date = "2021-12-31"  # <temp hack to make dag work while debugging;
+    start_date = "{{ prev_execution_date_success if prev_execution_date_success else '2021-12-25'}}"
+
     t1 = DockerOperator(
         task_id="parking_transaction_history_to_s3",
         image=docker_image,
