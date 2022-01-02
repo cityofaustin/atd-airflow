@@ -30,7 +30,7 @@ with DAG(
 ) as dag:
     # query 7 days ago to present. some transactions are not available at endpoint
     # until a few days after they have occurred
-    start_date = "{{ (prev_execution_date_success - timedelta(days=7)).strftime('%Y-%m-%d') if prev_execution_date_success else '2021-12-01'}}"
+    start_date = "{{ (prev_execution_date_success - datetime.timedelta(days=7)).strftime('%Y-%m-%d') if prev_execution_date_success else '2021-12-01'}}"
 
     t1 = DockerOperator(
         task_id="parking_transaction_history_to_s3",
