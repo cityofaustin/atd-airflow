@@ -133,7 +133,7 @@ with DAG(
                 image='atddocker/atd-vz-etl:production',
                 api_version='auto',
                 auto_remove=True,
-                command='sh -c "ls -lha /data && rm -rf /data/* && ls -lha /data && ls -lha /app/tmp && rm -rf /app/tmp/* && ls -lha /app/tmp"',
+                command='sh -c "ls -lha /data && rm -rf /data/* && ls -lha /data && ls -lha /app/tmp && rm -rf /app/tmp/* && ls -lha /app/tmp" || echo "Nothing to do";',
                 docker_url="tcp://localhost:2376",
                 network_mode="bridge",
                 environment=atd_visionzero_cris_envvars,
