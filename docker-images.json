@@ -9,7 +9,8 @@
     "atddocker/atd-kits",
     "atddocker/atd-knack-banner",
     "atddocker/atd-metrobike",
+    "atddocker/atd-cost-of-service",
     "atddocker/atd-parking-data-meters",
-    "atddocker/atd-signal-comms"
+    "atddocker/atd-signal-comms",
   ]
 }
