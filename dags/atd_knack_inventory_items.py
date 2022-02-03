@@ -109,7 +109,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f'./atd-knack-services/services/records_to_socrata.py -a {app_name_dest} -d "{date}"',  # noqa
+        command=f'./atd-knack-services/services/records_to_socrata.py -a {app_name_dest} -c {container_dest} -d "1970-01-01"',  # noqa
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars_t4,
