@@ -27,6 +27,10 @@ env = "prod"
 # assemble env vars
 env_vars = Variable.get("atd_knack_services_postgrest", deserialize_json=True)
 atd_knack_auth = Variable.get("atd_knack_auth", deserialize_json=True)
+env_vars["SOCRATA_API_KEY_ID"] = Variable.get("atd_service_bot_socrata_api_key_id")
+env_vars["SOCRATA_API_KEY_SECRET"] = Variable.get(
+    "atd_service_bot_socrata_api_key_secret"
+)
 
 with DAG(
     dag_id="atd_knack_inventory_items_finance_to_data_tracker",
