@@ -285,7 +285,7 @@ for crash in response.json()['data']['atd_txdot_crashes']:
             crash['cr3_file_metadata']['diagram_s3_file'] = str(diagram_uuid) + '.png'
             update_crash_metadata(crash['crash_id'], crash['cr3_file_metadata'])
         except:
-            sys.stderr.write("Error: Faild setting s3 object containing the diagram PNG file\n")
+            sys.stderr.write("Error: Failed setting s3 object containing the diagram PNG file\n")
             continue
 
     # do we want to save a PNG file from the image data to disk?
@@ -296,7 +296,7 @@ for crash in response.json()['data']['atd_txdot_crashes']:
             path = args.save_diagram_disk[0] + '/' + str(crash['crash_id']) + '.png'
             diagram_image.save(path)
         except:
-            sys.stderr.write("Error: Faild diagram PNG file to disk\n")
+            sys.stderr.write("Error: Failed diagram PNG file to disk\n")
 
 
     # do we want to store the OCR'd text results from the attempt in the database for the current crash id?
