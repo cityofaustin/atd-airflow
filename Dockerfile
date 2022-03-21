@@ -74,6 +74,7 @@ RUN set -ex \
     && pip install SQLAlchemy \
     && pip install pdf2image \
     && pip install pytesseract \
+    && pip install boto3 \
     && pip install apache-airflow[crypto,celery,postgres,hive,jdbc,mysql,s3,ssh${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}]==${AIRFLOW_VERSION} \
     && pip install 'redis==3.2' \
     && if [ -n "${PYTHON_DEPS}" ]; then pip install ${PYTHON_DEPS}; fi \
