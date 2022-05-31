@@ -30,7 +30,7 @@ services:
             args:
                 airflow_configuration: config/airflow-dev.cfg
                 airflow_environment: development
-        restart: always
+        restart: unless-stopped
         depends_on:
             - postgres
         environment:
