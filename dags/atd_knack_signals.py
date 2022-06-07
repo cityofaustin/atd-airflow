@@ -42,7 +42,7 @@ env_vars["AGOL_PASSWORD"] = Variable.get("agol_password")
 with DAG(
     dag_id="atd_knack_signals",
     default_args=default_args,
-    schedule_interval="0 6 * * *",
+    schedule_interval="1 */2 * * *",
     dagrun_timeout=timedelta(minutes=60),
     tags=["production", "knack"],
     catchup=False,
