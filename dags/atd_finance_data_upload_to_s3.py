@@ -80,7 +80,19 @@ with DAG(
         tty=True,
     )
 
-    t1 >> t2 >> t3 >> t4
+    t5 = DockerOperator(
+        task_id="fdus",
+        image=docker_image,
+        api_version="auto",
+        auto_remove=True,
+        command="python /app/upload_to_s3.py fdus",
+        docker_url="tcp://localhost:2376",
+        network_mode="bridge",
+        environment=env_vars,
+        tty=True,
+    )
+
+    t1 >> t2 >> t3 >> t4 >> t5
 
 if __name__ == "__main__":
     dag.cli()
