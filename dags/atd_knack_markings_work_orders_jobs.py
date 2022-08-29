@@ -89,7 +89,7 @@ with DAG(
         image=DOCKER_IMAGE,
         api_version="auto",
         auto_remove=True,
-        command=f'./atd-knack-services/services/{SCRIPT_TASK_3}.py -l markings_work_orders -d "{date_filter}"',  # noqa:E501
+        command=f'./atd-knack-services/services/{SCRIPT_TASK_3}.py -l markings_jobs -d "{date_filter}"',  # noqa:E501
         docker_url="tcp://localhost:2376",
         network_mode="bridge",
         environment=env_vars,
