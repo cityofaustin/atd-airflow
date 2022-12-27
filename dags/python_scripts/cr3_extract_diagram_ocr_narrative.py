@@ -2,9 +2,7 @@
 
 import io
 import os
-import re
 import sys
-import json
 from uuid import uuid4
 import boto3
 import argparse
@@ -62,9 +60,9 @@ s3 = boto3.client("s3")
 
 def update_crash_processed_date(crash_id: int) -> bool:
     """
-    Update the timestamp in the database for a given crash to indicate the CR3 has been processed, returning a boolean indicating success.
-
-    :param int: crash_id
+    Update the timestamp in the database for a given crash to indicate the CR3 has been processed
+    :param crash_id: id for crash to update
+    :return: boolean indicating success.
     """
 
     if args.v:
@@ -94,10 +92,10 @@ def update_crash_processed_date(crash_id: int) -> bool:
 
 def update_crash_narrative(crash_id: int, narrative: str) -> bool:
     """
-    Store the OCR extracted crash narative in the investigator_narrative_ocr field, returning a boolean indicating success.
-
-    :param int: Crash ID
-    :param str: Narrative
+    Store the OCR extracted crash narrative in the investigator_narrative_ocr field
+    :param crash_id: crash id for extracted crash narrative
+    :param narrative: OCR extracted crash narrative
+    :return: boolean indicating success
     """
 
     query = """
@@ -128,10 +126,10 @@ def update_crash_narrative(crash_id: int, narrative: str) -> bool:
 
 def update_crash_metadata(crash_id: int, metadata: dict) -> bool:
     """
-    Store the extracted crash diagram in the metadata field, returning a boolean indicating success.
-
-    :param int: Crash ID
-    :param dict: Metadata
+    Store the extracted crash diagram in the metadata field
+    :param crash_id: crash to update
+    :param metadata: extracted crash diagram
+    :return: boolean indicating success.
     """
 
     query = """
@@ -160,6 +158,7 @@ def update_crash_metadata(crash_id: int, metadata: dict) -> bool:
         sys.stderr.write(response.json())
 
 
+# Query for multiple unprocessed cr3s
 get_batch = """
 query find_cr3s($limit: Int) {
   atd_txdot_crashes(where: {
@@ -178,6 +177,7 @@ query find_cr3s($limit: Int) {
 """
 batch_variables = {"limit": int(args.batch_size)}
 
+# query for specific cr3, selected by crash_id
 get_single_cr3 = """
 query find_cr3s($crash_id: Int, $limit: Int) {
   atd_txdot_crashes(where: {
@@ -213,13 +213,8 @@ response = requests.post(
 )
 
 for crash in response.json()["data"]["atd_txdot_crashes"]:
-    # be verbose
     if args.v:
         print("Preparing to operate on crash_id: " + str(crash["crash_id"]))
-
-    # do we want to indicate in the database that an attempt was made to process the CR3.
-    if args.update_timestamp:
-        update_crash_processed_date(crash["crash_id"])
 
     # build url and download the CR3
     if args.v:
@@ -229,7 +224,7 @@ for crash in response.json()["data"]["atd_txdot_crashes"]:
     try:
         pdf = s3.get_object(Bucket=args.cr3_source[0], Key=key)
     except:
-        sys.stderr.write("Error: Failed to get PDF from the S3 object\n")
+        sys.stderr.write(f"Error: Failed to get PDF for crash {str(crash['crash_id'])}from the S3 object\n")
         continue
 
     # render the pdf into an array of raster images
@@ -246,7 +241,7 @@ for crash in response.json()["data"]["atd_txdot_crashes"]:
 
     if args.d:
         if args.v:
-            print("Excuting a check for a digitally created PDF")
+            print("Executing a check for a digitally created PDF")
         digital_end_to_end = True
         # these pixels are expected to be black on digitally created PDFs
         pixels = [
@@ -266,7 +261,7 @@ for crash in response.json()["data"]["atd_txdot_crashes"]:
                 print("Pixel" + "(%04d,%04d)" % pixel + ": " + str(rgb_pixel))
         if args.v:
             print("PDF Digital End to End?: " + str(digital_end_to_end))
-        if not (digital_end_to_end):
+        if not digital_end_to_end:
             if args.v:
                 sys.stderr.write("Error: Non-digitally created PDF detected.\n")
             continue
@@ -326,7 +321,7 @@ for crash in response.json()["data"]["atd_txdot_crashes"]:
             )
             continue
 
-    # do we want to save a PNG file from the image data to disk?
+    # Save a PNG file from the image data to disk
     if args.save_diagram_disk:
         if args.v:
             print("Saving PNG of diagram to disk")
@@ -334,9 +329,9 @@ for crash in response.json()["data"]["atd_txdot_crashes"]:
             path = args.save_diagram_disk[0] + "/" + str(crash["crash_id"]) + ".png"
             diagram_image.save(path)
         except:
-            sys.stderr.write("Error: Failed diagram PNG file to disk\n")
+            sys.stderr.write("Error: Failed saving diagram PNG file to disk\n")
 
-    # do we want to store the OCR'd text results from the attempt in the database for the current crash id?
+    # Store the OCR'd text results from the attempt in the database for the current crash id?
     if args.update_narrative:
         update_crash_narrative(crash["crash_id"], narrative)
 
@@ -349,6 +344,9 @@ for crash in response.json()["data"]["atd_txdot_crashes"]:
         crash['cr3_file_metadata']['successful_ocr_diagram_extraction'] = True
         update_crash_metadata(crash['crash_id'], crash['cr3_file_metadata'])
     """
+
+    if args.update_timestamp:
+        update_crash_processed_date(crash["crash_id"])
 
     if args.v:
         print("\n")
