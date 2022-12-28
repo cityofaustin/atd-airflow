@@ -243,7 +243,8 @@ for crash in response.json()["data"]["atd_txdot_crashes"]:
         if args.v:
             print("Executing a check for a digitally created PDF")
         digital_end_to_end = True
-        # these pixels are expected to be black on digitally created PDFs
+        new_cr3_form = False
+        # these pixels are expected to be black on digitally created PDFs previous to 1/1/2023
         pixels = [
             (110, 3520),
             (3080, 3046),
@@ -253,10 +254,23 @@ for crash in response.json()["data"]["atd_txdot_crashes"]:
             (2582, 4166),
             (1182, 1838),
         ]
-        for pixel in pixels:
+        new_pixels = [
+            (140, 668),
+            (670, 388),
+            (288, 1364),
+            (1088, 1566),
+            (79, 1361),
+            (1216, 105),
+        ]
+        # new cr3 form size is 1275x1650
+        if pages[1].size[1] < 2000:
+            new_cr3_form = True
+        test_pixels = new_pixels if new_cr3_form else pixels
+        for pixel in test_pixels:
             rgb_pixel = pages[1].getpixel(pixel)
             if not (rgb_pixel[0] == 0 and rgb_pixel[1] == 0 and rgb_pixel[2] == 0):
                 digital_end_to_end = False
+                continue
             if args.v:
                 print("Pixel" + "(%04d,%04d)" % pixel + ": " + str(rgb_pixel))
         if args.v:
