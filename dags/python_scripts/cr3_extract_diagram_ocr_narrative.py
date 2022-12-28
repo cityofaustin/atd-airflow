@@ -265,6 +265,8 @@ for crash in response.json()["data"]["atd_txdot_crashes"]:
         # new cr3 form size is 1275x1650
         if pages[1].size[1] < 2000:
             new_cr3_form = True
+            if args.v:
+                print("CR3 created with new 2023 version format")
         test_pixels = new_pixels if new_cr3_form else pixels
         for pixel in test_pixels:
             rgb_pixel = pages[1].getpixel(pixel)
@@ -284,8 +286,12 @@ for crash in response.json()["data"]["atd_txdot_crashes"]:
     if args.v:
         print("Cropping narrative and diagram from images")
     try:
-        narrative_image = pages[1].crop((96, 3683, 2580, 6049))
-        diagram_image = pages[1].crop((2589, 3531, 5001, 6048))
+        if new_cr3_form:
+            narrative_image = pages[1].crop((80, 775, 655, 1356))
+            diagram_image = pages[1].crop((655, 775, 1215, 1356))
+        else:
+            narrative_image = pages[1].crop((96, 3683, 2580, 6049))
+            diagram_image = pages[1].crop((2589, 3531, 5001, 6048))
     except:
         sys.stderr.write(
             "Error: Failed to extract the image of the narative and diagram from image in memory\n"
