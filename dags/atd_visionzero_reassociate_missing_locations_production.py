@@ -18,7 +18,8 @@ environment_vars = Variable.get("atd_visionzero_hasura_sql_production", deserial
 args = {
     "owner": "airflow",
     "start_date": days_ago(2),
-    "on_failure_callback": task_fail_slack_alert
+    "on_failure_callback": task_fail_slack_alert,
+    "retries": 2,
 }
 
 #
