@@ -255,15 +255,13 @@ for crash in response.json()["data"]["atd_txdot_crashes"]:
             (1182, 1838),
         ]
         new_pixels = [
-            (140, 668),
-            (670, 388),
-            (288, 1364),
-            (1088, 1566),
-            (79, 1361),
-            (1216, 105),
+            (215, 2567),
+            (872, 2568),
+            (3338, 3060),
+            (1690, 2574),
+            (4834, 279)
         ]
-        # new cr3 form size is 1275x1650
-        if pages[1].size[1] < 2000:
+        if pages[1].size[0] < 5000:
             new_cr3_form = True
             if args.v:
                 print("CR3 created with new 2023 version format")
@@ -287,8 +285,8 @@ for crash in response.json()["data"]["atd_txdot_crashes"]:
         print("Cropping narrative and diagram from images")
     try:
         if new_cr3_form:
-            narrative_image = pages[1].crop((80, 775, 655, 1356))
-            diagram_image = pages[1].crop((655, 775, 1215, 1356))
+            narrative_image = pages[1].crop((90, 3026, 2496, 5466))
+            diagram_image = pages[1].crop((2496, 3036, 4836, 5464))
         else:
             narrative_image = pages[1].crop((96, 3683, 2580, 6049))
             diagram_image = pages[1].crop((2589, 3531, 5001, 6048))
