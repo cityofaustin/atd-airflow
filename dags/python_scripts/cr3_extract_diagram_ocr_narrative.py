@@ -243,7 +243,8 @@ for crash in response.json()["data"]["atd_txdot_crashes"]:
         if args.v:
             print("Executing a check for a digitally created PDF")
         digital_end_to_end = True
-        new_cr3_form = False
+        # assume new cr3 form unless proven otherwise
+        new_cr3_form = True
         # these pixels are expected to be black on digitally created PDFs previous to 1/1/2023
         pixels = [
             (110, 3520),
@@ -261,18 +262,21 @@ for crash in response.json()["data"]["atd_txdot_crashes"]:
             (1690, 2574),
             (4834, 279)
         ]
-        if pages[1].size[0] < 5000:
-            new_cr3_form = True
-            if args.v:
-                print("CR3 created with new 2023 version format")
-        test_pixels = new_pixels if new_cr3_form else pixels
-        for pixel in test_pixels:
+        for pixel in new_pixels:
             rgb_pixel = pages[1].getpixel(pixel)
             if not (rgb_pixel[0] == 0 and rgb_pixel[1] == 0 and rgb_pixel[2] == 0):
-                digital_end_to_end = False
+                new_cr3_form = False
                 continue
             if args.v:
                 print("Pixel" + "(%04d,%04d)" % pixel + ": " + str(rgb_pixel))
+        if not new_cr3_form:
+            for pixel in pixels:
+                rgb_pixel = pages[1].getpixel(pixel)
+                if not (rgb_pixel[0] == 0 and rgb_pixel[1] == 0 and rgb_pixel[2] == 0):
+                    digital_end_to_end = False
+                    continue
+                if args.v:
+                    print("Pixel" + "(%04d,%04d)" % pixel + ": " + str(rgb_pixel))
         if args.v:
             print("PDF Digital End to End?: " + str(digital_end_to_end))
         if not digital_end_to_end:
