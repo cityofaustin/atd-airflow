@@ -1,80 +1,103 @@
-# ATD - Airflow Docker Image
+# Airflow 2.5.3 for local/production use
 
-### Instructions
+## Features
+* [local development](https://github.com/frankhereford/airflow#local-setup) with a high quality DX
+  * you get a full, local airflow stack
+    * so you can trigger it as if in airflow, via [the UI](http://localhost:8080/home)
+      * stack traces available in UI
+  * you can run the ETL in a terminal and get `stdout` from the program and also a color-coded output of the DAG's interactions with the airflow orchestration
+    * `docker compose run --rm airflow-cli dags test weather-checker`, for example
+    * continue to make changes to the code outside of docker, and they will show up in airflow as you save
+* [1Password secret support](https://github.com/frankhereford/airflow/blob/main/dags/weather.py#L27-L38)
+  * built in, zero-config. You give it the secret name in 1Password, it gives you the value, right in the DAG
+* [working CI](https://github.com/frankhereford/airflow/blob/main/.github/workflows/production_deployment.yml), triggered [via](https://github.com/frankhereford/airflow/blob/main/haproxy/haproxy.cfg#L64) [webhook](https://github.com/frankhereford/airflow/blob/main/webhook/webhook.py#L33-L46), [secured](https://github.com/frankhereford/airflow/blob/main/webhook/webhook.py#L37) using a 1Password entry 
+  * automatically pulls from `production` when PRs are merged into the branch
+  * you can rotate the webhook token by opening 1Password, editing [the entry](https://github.com/frankhereford/airflow/blob/main/webhook/webhook.py#L13), generating a new password, and saving it. 10 seconds, tops. 🏁
+* support for picking [environment based secrets](https://github.com/frankhereford/airflow/blob/main/dags/weather.py#L19-L23) based on local/production
+  * zero-config in DAG, based out of `.env`
+* supports remote workers
+  * monitor their status with a [web UI](https://workers.airflow.fyi/)
+    * shared credentials with admin airflow account
+* [production environment](https://airflow.fyi) which runs on a `t3a.xlarge` class instance comfortably
+  * full control over [production server configuration](https://github.com/frankhereford/airflow/blob/main/airflow.cfg), yet keeping the perks of a docker stack
+* [customizable python environment](https://github.com/frankhereford/airflow/blob/main/requirements.txt) for DAGs, including [external, binary libraries](https://github.com/frankhereford/airflow/blob/main/Dockerfile#L1414-L1415) built right into the container
+  * based on bog standard `requirements.txt` & ubuntu `apt` commands
+* access to the [server's docker service](https://github.com/frankhereford/airflow/blob/main/docker-compose.yaml#L93)
+  * available on worker containers and available for DAGs
+  * you can package your ETL up as an image and then run it in the DAG 📦🐳
+    * skip installing libraries on the server
+* [flexible reverse proxy](https://github.com/frankhereford/airflow/blob/main/haproxy/haproxy.cfg#L38-L68) to distribute HTTP requests over stack
+* Interface with Airflow via Web UI, CLI and API
+  * CLI interface locally via: `docker compose run --rm airflow-cli <command>`
+* [very minimal production deployment changes](https://github.com/frankhereford/airflow/pull/34/files)
+  * server is EC2's vanilla Ubuntu LTS AMI + docker from docker's official PPA
 
-This is the airflow image used for Vision Zero ETL processes. To get started, be sure you have docker-compose installed, and run the command below.
+## Building multi-architecture docker images
 
-Airflow's image is based off of Matthieu "Puckel_" Roisil's docker image: https://github.com/puckel/docker-airflow
-
-### Environment Variables
-
-You will need some environment variables to spin it up:
-
-```
-export AIRFLOW__CORE__FERNET_KEY="__your_fernet_key__"
-export AIRFLOW__CORE__REMOTE_BASE_LOG_FOLDER="s3://__your_s3_bucket__/logs";
-export AIRFLOW_CONN_ATD_AIRFLOW_S3_PRODUCTION="s3://__your_aws_s3_access_key__:__your_aws_s3_secret_key__@__your_s3_bucket__/__subfolder__";
-```
-
-### Docker-Compose
-
-To run, Airflow depends on PostgreSQL and Redis (if you run with celery). These components are provided together as a small cluster in docker-compose. The cluster also includes an nginx reverse proxy to centralize web access to airflow's UI and/or any other additional services.
-
-### PostgreSQL
-
-Keep the postgres-data folder empty, docker will try to establish a postgres volume on here to persist its data.
-
-##### Run Airflow for Development:
-
-To run in dettached mode, from the docker folder run: `docker-compose -f docker-compose-dev.yml up -d`
-
-Remove the `-d` (dettached) flag if you hare having issues, this will cause docker compose
-to run in attached mode, which will show the console output of the cluster, including any errors.
-
-Check the Airflow webclient: http://localhost:8080
-
-Stopping the cluster: `docker-compose -f docker-compose-dev.yml down`
-
-### E-mail in Local Development
-
-Please note that the local environment is not configured to send emails. If you must, you would
-have to create a file called `config.env` and provide these values:
+* Images created locally by default are ARM64 on a modern mac. They need to also support the server's architecture, which is AMD64.
+* This is helpful when building images to be called as the heavy-lifting component of an ETL.
+* This is not a part of building or operating the stack locally.
 
 ```
-AIRFLOW__SMTP__SMTP_STARTTLS=False
-AIRFLOW__SMTP__SMTP_SSL=True
-AIRFLOW__SMTP__SMTP_HOST=your_smtp_server_host
-AIRFLOW__SMTP__SMTP_USER=your_smtp_user_name
-AIRFLOW__SMTP__SMTP_PASSWORD=your_smtp_password
-AIRFLOW__SMTP__SMTP_PORT=465
-AIRFLOW__SMTP__SMTP_MAIL_FROM=your.from.email@server.com
+docker buildx build \
+--push \
+--platform linux/arm/v7,linux/arm64/v8,linux/amd64 \
+--tag frankinaustin/signal-annotate:latest .
 ```
 
-Once you save the file in a safe place, you can reference the file in the 
-`docker-compose-dev.yml` file like this:
+## Local Setup
+* `.env` file:
 
 ```
-    ...
-    webserver:
-        build:
-            context: .
-            dockerfile: Dockerfile
-            args:
-                airflow_configuration: config/airflow-dev.cfg
-                airflow_environment: development
-        restart: always
-        depends_on:
-            - postgres
-        environment:
-            - LOAD_EX=n
-            - EXECUTOR=Local
-            
-        # Import your env file like this:
-        env_file:
-            - path/to/your/config.env
-        ...
+AIRFLOW_UID=<the numeric output of the following command: id -u>
+ENVIRONMENT=<development|production>
+_AIRFLOW_WWW_USER_USERNAME=admin
+_AIRFLOW_WWW_USER_PASSWORD=<pick your initial admin pw here>
+AIRFLOW_PROJ_DIR=<absolute path of airflow checkout>
+OP_API_TOKEN=<Get from 1Password here: 'name TBD'>
+OP_CONNECT=<URL of the 1Password Connect install>
 ```
 
-### Read the Docs
+* `docker compose build`
+* `docker compose up -d`
+* Airflow is available at http://localhost:8080
+* The test weather DAG output at http://localhost:8081
+* The webhook flask app at http://localhost:8082
+* The workers' status page at http://localhost:8083
 
-Once you have a local instance of Airflow running, you should read the docs folder.
+## Production Setup
+* GitHub key pair
+  * Public key installed on GitHub
+  * Private key in `private_key_for_github` at the top of the repo
+    * Starts and ends with 
+      * `-----BEGIN OPENSSH PRIVATE KEY-----`
+      * `-----END OPENSSH PRIVATE KEY-----` or similar
+  * We could change the checkout on the production machine to a `HTTPS` instead of `ssh` based git origin
+    * This change would eliminate the need for this file / key
+* `.env` file
+  * See above
+
+## Useful Commands
+* 🐚 get a shell on a worker, for example
+```
+docker exec -it airflow-airflow-worker-1 bash
+```
+
+* ⛔ Stop all containers and execute this to reset your local database.
+  * Do not run in production unless you feel really great about your backups. 
+  * This will reset the history of your dag runs and switch states.
+```
+docker compose down --volumes --remove-orphans
+```
+
+## Ideas
+* Make it disable all DAGs on start locally so it fails to safe
+* Fix UID being applied by `webhook` image on `git pull`
+* Create remote worker image example
+  * Use `docker compose` new `profile` support
+* Add slack integration
+* 🤔 Extend webhook to rotate key in 1Password after every use
+  * a true rolling token, 1 use per value
+
+## Example DAGs
+* You can turn on [this field](https://github.com/frankhereford/airflow/blob/main/docker-compose.yaml#L65) to get about 50 example DAGs of various complexity to borrow from

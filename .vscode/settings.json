@@ -1,4 +1,14 @@
 {
-  "python.linting.pylintEnabled": true,
-  "python.linting.enabled": true
+  "cSpell.words": [
+    "distributhor",
+    "frankinaustin",
+    "NOAA",
+    "ONEPASSWORD",
+    "onepasswordconnectsdk",
+    "opfield",
+    "opitem",
+    "opvault",
+    "quvhrzaatbj",
+    "xlarge"
+  ]
 }
