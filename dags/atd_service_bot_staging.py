@@ -8,6 +8,7 @@ from airflow.operators.docker_operator import DockerOperator
 from onepasswordconnectsdk.client import Client, new_client
 import onepasswordconnectsdk
 
+DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT")
 ONEPASSWORD_CONNECT_HOST = os.getenv("OP_CONNECT")
 ONEPASSWORD_CONNECT_TOKEN = os.getenv("OP_API_TOKEN")
 VAULT_ID = os.getenv("OP_VAULT_ID")
@@ -30,28 +31,28 @@ app_name = "dts-portal"
 
 REQUIRED_SECRETS = {
     "KNACK_APP_ID": {
-        "opitem": "Staging Service Bot Knack App ID",
-        "opfield": ".password",
+        "opitem": "Service Bot",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.knackAppId",
         "opvault": VAULT_ID,
     },
     "KNACK_API_KEY": {
-        "opitem": "Staging Service Bot Knack API Key",
-        "opfield": ".password",
+        "opitem": "Service Bot",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.knackApiKey",
         "opvault": VAULT_ID,
     },
     "GITHUB_ACCESS_TOKEN": {
-        "opitem": "Service Bot Github Access Token",
-        "opfield": ".password",
+        "opitem": "Service Bot",
+        "opfield": "common.githubAccessToken",
         "opvault": VAULT_ID,
     },
     "KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME": {
-        "opitem": "Knack DTS Portal Service Bot Login Email",
-        "opfield": ".password",
+        "opitem": "Service Bot",
+        "opfield": "common.dtsPortalLoginEmail",
         "opvault": VAULT_ID,
     },
     "KNACK_DTS_PORTAL_SERVICE_BOT_PASSWORD": {
-        "opitem": "Knack DTS Portal Service Bot Login Password",
-        "opfield": ".password",
+        "opitem": "Service Bot",
+        "opfield": "common.dtsPortalLoginPassword",
         "opvault": VAULT_ID,
     },
 }
@@ -61,11 +62,11 @@ env_vars = onepasswordconnectsdk.load_dict(client, REQUIRED_SECRETS)
 
 
 with DAG(
-    dag_id="atd_service_bot_issue_intake_staging",
+    dag_id=f"atd_service_bot_issue_intake_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
     schedule_interval="* * * * *",
     dagrun_timeout=timedelta(minutes=5),
-    tags=["staging", "knack", "atd-service-bot", "github"],
+    tags=[DEPLOYMENT_ENVIRONMENT, "knack", "atd-service-bot", "github"],
     catchup=False,
 ) as dag:
     t1 = DockerOperator(
