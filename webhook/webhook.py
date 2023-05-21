@@ -12,7 +12,7 @@ VAULT_ID = os.getenv("OP_VAULT_ID")
 
 SECRETS = {
     "webhook_token": {
-        "opitem": "Airflow Webhook Token",
+        "opitem": "Airflow Webhook",
         "opfield": ".password",
         "opvault": VAULT_ID,
     },
