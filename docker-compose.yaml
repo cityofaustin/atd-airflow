@@ -134,7 +134,11 @@ services:
 
   webhook-relay:
     build: ./webhook-relay
-    command: smee -u ${WEBHOOK_PROXY_URL} -t http://webhook:5000/webhook
+    environment:
+      OP_CONNECT_TOKEN: ${OP_API_TOKEN}
+      OP_CONNECT_HOST: ${OP_CONNECT}
+      OP_VAULT_ID: ${OP_VAULT_ID}
+    command: /entry_point.sh
 
   weather:
     restart: always
