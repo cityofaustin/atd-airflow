@@ -6,4 +6,3 @@ weather/*.jpg
 .env
 venv
 *.swp
-*.http
