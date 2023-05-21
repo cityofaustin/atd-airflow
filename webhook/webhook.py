@@ -48,8 +48,8 @@ def handle_webhook():
         app.logger.info("successful webhook auth\n")
         # create a directory to store the deploy key
         with TempDir() as key_directory:
-            # write the deploy key to a file
-            write_to_file(key_directory + "/id_ed25519", SECRET_VALUES["deploy_key_private"] + "\n") # trailing new line required! POSIX standard 
+            # write the deploy key to a file, trailing new line required! POSIX standard 
+            write_to_file(key_directory + "/id_ed25519", SECRET_VALUES["deploy_key_private"] + "\n") 
             # change directory to the checkout location
             os.chdir('/opt/airflow')
             # create an environment object
