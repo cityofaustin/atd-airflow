@@ -37,6 +37,7 @@ def status():
 def handle_webhook():
     # we only want to run this in production, so we check the environment variable
     if OPERATING_ENVIRONMENT != "production":
+        app.logger.info("\nnot in production, skipping webhook\n")
         return "Not in production, skipping webhook"
     # get the client key from the request header
     client_key = request.headers.get('X-Webhook-Key')
