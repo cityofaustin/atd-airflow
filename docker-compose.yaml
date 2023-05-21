@@ -73,6 +73,7 @@ x-airflow-common:
     FLOWER_AUTH_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME}
     FLOWER_AUTH_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD}
     AIRFLOW_CHECKOUT_PATH: ${AIRFLOW_PROJ_DIR} 
+    WEBHOOK_PROXY_URL: ${WEBHOOK_PROXY_URL}
 
     # yamllint disable rule:line-length
     # Use simple http server on scheduler for health checks
@@ -131,6 +132,10 @@ services:
       - ${AIRFLOW_PROJ_DIR:-.}/webhook:/app
       - ${AIRFLOW_PROJ_DIR:-.}:/opt/airflow
       - ${AIRFLOW_PROJ_DIR:-.}/private_key_for_github:/opt/private_key_for_github
+
+  webhook-relay:
+    build: ./webhook-relay
+    command: smee -u ${WEBHOOK_PROXY_URL} -t http://webhook:5000/webhook
 
   weather:
     restart: always
