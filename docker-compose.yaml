@@ -130,6 +130,7 @@ services:
     volumes:
       - ${AIRFLOW_PROJ_DIR:-.}/webhook:/app
       - ${AIRFLOW_PROJ_DIR:-.}:/opt/airflow
+      - ${AIRFLOW_PROJ_DIR:-.}/private_key_for_github:/opt/private_key_for_github
 
   weather:
     restart: always
