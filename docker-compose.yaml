@@ -73,7 +73,6 @@ x-airflow-common:
     FLOWER_AUTH_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME}
     FLOWER_AUTH_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD}
     AIRFLOW_CHECKOUT_PATH: ${AIRFLOW_PROJ_DIR} 
-    WEBHOOK_PROXY_URL: ${WEBHOOK_PROXY_URL}
 
     # yamllint disable rule:line-length
     # Use simple http server on scheduler for health checks
@@ -135,6 +134,7 @@ services:
   webhook-relay:
     build: ./webhook-relay
     environment:
+      <<: *airflow-common-env
       OP_CONNECT_TOKEN: ${OP_API_TOKEN}
       OP_CONNECT_HOST: ${OP_CONNECT}
       OP_VAULT_ID: ${OP_VAULT_ID}
