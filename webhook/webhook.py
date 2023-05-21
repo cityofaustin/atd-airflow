@@ -9,6 +9,7 @@ import onepasswordconnectsdk
 ONEPASSWORD_CONNECT_TOKEN = os.getenv("OP_API_TOKEN")
 ONEPASSWORD_CONNECT_HOST = os.getenv("OP_CONNECT")
 VAULT_ID = os.getenv("OP_VAULT_ID")
+OPERATING_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 SECRETS = {
     "webhook_token": {
@@ -34,6 +35,10 @@ def status():
 
 @app.route('/webhook', methods=['POST'])
 def handle_webhook():
+    # we only want to run this in production, so we check the environment variable
+    if OPERATING_ENVIRONMENT != "production":
+        return "Not in production, skipping webhook"
+
     # get the client key from the request header
     client_key = request.headers.get('X-Webhook-Key')
     # get the secret values from 1Password
