@@ -6,4 +6,3 @@ weather/*.jpg
 .env
 venv
 *.swp
-private_key_for_github
