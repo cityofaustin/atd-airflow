@@ -56,6 +56,7 @@ _AIRFLOW_WWW_USER_PASSWORD=<pick your initial admin pw here>
 AIRFLOW_PROJ_DIR=<absolute path of airflow checkout>
 OP_API_TOKEN=<Get from 1Password here: 'name TBD'>
 OP_CONNECT=<URL of the 1Password Connect install>
+OP_VAULT_ID=<OP Vault ID>
 ```
 
 * `docker compose build`
