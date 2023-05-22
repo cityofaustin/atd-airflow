@@ -5,6 +5,9 @@ from datetime import datetime, timedelta
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
 
+from onepasswordconnectsdk.client import Client, new_client
+import onepasswordconnectsdk
+
 # from _slack_operators import task_fail_slack_alert
 
 DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
@@ -20,7 +23,7 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
-    "on_failure_callback": task_fail_slack_alert,
+    # "on_failure_callback": task_fail_slack_alert,
 }
 
 docker_image = "atddocker/atd-service-bot:production"
@@ -52,6 +55,9 @@ REQUIRED_SECRETS = {
         "opvault": VAULT_ID,
     },
 }
+
+client: Client = new_client(ONEPASSWORD_CONNECT_HOST, ONEPASSWORD_CONNECT_TOKEN)
+env_vars = onepasswordconnectsdk.load_dict(client, REQUIRED_SECRETS)
 
 with DAG(
     dag_id="atd_service_bot_github_to_socrata_production",
