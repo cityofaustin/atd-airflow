@@ -110,10 +110,8 @@ services:
       <<: *airflow-common-env
     build: ./haproxy
     ports:
-      - 8080:80
-      - 8081:81
-      - 8082:82
-      - 8083:83
+      - 80:8080
+      - 443:8443
 
     depends_on:
       - weather
