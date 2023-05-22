@@ -8,16 +8,16 @@ from airflow.operators.docker_operator import DockerOperator
 from onepasswordconnectsdk.client import Client, new_client
 import onepasswordconnectsdk
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT")
+# from _slack_operators import *
+
+DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 ONEPASSWORD_CONNECT_HOST = os.getenv("OP_CONNECT")
 ONEPASSWORD_CONNECT_TOKEN = os.getenv("OP_API_TOKEN")
 VAULT_ID = os.getenv("OP_VAULT_ID")
 
-# from _slack_operators import *
-
 default_args = {
     "owner": "airflow",
-    "description": "Fetch new DTS service requests and create Github issues",
+    "description": "Create/update 'Index' issues in the DTS portal from Github.",
     "depends_on_past": False,
     "start_date": datetime(2015, 12, 1),
     "email_on_failure": False,
@@ -27,7 +27,6 @@ default_args = {
 }
 
 docker_image = "atddocker/atd-service-bot:production"
-app_name = "dts-portal"
 
 REQUIRED_SECRETS = {
     "KNACK_APP_ID": {
@@ -42,17 +41,7 @@ REQUIRED_SECRETS = {
     },
     "GITHUB_ACCESS_TOKEN": {
         "opitem": "Service Bot",
-        "opfield": "common.githubAccessToken",
-        "opvault": VAULT_ID,
-    },
-    "KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME": {
-        "opitem": "Service Bot",
-        "opfield": "common.dtsPortalLoginEmail",
-        "opvault": VAULT_ID,
-    },
-    "KNACK_DTS_PORTAL_SERVICE_BOT_PASSWORD": {
-        "opitem": "Service Bot",
-        "opfield": "common.dtsPortalLoginPassword",
+        "opfield": "shared.githubAccessToken",
         "opvault": VAULT_ID,
     },
 }
@@ -60,23 +49,27 @@ REQUIRED_SECRETS = {
 client: Client = new_client(ONEPASSWORD_CONNECT_HOST, ONEPASSWORD_CONNECT_TOKEN)
 env_vars = onepasswordconnectsdk.load_dict(client, REQUIRED_SECRETS)
 
-
 with DAG(
-    dag_id=f"atd_service_bot_issue_intake_{DEPLOYMENT_ENVIRONMENT}",
+    dag_id="atd_service_bot_issues_to_dts_portal_production",
     default_args=default_args,
-    schedule_interval="* * * * *",
-    dagrun_timeout=timedelta(minutes=5),
-    tags=[DEPLOYMENT_ENVIRONMENT, "knack", "atd-service-bot", "github"],
+    schedule_interval="13 7 * * *",
+    dagrun_timeout=timedelta(minutes=60),
+    tags=["production", "atd-service-bot", "github"],
     catchup=False,
 ) as dag:
     t1 = DockerOperator(
-        task_id="dts_sr_to_github",
+        task_id="github_to_dts_portal",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command="./atd-service-bot/intake.py",
+        command="./atd-service-bot/gh_index_issues_to_dts_portal.py",
+        docker_url="tcp://localhost:2376",
+        network_mode="bridge",
         environment=env_vars,
         tty=True,
     )
 
     t1
+
+if __name__ == "__main__":
+    dag.cli()
