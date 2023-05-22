@@ -46,10 +46,10 @@ docker buildx build \
 ```
 
 ## Local Setup
-* `.env` file:
+* Create, or get from a fellow dev, a `.env` file:
 
 ```
-AIRFLOW_UID=<the numeric output of the following command: id -u>
+AIRFLOW_UID=0
 ENVIRONMENT=<development|production>
 _AIRFLOW_WWW_USER_USERNAME=admin
 _AIRFLOW_WWW_USER_PASSWORD=<pick your initial admin pw here>
@@ -62,9 +62,9 @@ OP_VAULT_ID=<OP Vault ID>
 * `docker compose build`
 * `docker compose up -d`
 * Airflow is available at http://localhost:8080
-* The test weather DAG output at http://localhost:8081
-* The webhook flask app at http://localhost:8082
-* The workers' status page at http://localhost:8083
+* The webhook flask app at http://localhost:8081
+* The workers' status page at http://localhost:8082
+* The test weather DAG output at http://localhost:8083
 
 
 ## Useful Commands
@@ -82,7 +82,6 @@ docker compose down --volumes --remove-orphans
 
 ## Ideas
 * Make it disable all DAGs on start locally so it fails to safe
-* Fix UID being applied by `webhook` image on `git pull`
 * Create remote worker image example
   * Use `docker compose` new `profile` support
 * Add slack integration
