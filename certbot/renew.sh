@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Let's renew the certificate for airflow"
-CERT_PATH="/root/airflow/atd-airflow/certs/"
+CERT_PATH="/usr/local/etc/haproxy/ssl/certs/"
 cd $CERT_PATH
 DATE="$(date +"%Y-%m-%d")"
 mkdir $DATE
@@ -21,4 +21,4 @@ cat /etc/letsencrypt/live/airflow.austinmobility.io/cert.pem > /usr/airflow/atd-
 
 cat /etc/letsencrypt/live/airflow.austinmobility.io/privkey.pem >> /usr/airflow/atd-airflow/haproxy/ssl/airflow.austinmobility.io.pem
 
-/root/automated-tasks/atd-airflow/restart-airflow.sh
+/restart-airflow.sh
