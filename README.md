@@ -66,17 +66,6 @@ OP_VAULT_ID=<OP Vault ID>
 * The webhook flask app at http://localhost:8082
 * The workers' status page at http://localhost:8083
 
-## Production Setup
-* GitHub key pair
-  * Public key installed on GitHub
-  * Private key in `private_key_for_github` at the top of the repo
-    * Starts and ends with 
-      * `-----BEGIN OPENSSH PRIVATE KEY-----`
-      * `-----END OPENSSH PRIVATE KEY-----` or similar
-  * We could change the checkout on the production machine to a `HTTPS` instead of `ssh` based git origin
-    * This change would eliminate the need for this file / key
-* `.env` file
-  * See above
 
 ## Useful Commands
 * 🐚 get a shell on a worker, for example

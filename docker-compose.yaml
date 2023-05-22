@@ -130,7 +130,15 @@ services:
     volumes:
       - ${AIRFLOW_PROJ_DIR:-.}/webhook:/app
       - ${AIRFLOW_PROJ_DIR:-.}:/opt/airflow
-      - ${AIRFLOW_PROJ_DIR:-.}/private_key_for_github:/opt/private_key_for_github
+
+  webhook-relay:
+    build: ./webhook-relay
+    environment:
+      <<: *airflow-common-env
+      OP_CONNECT_TOKEN: ${OP_API_TOKEN}
+      OP_CONNECT_HOST: ${OP_CONNECT}
+      OP_VAULT_ID: ${OP_VAULT_ID}
+    command: /entry_point.sh
 
   weather:
     restart: always
