@@ -8,12 +8,12 @@ from airflow.operators.docker_operator import DockerOperator
 from onepasswordconnectsdk.client import Client, new_client
 import onepasswordconnectsdk
 
+# from _slack_operators import *
+
 DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 ONEPASSWORD_CONNECT_HOST = os.getenv("OP_CONNECT")
 ONEPASSWORD_CONNECT_TOKEN = os.getenv("OP_API_TOKEN")
 VAULT_ID = os.getenv("OP_VAULT_ID")
-
-# from _slack_operators import *
 
 default_args = {
     "owner": "airflow",
