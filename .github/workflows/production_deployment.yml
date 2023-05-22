@@ -14,17 +14,26 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - name: Load secret
-        id: op-load-secret
-        uses: 1password/load-secrets-action@v1
-        env:
-          OP_CONNECT_HOST: ${{ secrets.OP_CONNECT }}
-          OP_CONNECT_TOKEN: ${{ secrets.OP_API_TOKEN }}
-          WEBHOOK_KEY: "op://Discovery Day/airflow.fyi webhook key/password"
+      - name: Configure 1Password Connect
+        uses: 1password/load-secrets-action/configure@v1
+        with:
+          # Persist the 1Password Connect configuration for next steps.
+          connect-host: ${{ secrets.OP_CONNECT }}
+          connect-token: ${{ secrets.OP_API_TOKEN}}
 
-      - name: Invoke deployment hook
-        uses: distributhor/workflow-webhook@v2
+      - name: Load web hook access token from 1Password
+        uses: 1password/load-secrets-action@v1
+        with:
+          export-env: true
         env:
-          webhook_url: ${{ secrets.AIRFLOW_WEBHOOK_URL}}
-          webhook_secret: ${{ env.WEBHOOK_KEY }}
-          data: '{ "webhook_key": "${{ env.WEBHOOK_KEY }}" }'
+          WEBHOOK_KEY: "op://${{ secrets.OP_VAULT_ID  }}/Airflow Webhook/password"
+
+      - name: Load web hook address from 1Password
+        uses: 1password/load-secrets-action@v1
+        with:
+          export-env: true
+        env:
+          WEBHOOK_ADDRESS: "op://${{ secrets.OP_VAULT_ID }}/Airflow Webhook/smee/address"
+      
+      - name: Invoke authenticated deployment web hook
+        run: 'curl -X POST -H "X-Webhook-Key: ${{ env.WEBHOOK_KEY }}" ${{ env.WEBHOOK_ADDRESS }}'
