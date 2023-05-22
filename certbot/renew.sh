@@ -3,10 +3,8 @@
 echo "Let's renew the certificate for airflow"
 CERT_PATH="/usr/local/etc/haproxy/ssl/certs/"
 cd $CERT_PATH
-DATE="$(date +"%Y-%m-%d")"
-mkdir $DATE
-mv cert.key $DATE
-mv cert.crt $DATE
+rm cert.key
+rm cert.crt
 
 docker pull certbot/dns-route53:latest
 
