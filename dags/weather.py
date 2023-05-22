@@ -54,7 +54,8 @@ def etl_weather():
             image=docker_image, 
             # this docker image needs a place to write its output. the path is as seen from the host
             # server, because we've passed down the docker socket into the container running the flow.
-            volumes=[AIRFLOW_CHECKOUT_PATH + '/weather:/opt/weather']
+            volumes=[AIRFLOW_CHECKOUT_PATH + '/weather:/opt/weather'],
+            auto_remove=True,
             )
         return str(logs)
 
