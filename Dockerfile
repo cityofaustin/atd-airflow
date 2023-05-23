@@ -2,7 +2,10 @@ FROM apache/airflow:2.5.3
 
 USER root
 RUN apt-get update
-RUN apt-get install -y aptitude magic-wormhole vim black
+RUN apt-get install -y aptitude magic-wormhole vim black 
+
+# install zip archive tool for CRIS export use
+RUN apt-get install -y p7zip-full
 
 # bastion host support for local dev
 RUN apt-get install -y openssh-server
