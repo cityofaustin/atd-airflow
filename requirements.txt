@@ -1,2 +1,5 @@
 onepasswordconnectsdk
 docker
+sysrsync
+psycopg2-binary
+sshtunnel
