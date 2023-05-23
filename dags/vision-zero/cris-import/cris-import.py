@@ -227,7 +227,6 @@ def cris_import():
     def create_target_import_schema(map_state):
 
         logger = logging.getLogger(__name__)  
-        logger.info("Shhh" + str(map_state["secrets"]))
 
         DB_BASTION_HOST = map_state["secrets"]["bastion_host"]
         DB_BASTION_HOST_SSH_USERNAME = map_state["secrets"]["bastion_ssh_username"]
@@ -240,7 +239,7 @@ def cris_import():
         ssh_tunnel = SSHTunnelForwarder(
             (DB_BASTION_HOST),
             ssh_username=DB_BASTION_HOST_SSH_USERNAME,
-            #ssh_private_key= '/root/.ssh/id_rsa', # will switch to ed25519 when we rebuild this for prefect 2
+            #ssh_private_key= '/root/.ssh/id_rsa',
             remote_bind_address=(DB_RDS_HOST, 5432)
             )
         ssh_tunnel.start()   
@@ -279,6 +278,86 @@ def cris_import():
 
         return map_state
 
+    @task(
+        #name="pgloader CSV into DB", 
+        #max_retries=2, 
+        #retry_delay=datetime.timedelta(minutes=1), 
+        #state_handlers=[handler],
+        )
+    def pgloader_csvs_into_database(map_state):
+        import time
+
+        logger = logging.getLogger(__name__)  
+        
+        DB_BASTION_HOST = map_state["secrets"]["bastion_host"]
+        DB_BASTION_HOST_SSH_USERNAME = map_state["secrets"]["bastion_ssh_username"]
+        DB_RDS_HOST = map_state["secrets"]["database_host"]
+        DB_USER = map_state["secrets"]["database_username"]
+        DB_PASS = map_state["secrets"]["database_password"]
+        DB_NAME = map_state["secrets"]["database_name"]
+        DB_SSL_REQUIREMENT = map_state["secrets"]["database_ssl_policy"]
+
+
+        # Walk the directory and find all the CSV files
+        pgloader_command_files_tmpdir = tempfile.mkdtemp()
+        for root, dirs, files in os.walk(map_state["working_directory"]):
+            for filename in files:
+                if filename.endswith(".csv") and filename.startswith(map_state["csv_prefix"]):
+                    # Extract the table name from the filename. They are named `crash`, `unit`, `person`, `primaryperson`, & `charges`.
+                    table = re.search("extract_[\d_]+(.*)_[\d].*\.csv", filename).group(1)
+
+                    headers_line_with_newline = None
+
+                    with open(map_state["working_directory"] + "/" + filename, "r") as file:
+                        headers_line_with_newline = file.readline()
+                    headers_line = headers_line_with_newline.strip()
+
+                    headers = headers_line.split(',')
+                    command_file = pgloader_command_files_tmpdir + "/" + table + ".load"
+
+                    # we're going to get away with opening up this tunnel here for all pgloader commands
+                    # because they get executed before this goes out of scope
+                    ssh_tunnel = SSHTunnelForwarder(
+                        (DB_BASTION_HOST),
+                        ssh_username=DB_BASTION_HOST_SSH_USERNAME,
+                        ssh_private_key= '/root/.ssh/id_rsa',
+                        remote_bind_address=(DB_RDS_HOST, 5432)
+                        )
+                    ssh_tunnel.start()  
+
+                    # See https://github.com/dimitri/pgloader/issues/768#issuecomment-693390290
+                    CONNECTION_STRING = f'postgresql://{DB_USER}:{DB_PASS}@localhost:{ssh_tunnel.local_bind_port}/{DB_NAME}?sslmode={DB_SSL_REQUIREMENT}'
+                    logger.info(f'Connection string: {CONNECTION_STRING}')
+
+
+
+
+                    with open(command_file, 'w') as file:
+                        command_file_contents = f"""
+    LOAD CSV
+        FROM '{map_state["working_directory"]}/{filename}' ({headers_line})
+        INTO  {CONNECTION_STRING}&{map_state["import_schema"]}.{table} ({headers_line})
+        WITH truncate,
+            skip header = 1
+        BEFORE LOAD DO 
+        $$ drop table if exists {map_state["import_schema"]}.{table}; $$,
+        $$ create table {map_state["import_schema"]}.{table} (\n"""
+                        fields = []
+                        for field in headers:
+                            fields.append(f'       {field} character varying') 
+                        command_file_contents = command_file_contents + ',\n'.join(fields)
+                        command_file_contents = command_file_contents + f"""
+        );
+    $$;\n"""
+                        file.write(command_file_contents)
+                        # logger.info(f'Command file contents: {command_file_contents}')
+                    cmd = f'pgloader {command_file}'
+                    logger.info("pgloader command: " + cmd)
+                    if os.system(cmd) != 0:
+                        raise Exception("pgloader did not execute successfully")
+
+        return map_state 
+
 
     dry_run = True
 
@@ -288,7 +367,7 @@ def cris_import():
     logical_groups_of_csvs = group_csvs_into_logical_groups(extracted_archives, dry_run, secrets)
     desired_schema_name = create_import_schema_name.expand(mapped_state=logical_groups_of_csvs)
     schema_name = create_target_import_schema.expand(map_state=desired_schema_name)
-
+    pgloader_command_files = pgloader_csvs_into_database.expand(map_state=schema_name)
 
 
 cris_import()
