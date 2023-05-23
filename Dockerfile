@@ -20,7 +20,6 @@ RUN cat /root/.ssh/id_ed25519.pub > /root/.ssh/authorized_keys
 # disable the "are you sure you want to connect" prompt
 RUN printf "Host localhost\n\tStrictHostKeyChecking no\n" >> /root/.ssh/config
 
-
 USER ${AIRFLOW_UID}
 COPY airflow.cfg /opt/airflow/airflow.cfg
 COPY requirements.txt /opt/airflow/requirements.txt
