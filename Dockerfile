@@ -9,7 +9,7 @@ RUN apt-get install -y p7zip-full
 
 # bastion host support for local dev
 RUN apt-get install -y openssh-server
-# ssh needs this folder for connection tracking
+# sshd needs this folder for connection tracking
 RUN mkdir /run/sshd
 # add sshd daemon to entrypoint
 RUN sed -i '2i/usr/sbin/sshd' /entrypoint
