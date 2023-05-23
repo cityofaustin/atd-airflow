@@ -1,4 +1,4 @@
-dags/__pycache__
+__pycache__
 haproxy/ssl/*pem
 logs/*
 weather/*.html
