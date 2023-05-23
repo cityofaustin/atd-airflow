@@ -54,6 +54,16 @@ REQUIRED_SECRETS = {
         "opfield": "shared.socrataAppToken",
         "opvault": VAULT_ID,
     },
+    "SOCRATA_RESOURCE_ID": {
+        "opitem": "Service Bot",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.socrataResourceId",
+        "opvault": VAULT_ID,
+    },
+    "SOCRATA_ENDPOINT": {
+        "opitem": "Service Bot",
+        "opfield": f"shared.socrataEndpoint",
+        "opvault": VAULT_ID,
+    },
 }
 
 client: Client = new_client(ONEPASSWORD_CONNECT_HOST, ONEPASSWORD_CONNECT_TOKEN)
