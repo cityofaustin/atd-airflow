@@ -10,15 +10,15 @@
     * continue to make changes to the code outside of docker, and they will show up in airflow as you save
 * [1Password secret support](https://github.com/frankhereford/airflow/blob/main/dags/weather.py#L27-L38)
   * built in, zero-config. You give it the secret name in 1Password, it gives you the value, right in the DAG
-* [working CI](https://github.com/frankhereford/airflow/blob/main/.github/workflows/production_deployment.yml), triggered [via](https://github.com/frankhereford/airflow/blob/main/haproxy/haproxy.cfg#L64) [webhook](https://github.com/frankhereford/airflow/blob/main/webhook/webhook.py#L33-L46), [secured](https://github.com/frankhereford/airflow/blob/main/webhook/webhook.py#L37) using a 1Password entry 
+* Working CI, triggered via a web hook, relayed in from the outside Internet via smee.io, and secured using a 1Password secret
   * automatically pulls from `production` when PRs are merged into the branch
-  * you can rotate the webhook token by opening 1Password, editing [the entry](https://github.com/frankhereford/airflow/blob/main/webhook/webhook.py#L13), generating a new password, and saving it. 10 seconds, tops. 🏁
-* support for picking [environment based secrets](https://github.com/frankhereford/airflow/blob/main/dags/weather.py#L19-L23) based on local/production
+  * you can rotate the webhook token by opening 1Password, editing the entry, generating a new password, and saving it. 10 seconds, tops. 🏁
+* support for picking [environment based secrets](https://github.com/frankhereford/airflow/blob/main/dags/weather.py#L19-L23) based on local/production environment configuration
   * zero-config in DAG, based out of `.env`
 * supports remote workers
-  * monitor their status with a [web UI](https://workers.airflow.fyi/)
+  * monitor their status with a [web UI](https://airflow-workers.austinmobility.io)
     * shared credentials with admin airflow account
-* [production environment](https://airflow.fyi) which runs on a `t3a.xlarge` class instance comfortably
+* [production environment](https://airflow.austinmobility.io) which runs on a `t3a.xlarge` class instance comfortably, or `atd-data03` as well
   * full control over [production server configuration](https://github.com/frankhereford/airflow/blob/main/airflow.cfg), yet keeping the perks of a docker stack
 * [customizable python environment](https://github.com/frankhereford/airflow/blob/main/requirements.txt) for DAGs, including [external, binary libraries](https://github.com/frankhereford/airflow/blob/main/Dockerfile#L1414-L1415) built right into the container
   * based on bog standard `requirements.txt` & ubuntu `apt` commands
@@ -46,10 +46,10 @@ docker buildx build \
 ```
 
 ## Local Setup
-* `.env` file:
+* Create, or get from a fellow dev, a `.env` file:
 
 ```
-AIRFLOW_UID=<the numeric output of the following command: id -u>
+AIRFLOW_UID=0
 ENVIRONMENT=<development|production>
 _AIRFLOW_WWW_USER_USERNAME=admin
 _AIRFLOW_WWW_USER_PASSWORD=<pick your initial admin pw here>
@@ -62,9 +62,9 @@ OP_VAULT_ID=<OP Vault ID>
 * `docker compose build`
 * `docker compose up -d`
 * Airflow is available at http://localhost:8080
-* The test weather DAG output at http://localhost:8081
-* The webhook flask app at http://localhost:8082
-* The workers' status page at http://localhost:8083
+* The webhook flask app at http://localhost:8081
+* The workers' status page at http://localhost:8082
+* The test weather DAG output at http://localhost:8083
 
 
 ## Useful Commands
@@ -82,7 +82,6 @@ docker compose down --volumes --remove-orphans
 
 ## Ideas
 * Make it disable all DAGs on start locally so it fails to safe
-* Fix UID being applied by `webhook` image on `git pull`
 * Create remote worker image example
   * Use `docker compose` new `profile` support
 * Add slack integration
