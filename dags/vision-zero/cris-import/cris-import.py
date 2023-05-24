@@ -325,7 +325,7 @@ def cris_import():
                     ssh_tunnel = SSHTunnelForwarder(
                         (DB_BASTION_HOST),
                         ssh_username=DB_BASTION_HOST_SSH_USERNAME,
-                        ssh_private_key= '/root/.ssh/id_rsa',
+                        #ssh_private_key= '/root/.ssh/id_rsa',
                         remote_bind_address=(DB_RDS_HOST, 5432)
                         )
                     ssh_tunnel.start()  
@@ -380,7 +380,7 @@ def cris_import():
         ssh_tunnel = SSHTunnelForwarder(
             (DB_BASTION_HOST),
             ssh_username=DB_BASTION_HOST_SSH_USERNAME,
-            ssh_private_key= '/root/.ssh/id_rsa', # will switch to ed25519 when we rebuild this for prefect 2
+            #ssh_private_key= '/root/.ssh/id_rsa', # will switch to ed25519 when we rebuild this for prefect 2
             remote_bind_address=(DB_RDS_HOST, 5432)
             )
         ssh_tunnel.start()   
@@ -435,7 +435,7 @@ def cris_import():
         ssh_tunnel = SSHTunnelForwarder(
             (DB_BASTION_HOST),
             ssh_username=DB_BASTION_HOST_SSH_USERNAME,
-            ssh_private_key= '/root/.ssh/id_rsa', # will switch to ed25519 when we rebuild this for prefect 2
+            #ssh_private_key= '/root/.ssh/id_rsa', # will switch to ed25519 when we rebuild this for prefect 2
             remote_bind_address=(DB_RDS_HOST, 5432)
             )
         ssh_tunnel.start()   
@@ -481,12 +481,15 @@ def cris_import():
 
                 # form an ALTER statement to apply the type to the imported table's column
                 alter_statement = util.form_alter_statement_to_apply_column_typing(map_state["import_schema"], input_table, column)
+
                 logger.info(f"Aligning types for {map_state['import_schema']}.{input_table['table_name']}.{column['column_name']}.")
+                logger.info(alter_statement)
 
                 # and execute the statement
                 cursor = pg.cursor()
                 cursor.execute(alter_statement)
                 pg.commit()
+                cursor.close()
 
         # fmt: on
         return map_state 
