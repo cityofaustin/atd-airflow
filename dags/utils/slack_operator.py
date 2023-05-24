@@ -1,6 +1,8 @@
 from airflow.hooks.base_hook import BaseHook
 from airflow.contrib.operators.slack_webhook_operator import SlackWebhookOperator
 
+# This is the Conn Id that we set when creating the connection in the Airflow dashboard
+# in Admin > Connections.
 SLACK_CONN_ID = "slack"
 
 
