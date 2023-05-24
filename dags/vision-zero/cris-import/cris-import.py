@@ -369,8 +369,6 @@ def cris_import():
         )
     def remove_trailing_carriage_returns(map_state):
 
-        logger = logging.getLogger(__name__)  
-
         DB_BASTION_HOST = map_state["secrets"]["bastion_host"]
         DB_BASTION_HOST_SSH_USERNAME = map_state["secrets"]["bastion_ssh_username"]
         DB_RDS_HOST = map_state["secrets"]["database_host"]
