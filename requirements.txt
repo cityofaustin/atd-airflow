@@ -3,3 +3,4 @@ docker
 sysrsync
 psycopg2-binary
 sshtunnel
+requests
