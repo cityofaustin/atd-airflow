@@ -7,3 +7,4 @@ weather/*.jpg
 venv
 *.swp
 *.http
+.idea/
