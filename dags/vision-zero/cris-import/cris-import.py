@@ -1,9 +1,15 @@
+import sys
 import os
 import onepasswordconnectsdk
 from airflow.decorators import dag, task
 from onepasswordconnectsdk.client import Client, new_client
 from datetime import datetime, timedelta
 import logging
+
+current_dir = os.path.dirname(os.path.realpath(__file__))
+sys.path.insert(0, current_dir)
+
+import lib.sql as util
 
 import re
 import tempfile
