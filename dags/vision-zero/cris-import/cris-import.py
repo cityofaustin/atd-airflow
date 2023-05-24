@@ -9,7 +9,9 @@ import logging
 current_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, current_dir)
 
+import lib.mappings as mappings
 import lib.sql as util
+import lib.graphql as graphql
 
 import re
 import tempfile
