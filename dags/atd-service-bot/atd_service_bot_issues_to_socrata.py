@@ -1,7 +1,6 @@
 import os
 from datetime import datetime, timedelta
 
-
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
 
@@ -15,30 +14,50 @@ VAULT_ID = os.getenv("OP_VAULT_ID")
 
 default_args = {
     "owner": "airflow",
-    "description": "Create/update 'Index' issues in the DTS portal from Github.",
+    "description": "Publish atd-data-tech Github issues to Socrata",
     "depends_on_past": False,
     "start_date": datetime(2015, 12, 1),
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 0,
+    "retries": 1,
 }
 
 docker_image = "atddocker/atd-service-bot:production"
 
 REQUIRED_SECRETS = {
-    "KNACK_APP_ID": {
-        "opitem": "Service Bot",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.knackAppId",
-        "opvault": VAULT_ID,
-    },
-    "KNACK_API_KEY": {
-        "opitem": "Service Bot",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.knackApiKey",
-        "opvault": VAULT_ID,
-    },
     "GITHUB_ACCESS_TOKEN": {
         "opitem": "Service Bot",
         "opfield": "shared.githubAccessToken",
+        "opvault": VAULT_ID,
+    },
+    "ZENHUB_ACCESS_TOKEN": {
+        "opitem": "Service Bot",
+        "opfield": "shared.zenhubAccessToken",
+        "opvault": VAULT_ID,
+    },
+    "SOCRATA_API_KEY_ID": {
+        "opitem": "Service Bot",
+        "opfield": "shared.socrataApiKeyID",
+        "opvault": VAULT_ID,
+    },
+    "SOCRATA_API_KEY_SECRET": {
+        "opitem": "Service Bot",
+        "opfield": "shared.socrataApiKeySecret",
+        "opvault": VAULT_ID,
+    },
+    "SOCRATA_APP_TOKEN": {
+        "opitem": "Service Bot",
+        "opfield": "shared.socrataAppToken",
+        "opvault": VAULT_ID,
+    },
+    "SOCRATA_RESOURCE_ID": {
+        "opitem": "Service Bot",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.socrataResourceId",
+        "opvault": VAULT_ID,
+    },
+    "SOCRATA_ENDPOINT": {
+        "opitem": "Service Bot",
+        "opfield": f"shared.socrataEndpoint",
         "opvault": VAULT_ID,
     },
 }
@@ -47,19 +66,19 @@ client: Client = new_client(ONEPASSWORD_CONNECT_HOST, ONEPASSWORD_CONNECT_TOKEN)
 env_vars = onepasswordconnectsdk.load_dict(client, REQUIRED_SECRETS)
 
 with DAG(
-    dag_id=f"atd_service_bot_issues_to_dts_portal_{DEPLOYMENT_ENVIRONMENT}",
+    dag_id=f"atd_service_bot_github_to_socrata_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
-    schedule_interval="13 7 * * *",
+    schedule_interval="21 5 * * *",
     dagrun_timeout=timedelta(minutes=60),
-    tags=[DEPLOYMENT_ENVIRONMENT, "atd-service-bot", "github"],
+    tags=[DEPLOYMENT_ENVIRONMENT, "socrata", "atd-service-bot", "github"],
     catchup=False,
 ) as dag:
     t1 = DockerOperator(
-        task_id="github_to_dts_portal",
+        task_id="dts_github_to_socrata",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command="./atd-service-bot/gh_index_issues_to_dts_portal.py",
+        command="./atd-service-bot/issues_to_socrata.py",
         environment=env_vars,
         tty=True,
     )

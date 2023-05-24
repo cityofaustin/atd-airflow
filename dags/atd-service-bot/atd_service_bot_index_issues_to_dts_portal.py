@@ -1,7 +1,6 @@
 import os
 from datetime import datetime, timedelta
 
-
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
 
@@ -15,7 +14,7 @@ VAULT_ID = os.getenv("OP_VAULT_ID")
 
 default_args = {
     "owner": "airflow",
-    "description": "Fetch new DTS service requests and create Github issues",
+    "description": "Create/update 'Index' issues in the DTS portal from Github.",
     "depends_on_past": False,
     "start_date": datetime(2015, 12, 1),
     "email_on_failure": False,
@@ -41,38 +40,30 @@ REQUIRED_SECRETS = {
         "opfield": "shared.githubAccessToken",
         "opvault": VAULT_ID,
     },
-    "KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME": {
-        "opitem": "Service Bot",
-        "opfield": "shared.dtsPortalLoginEmail",
-        "opvault": VAULT_ID,
-    },
-    "KNACK_DTS_PORTAL_SERVICE_BOT_PASSWORD": {
-        "opitem": "Service Bot",
-        "opfield": "shared.dtsPortalLoginPassword",
-        "opvault": VAULT_ID,
-    },
 }
 
 client: Client = new_client(ONEPASSWORD_CONNECT_HOST, ONEPASSWORD_CONNECT_TOKEN)
 env_vars = onepasswordconnectsdk.load_dict(client, REQUIRED_SECRETS)
 
-
 with DAG(
-    dag_id=f"atd_service_bot_issue_intake_{DEPLOYMENT_ENVIRONMENT}",
+    dag_id=f"atd_service_bot_issues_to_dts_portal_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
-    schedule_interval="*/3 * * * *",
-    dagrun_timeout=timedelta(minutes=5),
-    tags=[DEPLOYMENT_ENVIRONMENT, "knack", "atd-service-bot", "github"],
+    schedule_interval="13 7 * * *",
+    dagrun_timeout=timedelta(minutes=60),
+    tags=[DEPLOYMENT_ENVIRONMENT, "atd-service-bot", "github"],
     catchup=False,
 ) as dag:
     t1 = DockerOperator(
-        task_id="dts_sr_to_github",
+        task_id="github_to_dts_portal",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command="./atd-service-bot/intake.py",
+        command="./atd-service-bot/gh_index_issues_to_dts_portal.py",
         environment=env_vars,
         tty=True,
     )
 
     t1
+
+if __name__ == "__main__":
+    dag.cli()
