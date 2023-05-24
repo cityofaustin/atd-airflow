@@ -1,7 +1,6 @@
 import os
 from datetime import datetime, timedelta
 
-
 from airflow.models import DAG
 from airflow.operators.python_operator import PythonOperator
 
