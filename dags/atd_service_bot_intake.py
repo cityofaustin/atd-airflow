@@ -60,7 +60,7 @@ env_vars = onepasswordconnectsdk.load_dict(client, REQUIRED_SECRETS)
 with DAG(
     dag_id=f"atd_service_bot_issue_intake_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
-    schedule_interval="* * * * *",
+    schedule_interval="*/3 * * * *",
     dagrun_timeout=timedelta(minutes=5),
     tags=[DEPLOYMENT_ENVIRONMENT, "knack", "atd-service-bot", "github"],
     catchup=False,
