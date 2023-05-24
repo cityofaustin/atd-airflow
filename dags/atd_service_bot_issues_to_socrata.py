@@ -8,6 +8,8 @@ from airflow.operators.docker_operator import DockerOperator
 from onepasswordconnectsdk.client import Client, new_client
 import onepasswordconnectsdk
 
+from utils.slack_operator import task_fail_slack_alert
+
 DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 ONEPASSWORD_CONNECT_HOST = os.getenv("OP_CONNECT")
 ONEPASSWORD_CONNECT_TOKEN = os.getenv("OP_API_TOKEN")
@@ -21,6 +23,7 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
+    "on_failure_callback": task_fail_slack_alert,
 }
 
 docker_image = "atddocker/atd-service-bot:production"
