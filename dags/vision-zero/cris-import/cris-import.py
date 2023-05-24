@@ -289,7 +289,6 @@ def cris_import():
         #state_handlers=[handler],
         )
     def pgloader_csvs_into_database(map_state):
-        import time
 
         logger = logging.getLogger(__name__)  
         
@@ -362,6 +361,46 @@ def cris_import():
 
         return map_state 
 
+    @task(
+        #name="Remove trailing carriage returns from imported data", 
+        #state_handlers=[handler],
+        )
+    def remove_trailing_carriage_returns(map_state):
+
+        logger = logging.getLogger(__name__)  
+
+        DB_BASTION_HOST = map_state["secrets"]["bastion_host"]
+        DB_BASTION_HOST_SSH_USERNAME = map_state["secrets"]["bastion_ssh_username"]
+        DB_RDS_HOST = map_state["secrets"]["database_host"]
+        DB_USER = map_state["secrets"]["database_username"]
+        DB_PASS = map_state["secrets"]["database_password"]
+        DB_NAME = map_state["secrets"]["database_name"]
+        DB_SSL_REQUIREMENT = map_state["secrets"]["database_ssl_policy"]
+
+        ssh_tunnel = SSHTunnelForwarder(
+            (DB_BASTION_HOST),
+            ssh_username=DB_BASTION_HOST_SSH_USERNAME,
+            ssh_private_key= '/root/.ssh/id_rsa', # will switch to ed25519 when we rebuild this for prefect 2
+            remote_bind_address=(DB_RDS_HOST, 5432)
+            )
+        ssh_tunnel.start()   
+
+        pg = psycopg2.connect(
+            host='localhost', 
+            port=ssh_tunnel.local_bind_port,
+            user=DB_USER, 
+            password=DB_PASS, 
+            dbname=DB_NAME, 
+            sslmode=DB_SSL_REQUIREMENT, 
+            sslrootcert="/root/rds-combined-ca-bundle.pem"
+            )
+
+        columns = util.get_input_tables_and_columns(pg, map_state["import_schema"])
+        for column in columns:
+            util.trim_trailing_carriage_returns(pg, map_state["import_schema"], column)
+
+        return map_state
+
 
     dry_run = True
 
@@ -369,9 +408,10 @@ def cris_import():
     archive_location = download_archives(secrets)
     extracted_archives = unzip_archives(secrets, archive_location)
     logical_groups_of_csvs = group_csvs_into_logical_groups(extracted_archives, dry_run, secrets)
-    desired_schema_name = create_import_schema_name.expand(mapped_state=logical_groups_of_csvs)
+    desired_schema_name = create_import_schema_name.expand(map_state=logical_groups_of_csvs)
     schema_name = create_target_import_schema.expand(map_state=desired_schema_name)
     pgloader_command_files = pgloader_csvs_into_database.expand(map_state=schema_name)
+    trimmed_token = remove_trailing_carriage_returns.expand(map_state=pgloader_command_files)
 
 
 cris_import()
