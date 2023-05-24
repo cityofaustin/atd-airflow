@@ -46,7 +46,7 @@ def write_key_to_file(path, content):
     dag_id="cris-import",
     description="Daily operation to download the latest CRIS data and import it into the database",
     schedule="0 7 * * *",
-    start_date=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0), # previous midnight
+    start_date=datetime(2023, 1, 1), # these should be static
     catchup=False,
     tags=["vision-zero", "cris", "import"],
 )
