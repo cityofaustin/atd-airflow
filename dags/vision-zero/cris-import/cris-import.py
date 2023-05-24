@@ -213,20 +213,18 @@ def cris_import():
         return map_safe_state
 
     @task()
-    def create_import_schema_name(mapped_state):
+    def create_import_schema_name(map_state):
 
         logger = logging.getLogger(__name__)
 
-        print(mapped_state)
-        schema = 'import_' + hashlib.md5(mapped_state["logical_group_id"].encode()).hexdigest()[:12]
-        mapped_state["import_schema"] = schema
-        logger.info("Schema name: " + mapped_state["import_schema"])
-        return mapped_state
+        print(map_state)
+        schema = 'import_' + hashlib.md5(map_state["logical_group_id"].encode()).hexdigest()[:12]
+        map_state["import_schema"] = schema
+        logger.info("Schema name: " + map_state["import_schema"])
+        return map_state
 
     @task()
     def create_target_import_schema(map_state):
-
-        logger = logging.getLogger(__name__)  
 
         DB_BASTION_HOST = map_state["secrets"]["bastion_host"]
         DB_BASTION_HOST_SSH_USERNAME = map_state["secrets"]["bastion_ssh_username"]
