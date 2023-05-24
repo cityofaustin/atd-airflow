@@ -402,7 +402,99 @@ def cris_import():
         return map_state
 
 
-    dry_run = True
+    @task(
+        #name="Align DB Types", 
+        #state_handlers=[handler],
+        )
+    def align_db_typing(map_state):
+
+        """
+        This function compares the target table in the VZDB with the corollary table in the import schema. For each column pair,
+        the type of the VZDB table's column is applied to the import table. This acts as a strong typing check for all input data,
+        and will raise an exception if CRIS begins feeding the system data it's not ready to parse and handle.
+
+        Arguments:
+            data_loaded_token: Boolean value received from the previously ran task which imported the CSV files into the database.
+
+        Returns: Boolean representing the completion of the import table type alignment
+        """
+        logger = logging.getLogger(__name__) 
+
+        DB_BASTION_HOST = map_state["secrets"]["bastion_host"]
+        DB_BASTION_HOST_SSH_USERNAME = map_state["secrets"]["bastion_ssh_username"]
+        DB_RDS_HOST = map_state["secrets"]["database_host"]
+        DB_USER = map_state["secrets"]["database_username"]
+        DB_PASS = map_state["secrets"]["database_password"]
+        DB_NAME = map_state["secrets"]["database_name"]
+        DB_SSL_REQUIREMENT = map_state["secrets"]["database_ssl_policy"]
+
+        # fmt: off
+        # Note about the above comment. It's used to disable black linting. For this particular task, 
+        # I believe it's more readable to not have it wrap long lists of function arguments. 
+
+        ssh_tunnel = SSHTunnelForwarder(
+            (DB_BASTION_HOST),
+            ssh_username=DB_BASTION_HOST_SSH_USERNAME,
+            ssh_private_key= '/root/.ssh/id_rsa', # will switch to ed25519 when we rebuild this for prefect 2
+            remote_bind_address=(DB_RDS_HOST, 5432)
+            )
+        ssh_tunnel.start()   
+
+        pg = psycopg2.connect(
+            host='localhost', 
+            port=ssh_tunnel.local_bind_port,
+            user=DB_USER, 
+            password=DB_PASS, 
+            dbname=DB_NAME, 
+            sslmode=DB_SSL_REQUIREMENT, 
+            sslrootcert="/root/rds-combined-ca-bundle.pem"
+            )
+
+        # query list of the tables which were created by the pgloader import process
+        imported_tables = util.get_imported_tables(pg, map_state["import_schema"])
+
+        # pull our map which connects the names of imported tables to the target tables in VZDB
+        table_mappings = mappings.get_table_map()
+
+        # iterate over table list to make sure we only are operating on the tables we've designated:
+        # crash, unit, person, & primaryperson
+        for input_table in imported_tables:
+            output_table = table_mappings.get(input_table["table_name"])
+            if not output_table:
+                continue
+
+            # Safety check to make sure that all incoming data has each row complete with a value in each of the "key" columns. Key columns are
+            # the columns which are used to uniquely identify the entity being represented by a record in the database. 
+            util.enforce_complete_keying(pg, mappings.get_key_columns(), output_table, map_state["import_schema"], input_table)
+
+            # collect the column types for the target table, to be applied to the imported table
+            output_column_types = util.get_output_column_types(pg, output_table)
+
+            # iterate on each column
+            for column in output_column_types:
+                # for that column, confirm that it is included in the incoming CRIS data
+                input_column_type = util.get_input_column_type(pg, map_state["import_schema"], input_table, column)
+
+                # skip columns which do not appear in the import data, such as the columns we have added ourselves to the VZDB
+                if not input_column_type:
+                    continue
+
+                # form an ALTER statement to apply the type to the imported table's column
+                alter_statement = util.form_alter_statement_to_apply_column_typing(map_state["import_schema"], input_table, column)
+                logger.info(f"Aligning types for {map_state['import_schema']}.{input_table['table_name']}.{column['column_name']}.")
+
+                # and execute the statement
+                cursor = pg.cursor()
+                cursor.execute(alter_statement)
+                pg.commit()
+
+        # fmt: on
+        return map_state 
+
+
+
+
+    dry_run = False
 
     secrets = get_secrets()
     archive_location = download_archives(secrets)
@@ -412,6 +504,6 @@ def cris_import():
     schema_name = create_target_import_schema.expand(map_state=desired_schema_name)
     pgloader_command_files = pgloader_csvs_into_database.expand(map_state=schema_name)
     trimmed_token = remove_trailing_carriage_returns.expand(map_state=pgloader_command_files)
-
+    typed_token = align_db_typing.expand(map_state=trimmed_token)
 
 cris_import()
