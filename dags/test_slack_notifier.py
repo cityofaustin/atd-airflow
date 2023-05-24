@@ -28,7 +28,7 @@ def task_fail():
 with DAG(
     dag_id=f"test_slack_notifier_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
-    schedule_interval="21 5 * * *",
+    schedule_interval="*/5 * * * *",
     dagrun_timeout=timedelta(minutes=60),
     tags=[DEPLOYMENT_ENVIRONMENT, "slack"],
     catchup=False,
