@@ -70,7 +70,7 @@ OP_VAULT_ID=<OP Vault ID>
 ## Useful Commands
 * 🐚 get a shell on a worker, for example
 ```
-docker exec -it airflow-airflow-worker-1 bash
+docker exec -it atd-airflow-airflow-worker-1 bash
 ```
 
 * ⛔ Stop all containers and execute this to reset your local database.
