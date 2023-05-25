@@ -29,7 +29,7 @@ with DAG(
     default_args=default_args,
     schedule_interval="*/5 * * * *",
     dagrun_timeout=timedelta(minutes=60),
-    tags=[DEPLOYMENT_ENVIRONMENT, "slack"],
+    tags=["slack"],
     catchup=False,
 ) as dag:
     t1 = PythonOperator(
