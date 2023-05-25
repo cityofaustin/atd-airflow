@@ -53,7 +53,7 @@ with DAG(
     default_args=default_args,
     schedule_interval="13 7 * * *",
     dagrun_timeout=timedelta(minutes=60),
-    tags=[DEPLOYMENT_ENVIRONMENT, "atd-service-bot", "github"],
+    tags=["repo:atd-service-bot", "knack", "github"],
     catchup=False,
 ) as dag:
     t1 = DockerOperator(
@@ -67,6 +67,3 @@ with DAG(
     )
 
     t1
-
-if __name__ == "__main__":
-    dag.cli()
