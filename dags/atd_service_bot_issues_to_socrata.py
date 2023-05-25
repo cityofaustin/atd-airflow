@@ -70,7 +70,7 @@ with DAG(
     default_args=default_args,
     schedule_interval="21 5 * * *",
     dagrun_timeout=timedelta(minutes=60),
-    tags=[DEPLOYMENT_ENVIRONMENT, "socrata", "atd-service-bot", "github"],
+    tags=["repo:atd-service-bot", "socrata", "github"],
     catchup=False,
 ) as dag:
     t1 = DockerOperator(
@@ -84,6 +84,3 @@ with DAG(
     )
 
     t1
-
-if __name__ == "__main__":
-    dag.cli()

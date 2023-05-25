@@ -61,7 +61,7 @@ with DAG(
     default_args=default_args,
     schedule_interval="*/3 * * * *",
     dagrun_timeout=timedelta(minutes=5),
-    tags=[DEPLOYMENT_ENVIRONMENT, "knack", "atd-service-bot", "github"],
+    tags=["repo:atd-service-bot", "knack", "github"],
     catchup=False,
 ) as dag:
     t1 = DockerOperator(
