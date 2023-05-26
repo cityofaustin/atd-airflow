@@ -10,4 +10,4 @@ The renew script is set up as a cron job with a frequency of 0 0 1 * *.
 
 ## Restart Airflow
 
-The script is used to restart Airflow with docker compose and is stored in /root/automated-tasks/atd-airflow on atd-data03.
+The script is used to restart Airflow after renewing the certificate.
