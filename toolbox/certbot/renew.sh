@@ -1,12 +1,14 @@
 #!/bin/bash
 
 echo "Let's renew the certificate for airflow"
+export ATD_AIRFLOW_HOMEDIR="/usr/airflow/atd-airflow";
 
 # Load the same environment variables as the Airflow stack
-source /Users/atd/atd/atd-airflow/.env
+source $ATD_AIRFLOW_HOMEDIR/.env
 
-# Pull op v2 (latest is currently outdated and does not include read command)
+# Pull op v2 (latest is currently outdated and does not include the op read command needed below)
 docker pull 1password/op:2
+
 # Retrieve and store the AWS Access Keys from 1Password
 AWS_ACCESS_KEY_ID=$(docker run -it --rm --name op \
 -e OP_CONNECT_HOST=$OP_CONNECT \
@@ -18,7 +20,7 @@ AWS_SECRET_ACCESS_KEY=$(docker run -it --rm --name op \
 -e OP_CONNECT_TOKEN=$OP_API_TOKEN \
 1password/op:2 op read op://$OP_VAULT_ID/Certbot\ IAM\ Access\ Key\ and\ Secret/accessSecret)
 
-# Renew
+# Now, renew the certificate
 CERT_PATH="/usr/local/etc/haproxy/ssl/certs/"
 cd $CERT_PATH
 rm cert.key
@@ -26,7 +28,6 @@ rm cert.crt
 
 docker pull certbot/dns-route53:latest
 
-# Use the ID and secret key from the atd-data03 IAM account
 docker run -it --rm --name certbot \
 -e AWS_ACCESS_KEY_ID='KEY' \
 -e AWS_SECRET_ACCESS_KEY='SECRETKEY' \ 
@@ -38,8 +39,8 @@ cp /etc/letsencrypt/live/airflow.austinmobility.io/privkey.pem /usr/local/etc/ha
 
 cp /etc/letsencrypt/live/airflow.austinmobility.io/fullchain.pem /usr/local/etc/haproxy/ssl/cert.crt
 
-cat /etc/letsencrypt/live/airflow.austinmobility.io/cert.pem > /usr/airflow/atd-airflow/haproxy/ssl/airflow.austinmobility.io.pem
+cat /etc/letsencrypt/live/airflow.austinmobility.io/cert.pem > $ATD_AIRFLOW_HOMEDIR/haproxy/ssl/airflow.austinmobility.io.pem
 
-cat /etc/letsencrypt/live/airflow.austinmobility.io/privkey.pem >> /usr/airflow/atd-airflow/haproxy/ssl/airflow.austinmobility.io.pem
+cat /etc/letsencrypt/live/airflow.austinmobility.io/privkey.pem >> $ATD_AIRFLOW_HOMEDIR/haproxy/ssl/airflow.austinmobility.io.pem
 
 /restart-airflow.sh
