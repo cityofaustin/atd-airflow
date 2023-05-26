@@ -1,5 +1,7 @@
 # Airflow scripts on atd-data03
 
+Heads up that these scripts assume that the Airflow project lives in `/usr/airflow/atd-airflow/`.
+
 ## Request certificate
 
 The request script has already been run when Airflow was set up on atd-data03. The initial certificate expires three months from its request, and the renew script is set to run every month after to keep it valid.

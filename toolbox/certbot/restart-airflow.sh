@@ -2,8 +2,7 @@
 
 set -o errexit
 
-# export ATD_AIRFLOW_HOMEDIR="/usr/airflow/airflow";
-export ATD_AIRFLOW_HOMEDIR="/Users/atd/atd/atd-airflow"
+export ATD_AIRFLOW_HOMEDIR="/usr/airflow/atd-airflow";
 
 echo "Restarting Airflow @ ${ATD_AIRFLOW_HOMEDIR}";
 

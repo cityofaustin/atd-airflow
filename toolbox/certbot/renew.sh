@@ -1,17 +1,23 @@
 #!/bin/bash
 
 echo "Let's renew the certificate for airflow"
+
+# Load the same environment variables as the Airflow stack
+source /Users/atd/atd/atd-airflow/.env
+
+# Pull op v2 (latest is currently outdated and does not include read command)
+docker pull 1password/op:2
+PASSWORD=$(docker run -it --rm --name op \
+-e OP_CONNECT_HOST=$OP_CONNECT \
+-e OP_CONNECT_TOKEN=$OP_API_TOKEN \
+1password/op:2 op read op://$OP_VAULT_ID/Test/password)
+echo $PASSWORD
+
+# Renew
 # CERT_PATH="/usr/local/etc/haproxy/ssl/certs/"
 # cd $CERT_PATH
 # rm cert.key
 # rm cert.crt
-
-# TODO store the access key id and secret key in variables
-docker pull 1password/op:2
-PASSWORD=$(docker run -it --rm --name op --env-file /Users/atd/atd/atd-airflow/.env 1password/op:2 op read op://$OP_VAULT_ID/Test/password)
-# PASSWORD=$(docker run -it --rm --name op --env-file /Users/atd/atd/atd-airflow/.env 1password/op:2 op --version)
-echo "Password: $PASSWORD"
-
 
 # docker pull certbot/dns-route53:latest
 
