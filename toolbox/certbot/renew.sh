@@ -7,11 +7,19 @@ source /Users/atd/atd/atd-airflow/.env
 
 # Pull op v2 (latest is currently outdated and does not include read command)
 docker pull 1password/op:2
-PASSWORD=$(docker run -it --rm --name op \
+# Retrieve and store the AWS Access Keys from 1Password
+AWS_ACCESS_KEY_ID=$(docker run -it --rm --name op \
 -e OP_CONNECT_HOST=$OP_CONNECT \
 -e OP_CONNECT_TOKEN=$OP_API_TOKEN \
-1password/op:2 op read op://$OP_VAULT_ID/Test/password)
-echo $PASSWORD
+1password/op:2 op read op://$OP_VAULT_ID/Certbot\ IAM\ Access\ Key\ and\ Secret/accessKeyId)
+
+AWS_SECRET_ACCESS_KEY=$(docker run -it --rm --name op \
+-e OP_CONNECT_HOST=$OP_CONNECT \
+-e OP_CONNECT_TOKEN=$OP_API_TOKEN \
+1password/op:2 op read op://$OP_VAULT_ID/Certbot\ IAM\ Access\ Key\ and\ Secret/accessSecret)
+
+echo $AWS_ACCESS_KEY_ID
+echo $AWS_SECRET_ACCESS_KEY
 
 # Renew
 # CERT_PATH="/usr/local/etc/haproxy/ssl/certs/"
