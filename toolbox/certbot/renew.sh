@@ -29,8 +29,8 @@ rm cert.crt
 docker pull certbot/dns-route53:latest
 
 docker run -it --rm --name certbot \
--e AWS_ACCESS_KEY_ID='KEY' \
--e AWS_SECRET_ACCESS_KEY='SECRETKEY' \ 
+-e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+-e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \ 
 -v "/etc/letsencrypt:/etc/letsencrypt" \
 -v "/var/lib/letsencrypt:/var/lib/letsencrypt" \ 
 certbot/dns-route53 certonly --dns-route53 -d airflow.austinmobility.io
