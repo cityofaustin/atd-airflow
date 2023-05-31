@@ -72,6 +72,7 @@ with DAG(
         command="./atd-service-bot/intake.py",
         environment=env_vars,
         tty=True,
+        force_pull=True,
     )
 
     t1

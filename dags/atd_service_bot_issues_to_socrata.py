@@ -81,6 +81,7 @@ with DAG(
         command="./atd-service-bot/issues_to_socrata.py",
         environment=env_vars,
         tty=True,
+        force_pull=True,
     )
 
     t1
