@@ -16,3 +16,7 @@ def load_dict(REQUIRED_SECRETS):
         value["opvault"] = VAULT_ID
 
     return onepasswordconnectsdk.load_dict(client, REQUIRED_SECRETS)
+
+
+def get_item_by_title(entry_name):
+    return client.get_item_by_title(entry_name, VAULT_ID)
