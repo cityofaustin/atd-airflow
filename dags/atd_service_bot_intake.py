@@ -26,27 +26,22 @@ REQUIRED_SECRETS = {
     "KNACK_APP_ID": {
         "opitem": "Service Bot",
         "opfield": f"{DEPLOYMENT_ENVIRONMENT}.knackAppId",
-        "opvault": VAULT_ID,
     },
     "KNACK_API_KEY": {
         "opitem": "Service Bot",
         "opfield": f"{DEPLOYMENT_ENVIRONMENT}.knackApiKey",
-        "opvault": VAULT_ID,
     },
     "GITHUB_ACCESS_TOKEN": {
         "opitem": "Service Bot",
         "opfield": "shared.githubAccessToken",
-        "opvault": VAULT_ID,
     },
     "KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME": {
         "opitem": "Service Bot",
         "opfield": "shared.dtsPortalLoginEmail",
-        "opvault": VAULT_ID,
     },
     "KNACK_DTS_PORTAL_SERVICE_BOT_PASSWORD": {
         "opitem": "Service Bot",
         "opfield": "shared.dtsPortalLoginPassword",
-        "opvault": VAULT_ID,
     },
 }
 
