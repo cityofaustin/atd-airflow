@@ -2,6 +2,7 @@ import os
 import psycopg2
 import psycopg2.extras
 
+
 import logging
 
 import pprint
@@ -330,10 +331,14 @@ def get_linkage_constructions(key_columns, output_map, table, DB_IMPORT_SCHEMA):
 
 
 def get_imported_tables(pg, DB_IMPORT_SCHEMA):
+    logger = logging.getLogger(__name__) 
     sql = f"SELECT * FROM information_schema.tables WHERE table_schema = '{DB_IMPORT_SCHEMA}';"
+    logger.info(f"Getting imported tables from {DB_IMPORT_SCHEMA}")
+    logger.info(f"SQL: {sql}")
     cursor = pg.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cursor.execute(sql)
     imported_tables = cursor.fetchall()
+    logger.info("From DB - Imported tables: " + str(imported_tables))
     return imported_tables
 
 
