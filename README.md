@@ -80,6 +80,16 @@ docker exec -it airflow-airflow-worker-1 bash
 docker compose down --volumes --remove-orphans
 ```
 
+## Utilities
+
+### 1Password utility
+
+The 1Password utility is a light wrapper of the 1PW SDK methods. The purpose of the utility is to reduce imports of the 1Password lib and vault ID in each DAG that requires vault secrets.
+
+### Slack operator utility
+
+The Slack operator utility makes use of the integration between the Airflow and a Slack app webhook. The purpose of the utility is to add failure notifications to DAGs using the [callback](https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/callbacks.html#callback-types) parameters. Failure, critical failture, and success notifications are configured.
+
 ## Ideas
 * Make it disable all DAGs on start locally so it fails to safe
 * Fix UID being applied by `webhook` image on `git pull`
