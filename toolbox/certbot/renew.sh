@@ -20,11 +20,10 @@ AWS_SECRET_ACCESS_KEY=$(docker run -it --rm --name op \
 -e OP_CONNECT_TOKEN=$OP_API_TOKEN \
 1password/op:2 op read op://$OP_VAULT_ID/Certbot\ IAM\ Access\ Key\ and\ Secret/accessSecret)
 
-# Now, renew the certificate
-CERT_PATH="/usr/local/etc/haproxy/ssl/certs/"
+# Now, remove the old concatenated certificates, renew the certificate, and replace with the new concatenated certificates
+CERT_PATH="/usr/airflow/atd-airflow/haproxy/ssl"
 cd $CERT_PATH
-rm cert.key
-rm cert.crt
+rm airflow.austinmobility.io.pem
 
 docker pull certbot/dns-route53:latest
 
