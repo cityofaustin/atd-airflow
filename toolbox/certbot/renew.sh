@@ -23,7 +23,8 @@ AWS_SECRET_ACCESS_KEY=$(docker run -it --rm --name op \
 # Now, remove the old concatenated certificates, renew the certificate, and replace with the new concatenated certificates
 CERT_PATH="/usr/airflow/atd-airflow/haproxy/ssl"
 cd $CERT_PATH
-rm airflow.austinmobility.io.pem
+rm cert.key
+rm cert.crt
 
 docker pull certbot/dns-route53:latest
 
@@ -34,12 +35,13 @@ docker run -it --rm --name certbot \
 -v "/var/lib/letsencrypt:/var/lib/letsencrypt" \ 
 certbot/dns-route53 certonly --dns-route53 -d airflow.austinmobility.io
 
-cp /etc/letsencrypt/live/airflow.austinmobility.io/privkey.pem /usr/local/etc/haproxy/ssl/cert.key
+cp /etc/letsencrypt/live/airflow.austinmobility.io/privkey.pem $ATD_AIRFLOW_HOMEDIR/haproxy/ssl/cert.key
 
-cp /etc/letsencrypt/live/airflow.austinmobility.io/fullchain.pem /usr/local/etc/haproxy/ssl/cert.crt
+cp /etc/letsencrypt/live/airflow.austinmobility.io/fullchain.pem $ATD_AIRFLOW_HOMEDIR/haproxy/ssl/cert.crt
 
 cat /etc/letsencrypt/live/airflow.austinmobility.io/cert.pem > $ATD_AIRFLOW_HOMEDIR/haproxy/ssl/airflow.austinmobility.io.pem
 
 cat /etc/letsencrypt/live/airflow.austinmobility.io/privkey.pem >> $ATD_AIRFLOW_HOMEDIR/haproxy/ssl/airflow.austinmobility.io.pem
 
-/restart-airflow.sh
+# Restart the Airflow stack to use renewed certificate
+/usr/airflow/atd-airflow/toolbox/certbot/restart-airflow.sh
