@@ -26,13 +26,13 @@ docker_image = "atddocker/atd-service-bot:production"
 
 REQUIRED_SECRETS = {
     "KNACK_APP_ID": {
-        "opitem": "Service Bot",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.knackAppId",
+        "opitem": "Knack DTS Portal",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.appId",
         "opvault": VAULT_ID,
     },
     "KNACK_API_KEY": {
-        "opitem": "Service Bot",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.knackApiKey",
+        "opitem": "Knack DTS Portal",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.apiKey",
         "opvault": VAULT_ID,
     },
     "GITHUB_ACCESS_TOKEN": {
