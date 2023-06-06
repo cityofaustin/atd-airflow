@@ -26,13 +26,13 @@ docker_image = "atddocker/atd-service-bot:production"
 
 REQUIRED_SECRETS = {
     "GITHUB_ACCESS_TOKEN": {
-        "opitem": "Service Bot",
-        "opfield": "shared.githubAccessToken",
+        "opitem": "Github Access Token Service Bot",
+        "opfield": ".password",
         "opvault": VAULT_ID,
     },
     "ZENHUB_ACCESS_TOKEN": {
-        "opitem": "Service Bot",
-        "opfield": "shared.zenhubAccessToken",
+        "opitem": "Zenhub Access Token",
+        "opfield": ".password",
         "opvault": VAULT_ID,
     },
     "SOCRATA_API_KEY_ID": {

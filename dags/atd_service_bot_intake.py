@@ -36,8 +36,8 @@ REQUIRED_SECRETS = {
         "opvault": VAULT_ID,
     },
     "GITHUB_ACCESS_TOKEN": {
-        "opitem": "Service Bot",
-        "opfield": "shared.githubAccessToken",
+        "opitem": "Github Access Token Service Bot",
+        "opfield": ".password",
         "opvault": VAULT_ID,
     },
     "KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME": {
