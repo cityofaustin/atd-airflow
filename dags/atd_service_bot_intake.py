@@ -41,12 +41,12 @@ REQUIRED_SECRETS = {
         "opvault": VAULT_ID,
     },
     "KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME": {
-        "opitem": "Knack DTS Portal Login",
+        "opitem": "Knack DTS Portal",
         "opfield": ".username",
         "opvault": VAULT_ID,
     },
     "KNACK_DTS_PORTAL_SERVICE_BOT_PASSWORD": {
-        "opitem": "Knack DTS Portal Login",
+        "opitem": "Knack DTS Portal",
         "opfield": ".password",
         "opvault": VAULT_ID,
     },
