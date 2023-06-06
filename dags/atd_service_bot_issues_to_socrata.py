@@ -36,18 +36,18 @@ REQUIRED_SECRETS = {
         "opvault": VAULT_ID,
     },
     "SOCRATA_API_KEY_ID": {
-        "opitem": "Service Bot",
-        "opfield": "shared.socrataApiKeyID",
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "add more.apiKeyId",
         "opvault": VAULT_ID,
     },
     "SOCRATA_API_KEY_SECRET": {
-        "opitem": "Service Bot",
-        "opfield": "shared.socrataApiKeySecret",
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "add more.apiKeySecret",
         "opvault": VAULT_ID,
     },
     "SOCRATA_APP_TOKEN": {
-        "opitem": "Service Bot",
-        "opfield": "shared.socrataAppToken",
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "add more.appToken",
         "opvault": VAULT_ID,
     },
     "SOCRATA_RESOURCE_ID": {
@@ -56,8 +56,8 @@ REQUIRED_SECRETS = {
         "opvault": VAULT_ID,
     },
     "SOCRATA_ENDPOINT": {
-        "opitem": "Service Bot",
-        "opfield": f"shared.socrataEndpoint",
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "add more.endpoint",
         "opvault": VAULT_ID,
     },
 }
