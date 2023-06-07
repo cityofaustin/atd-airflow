@@ -24,16 +24,16 @@ docker_image = "atddocker/atd-service-bot:production"
 
 REQUIRED_SECRETS = {
     "KNACK_APP_ID": {
-        "opitem": "Service Bot",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.knackAppId",
+        "opitem": "Knack DTS Portal",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.appId",
     },
     "KNACK_API_KEY": {
-        "opitem": "Service Bot",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.knackApiKey",
+        "opitem": "Knack DTS Portal",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.apiKey",
     },
     "GITHUB_ACCESS_TOKEN": {
-        "opitem": "Service Bot",
-        "opfield": "shared.githubAccessToken",
+        "opitem": "Github Access Token Service Bot",
+        "opfield": ".password",
     },
 }
 
@@ -55,6 +55,7 @@ with DAG(
         command="./atd-service-bot/gh_index_issues_to_dts_portal.py",
         environment=env_vars,
         tty=True,
+        force_pull=True,
     )
 
     t1
