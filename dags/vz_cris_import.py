@@ -15,6 +15,7 @@ DEPLOYMENT_ENVIRONMENT = os.environ.get("ENVIRONMENT", 'development') # operatin
     start_date=datetime(2023, 6, 1),
     catchup=False,
     tags=["vision-zero", "cris"],
+    on_failure_callback=task_fail_slack_alert,
 )
 def cris_import():
     @task()
