@@ -29,28 +29,28 @@ docker_image = "atddocker/atd-service-bot:production"
 
 REQUIRED_SECRETS = {
     "GITHUB_ACCESS_TOKEN": {
-        "opitem": "Service Bot",
-        "opfield": "shared.githubAccessToken",
+        "opitem": "Github Access Token Service Bot",
+        "opfield": ".password",
         "opvault": VAULT_ID,
     },
     "ZENHUB_ACCESS_TOKEN": {
-        "opitem": "Service Bot",
-        "opfield": "shared.zenhubAccessToken",
+        "opitem": "Zenhub Access Token",
+        "opfield": ".password",
         "opvault": VAULT_ID,
     },
     "SOCRATA_API_KEY_ID": {
-        "opitem": "Service Bot",
-        "opfield": "shared.socrataApiKeyID",
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "socrata.apiKeyId",
         "opvault": VAULT_ID,
     },
     "SOCRATA_API_KEY_SECRET": {
-        "opitem": "Service Bot",
-        "opfield": "shared.socrataApiKeySecret",
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "socrata.apiKeySecret",
         "opvault": VAULT_ID,
     },
     "SOCRATA_APP_TOKEN": {
-        "opitem": "Service Bot",
-        "opfield": "shared.socrataAppToken",
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "socrata.appToken",
         "opvault": VAULT_ID,
     },
     "SOCRATA_RESOURCE_ID": {
@@ -59,8 +59,8 @@ REQUIRED_SECRETS = {
         "opvault": VAULT_ID,
     },
     "SOCRATA_ENDPOINT": {
-        "opitem": "Service Bot",
-        "opfield": f"shared.socrataEndpoint",
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "socrata.endpoint",
         "opvault": VAULT_ID,
     },
 }
@@ -84,6 +84,7 @@ with DAG(
         command="./atd-service-bot/issues_to_socrata.py",
         environment=env_vars,
         tty=True,
+        force_pull=True,
     )
 
     t1

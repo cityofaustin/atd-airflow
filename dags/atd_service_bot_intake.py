@@ -29,28 +29,28 @@ docker_image = "atddocker/atd-service-bot:production"
 
 REQUIRED_SECRETS = {
     "KNACK_APP_ID": {
-        "opitem": "Service Bot",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.knackAppId",
+        "opitem": "Knack DTS Portal",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.appId",
         "opvault": VAULT_ID,
     },
     "KNACK_API_KEY": {
-        "opitem": "Service Bot",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.knackApiKey",
+        "opitem": "Knack DTS Portal",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.apiKey",
         "opvault": VAULT_ID,
     },
     "GITHUB_ACCESS_TOKEN": {
-        "opitem": "Service Bot",
-        "opfield": "shared.githubAccessToken",
+        "opitem": "Github Access Token Service Bot",
+        "opfield": ".password",
         "opvault": VAULT_ID,
     },
     "KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME": {
-        "opitem": "Service Bot",
-        "opfield": "shared.dtsPortalLoginEmail",
+        "opitem": "Knack DTS Portal",
+        "opfield": ".username",
         "opvault": VAULT_ID,
     },
     "KNACK_DTS_PORTAL_SERVICE_BOT_PASSWORD": {
-        "opitem": "Service Bot",
-        "opfield": "shared.dtsPortalLoginPassword",
+        "opitem": "Knack DTS Portal",
+        "opfield": ".password",
         "opvault": VAULT_ID,
     },
 }
@@ -75,6 +75,7 @@ with DAG(
         command="./atd-service-bot/intake.py",
         environment=env_vars,
         tty=True,
+        force_pull=True,
     )
 
     t1
