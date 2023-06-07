@@ -37,17 +37,17 @@ REQUIRED_SECRETS = {
     },
     "SOCRATA_API_KEY_ID": {
         "opitem": "Socrata Key ID, Secret, and Token",
-        "opfield": "add more.apiKeyId",
+        "opfield": "socrata.apiKeyId",
         "opvault": VAULT_ID,
     },
     "SOCRATA_API_KEY_SECRET": {
         "opitem": "Socrata Key ID, Secret, and Token",
-        "opfield": "add more.apiKeySecret",
+        "opfield": "socrata.apiKeySecret",
         "opvault": VAULT_ID,
     },
     "SOCRATA_APP_TOKEN": {
         "opitem": "Socrata Key ID, Secret, and Token",
-        "opfield": "add more.appToken",
+        "opfield": "socrata.appToken",
         "opvault": VAULT_ID,
     },
     "SOCRATA_RESOURCE_ID": {
@@ -57,7 +57,7 @@ REQUIRED_SECRETS = {
     },
     "SOCRATA_ENDPOINT": {
         "opitem": "Socrata Key ID, Secret, and Token",
-        "opfield": "add more.endpoint",
+        "opfield": "socrata.endpoint",
         "opvault": VAULT_ID,
     },
 }
