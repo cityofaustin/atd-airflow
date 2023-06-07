@@ -1,8 +1,8 @@
 import os
 import docker
 from datetime import datetime
-from airflow.decorators import dag, task
 
+from airflow.decorators import dag, task
 from utils.slack_operator import task_fail_slack_alert
 
 DEPLOYMENT_ENVIRONMENT = os.environ.get("ENVIRONMENT", 'development') # operating environment
