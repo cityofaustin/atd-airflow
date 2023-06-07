@@ -21,13 +21,13 @@ default_args = {
 
 
 def task_fail():
-    raise Exception("Task failed")
+    raise Exception("Task failure test successfully triggered")
 
 
 with DAG(
     dag_id=f"test_slack_notifier_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
-    schedule_interval="*/5 * * * *",
+    schedule_interval=None,
     dagrun_timeout=timedelta(minutes=60),
     tags=["slack"],
     catchup=False,
