@@ -4,7 +4,6 @@ from datetime import datetime
 from airflow.decorators import dag, task
 
 from utils.slack_operator import task_fail_slack_alert
-from utils.onepassword import load_dict
 
 DEPLOYMENT_ENVIRONMENT = os.environ.get("ENVIRONMENT", 'development') # operating environment
 
