@@ -33,7 +33,7 @@ def cris_import():
             },
             auto_remove=True,
             )
-        return str(logs)
+        return logs.decode('utf-8')
 
     invoke_cris_import_via_docker()
 
