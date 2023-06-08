@@ -1,9 +1,10 @@
 #!/bin/bash
 
-echo "Let's renew a certificate"
-export ATD_AIRFLOW_HOMEDIR="/usr/airflow/atd-airflow";
-# Assign the domain that we are renewing from the script arg
+# Get the domain that we are renewing from the script arg
 DOMAIN=$1
+
+echo "Renewing certificate for $DOMAIN"
+export ATD_AIRFLOW_HOMEDIR="/usr/airflow/atd-airflow";
 
 # Load the same environment variables as the Airflow stack
 source $ATD_AIRFLOW_HOMEDIR/.env
