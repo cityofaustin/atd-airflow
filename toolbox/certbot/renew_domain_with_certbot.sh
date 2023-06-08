@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Let's renew the certificate for airflow"
+echo "Let's renew a certificate"
 export ATD_AIRFLOW_HOMEDIR="/usr/airflow/atd-airflow";
 # Assign the domain that we are renewing from the script arg
 DOMAIN=$1
