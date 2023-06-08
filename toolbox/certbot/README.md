@@ -1,14 +1,12 @@
 # Airflow scripts on atd-data03
 
-Heads up that these scripts assume that the Airflow project lives in `/usr/airflow/atd-airflow/`.
-
 ## Request certificate
 
-The request script has already been run when Airflow was set up on atd-data03. The initial certificate expires three months from its request, and the renew script is set to run every month after to keep it valid.
+The request script has already been run when Airflow was set up on atd-data03. The initial certificate expires three months from its request. The request command is identical to the certbot command used in the renew script.
 
 ## Renew certificate
 
-The renew script is set up as a cron job with a frequency of 0 0 1 * *.
+The renew script is set up as a cron job with a monthly frequency with output logged to `/var/log/airflow_cert_renewal.log`. 
 
 ## Restart Airflow
 
