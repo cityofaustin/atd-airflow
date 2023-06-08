@@ -1,4 +1,6 @@
-# Airflow 2.5.3 for local/production use
+# DTS Airflow stack
+
+This stack is used to run DTS ETL processes and the production instance is deployed on `atd-data03` and is built upon the Airflow v2 Docker image. Local development is available, and instructions are below.
 
 ## Features
 * [local development](https://github.com/frankhereford/airflow#local-setup) with a high quality DX
@@ -8,7 +10,7 @@
   * you can run the ETL in a terminal and get `stdout` from the program and also a color-coded output of the DAG's interactions with the airflow orchestration
     * `docker compose run --rm airflow-cli dags test weather-checker`, for example
     * continue to make changes to the code outside of docker, and they will show up in airflow as you save
-* [1Password secret support](https://github.com/frankhereford/airflow/blob/main/dags/weather.py#L27-L38)
+* [1Password secret support](https://github.com/frakhereford/airflow/blob/main/dags/weather.py#L27-L38)
   * built in, zero-config. You give it the secret name in 1Password, it gives you the value, right in the DAG
 * [working CI](https://github.com/frankhereford/airflow/blob/main/.github/workflows/production_deployment.yml), triggered [via](https://github.com/frankhereford/airflow/blob/main/haproxy/haproxy.cfg#L64) [webhook](https://github.com/frankhereford/airflow/blob/main/webhook/webhook.py#L33-L46), [secured](https://github.com/frankhereford/airflow/blob/main/webhook/webhook.py#L37) using a 1Password entry 
   * automatically pulls from `production` when PRs are merged into the branch
@@ -44,8 +46,9 @@ docker buildx build \
 --platform linux/arm/v7,linux/arm64/v8,linux/amd64 \
 --tag frankinaustin/signal-annotate:latest .
 ```
-
-## Local Setup
+## The Stack
+## Getting Started
+### Local Setup
 
 To get started, create a `.env` file with the following variables:
 
@@ -53,8 +56,8 @@ To get started, create a `.env` file with the following variables:
 AIRFLOW_UID=0
 ENVIRONMENT=development
 _AIRFLOW_WWW_USER_USERNAME=admin
-_AIRFLOW_WWW_USER_PASSWORD=<pick your initial admin pw here>
-AIRFLOW_PROJ_DIR=<absolute path of your Airflow repository checkout>
+_AIRFLOW_WWW_USER_PASSWORD=<Pick your initial admin password here>
+AIRFLOW_PROJ_DIR=<The absolute path of your Airflow repository checkout>
 OP_API_TOKEN=<Get from 1Password entry named "Connect Server: Production Access Token: API Accessible Secrets">
 OP_CONNECT=<Get from 1Password entry named "Endpoint for 1Password Connect Server API">
 OP_VAULT_ID=<Get from 1Password entry named "Vault ID of API Accessible Secrets vault">
@@ -67,11 +70,17 @@ $ docker compose up -d
 ```
 
 Now,
-* Airflow is available at http://localhost:8080
-* The test weather DAG output is available at http://localhost:8081
-* The webhook flask app is available at http://localhost:8082
-* The workers' status page is available at http://localhost:8083
+- Airflow is available at http://localhost:8080
+  - You can log in to the dashboard using the username and password set in your `.env` file
+- The test weather DAG output is available at http://localhost:8081
+- The webhook flask app is available at http://localhost:8082
+- The workers' status page is available at http://localhost:8083
 
+### Developing a DAG
+
+### Updating the stack
+
+## CI/CD
 
 ## Useful Commands
 * 🐚 get a shell on a worker, for example
