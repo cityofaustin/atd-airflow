@@ -46,25 +46,31 @@ docker buildx build \
 ```
 
 ## Local Setup
-* `.env` file:
+
+To get started, create a `.env` file with the following variables:
 
 ```
-AIRFLOW_UID=<the numeric output of the following command: id -u>
-ENVIRONMENT=<development|production>
+AIRFLOW_UID=0
+ENVIRONMENT=development
 _AIRFLOW_WWW_USER_USERNAME=admin
 _AIRFLOW_WWW_USER_PASSWORD=<pick your initial admin pw here>
-AIRFLOW_PROJ_DIR=<absolute path of airflow checkout>
-OP_API_TOKEN=<Get from 1Password here: 'name TBD'>
-OP_CONNECT=<URL of the 1Password Connect install>
-OP_VAULT_ID=<OP Vault ID>
+AIRFLOW_PROJ_DIR=<absolute path of your Airflow repository checkout>
+OP_API_TOKEN=<Get from 1Password entry named "Connect Server: Production Access Token: API Accessible Secrets">
+OP_CONNECT=<Get from 1Password entry named "Endpoint for 1Password Connect Server API">
+OP_VAULT_ID=<Get from 1Password entry named "Vault ID of API Accessible Secrets vault">
+```
+Then, to build and start the stack:
+
+```bash
+$ docker compose build
+$ docker compose up -d
 ```
 
-* `docker compose build`
-* `docker compose up -d`
+Now,
 * Airflow is available at http://localhost:8080
-* The test weather DAG output at http://localhost:8081
-* The webhook flask app at http://localhost:8082
-* The workers' status page at http://localhost:8083
+* The test weather DAG output is available at http://localhost:8081
+* The webhook flask app is available at http://localhost:8082
+* The workers' status page is available at http://localhost:8083
 
 
 ## Useful Commands
