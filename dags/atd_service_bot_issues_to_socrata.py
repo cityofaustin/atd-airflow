@@ -4,13 +4,10 @@ from datetime import datetime, timedelta
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
 
-from onepasswordconnectsdk.client import Client, new_client
-import onepasswordconnectsdk
+from utils.slack_operator import task_fail_slack_alert
+from utils.onepassword import load_dict
 
 DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
-ONEPASSWORD_CONNECT_HOST = os.getenv("OP_CONNECT")
-ONEPASSWORD_CONNECT_TOKEN = os.getenv("OP_API_TOKEN")
-VAULT_ID = os.getenv("OP_VAULT_ID")
 
 default_args = {
     "owner": "airflow",
@@ -20,6 +17,7 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
+    "on_failure_callback": task_fail_slack_alert,
 }
 
 docker_image = "atddocker/atd-service-bot:production"
@@ -28,42 +26,34 @@ REQUIRED_SECRETS = {
     "GITHUB_ACCESS_TOKEN": {
         "opitem": "Github Access Token Service Bot",
         "opfield": ".password",
-        "opvault": VAULT_ID,
     },
     "ZENHUB_ACCESS_TOKEN": {
         "opitem": "Zenhub Access Token",
         "opfield": ".password",
-        "opvault": VAULT_ID,
     },
     "SOCRATA_API_KEY_ID": {
         "opitem": "Socrata Key ID, Secret, and Token",
         "opfield": "socrata.apiKeyId",
-        "opvault": VAULT_ID,
     },
     "SOCRATA_API_KEY_SECRET": {
         "opitem": "Socrata Key ID, Secret, and Token",
         "opfield": "socrata.apiKeySecret",
-        "opvault": VAULT_ID,
     },
     "SOCRATA_APP_TOKEN": {
         "opitem": "Socrata Key ID, Secret, and Token",
         "opfield": "socrata.appToken",
-        "opvault": VAULT_ID,
     },
     "SOCRATA_RESOURCE_ID": {
         "opitem": "Service Bot",
         "opfield": f"{DEPLOYMENT_ENVIRONMENT}.socrataResourceId",
-        "opvault": VAULT_ID,
     },
     "SOCRATA_ENDPOINT": {
         "opitem": "Socrata Key ID, Secret, and Token",
         "opfield": "socrata.endpoint",
-        "opvault": VAULT_ID,
     },
 }
 
-client: Client = new_client(ONEPASSWORD_CONNECT_HOST, ONEPASSWORD_CONNECT_TOKEN)
-env_vars = onepasswordconnectsdk.load_dict(client, REQUIRED_SECRETS)
+env_vars = load_dict(REQUIRED_SECRETS)
 
 with DAG(
     dag_id=f"atd_service_bot_github_to_socrata_{DEPLOYMENT_ENVIRONMENT}",
