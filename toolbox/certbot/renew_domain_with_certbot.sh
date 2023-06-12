@@ -28,7 +28,7 @@ CERT_PATH="/usr/airflow/atd-airflow/haproxy/ssl"
 cd $CERT_PATH
 rm $DOMAIN.pem
 
-docker pull certbot/dns-route53:latest
+docker pull certbot/dns-route53:v2.6.0
 
 docker run -it --rm --name certbot \
 -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
