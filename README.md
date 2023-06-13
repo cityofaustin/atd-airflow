@@ -45,6 +45,64 @@ Now,
 
 ### Updating the stack
 
+These instructions were created while updating a local Airflow stack from 2.5.3 to 2.6.1. Updates which
+span larger intervals of versions or time should be given extra care in testing and in terms of reviewing
+change logs.
+
+#### Update Process
+
+- Read the "Significant Changes" sections of the Airflow release notes between the versions in question: https://github.com/apache/airflow/releases/
+  - Apache Airflow is a very active project, and these release notes are pretty dense. Keeping a regular update cadence will be helpful to keep up the task of updating airflow from becoming an "information overload" job.
+- Snap a backup of the Airflow postgreSQL database
+  - You shouldn't need it, but it can't hurt.
+  - The following command requires that the stack being update is running.
+  - The string `postgres` in the following command is denoting the `docker compose` service name and not the `postgres` system database which is present on all postgres database servers. The target database is set via the environment variable `PGDATABASE`.
+  - `docker compose exec -t -e PGUSER=airflow -e PGPASSWORD=airflow -e PGDATABASE=airflow postgres pg_dump > DB_backup.sql`
+- Stop the Airflow stack
+  - `docker compose stop`
+- Compare the `docker-compose.yaml` file in a way that is easily sharable with the team if needed
+  - Start a new, blank gist at https://gist.github.com/
+  - Copy the source code of the older version, for example: https://raw.githubusercontent.com/apache/airflow/2.5.3/docs/apache-airflow/howto/docker-compose/docker-compose.yaml
+  - Paste that into your gist and save it. Make it public if you want to demonstrate the diff to anyone.
+  - Copy the source code of the newer, target version and replace the contents of the file in your gist. An example URL would be: https://raw.githubusercontent.com/apache/airflow/2.6.1/docs/apache-airflow/howto/docker-compose/docker-compose.yaml.
+  - Look at the revisions of this gist and find the most recent one. This diff represents the changes from the older to the newer versions of the upstream `docker-compose.yaml` file. For example (2.5.3 to 2.6.1): https://gist.github.com/frankhereford/c844d0674e9ad13ece8e2354c657854e/revisions.
+  - Consider each change, and generally, you'll want to apply these changes to the `docker-compose.yaml` file.
+- Update the `FROM` line in the `Dockerfile` found in the top of the repo to the target version.
+- Update the version shown in the status message in the webhook's GET route
+  - https://github.com/cityofaustin/atd-airflow/blob/airflow-v2/webhook/webhook.py#L34
+- Update the comments in the docker-compose file that reference the version number. (2X)
+- Build the core docker images
+  - `docker compose build`
+- Build the `airflow-cli` image, which the Airflow team keeps in its own profile
+  - `docker compose build airflow-cli`
+- Restart the Airflow stack
+  - `docker compose up -d`
+
+### Minimal Testing
+
+The following process indicates that the following systems are working:
+
+- Airflow DAG recognition
+- Airflow DAG scheduling
+- Airflow DAG execution
+- 1Password integration
+- Docker services available to DAGs
+
+#### Testing Steps
+
+- With the updated stack running, check the version in the footer. It should reflect the intended target version.
+- Trigger or wait for an execution of the diagnostic ETL (Weather).
+  - Check that Airflow can successfully execute the DAG and that it produces the correct records in the web UI.
+- Check the output of the diagnostic ETL.
+  - The output of this DAG should include:
+    - A printout of a written weather prediction from NOAA
+    - An appropriate execution time which is less than 5 minutes from the present.
+    - A printout of the 1Password Entry `Diagnostic ETL (Weather)` demonstration secret, appropriate for the environment type you're testing.
+    - An image with:
+      - An updated timestamp less than 10 minutes old at most
+      - A street camera and signal icon in the upper left
+      - Annotation in the upper center
+
 ## CI/CD
 
 ## Utilities
