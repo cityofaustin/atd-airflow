@@ -1,14 +1,16 @@
 # DTS Airflow stack
 
-This stack is used to run DTS ETL processes and the production instance is deployed on `atd-data03`. Local development is available, and instructions are below. 
+This stack is used to run DTS ETL processes and the production instance is deployed on `atd-data03`. Local development is available, and instructions are below.
 
 The stack is composed of:
+
 - Airflow v2 ([Docker image](https://hub.docker.com/r/apache/airflow))
 - [HAProxy](https://www.haproxy.org/) to distribute HTTP requests over the stack
 - [Flower](https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/security/flower.html) workers dashboard to monitor remote workers
 - Webhook to trigger git pulls using the [smee.io client](https://github.com/probot/smee-client)
 
 ## Getting Started
+
 ### Local Setup
 
 To get started, create a `.env` file with the following variables:
@@ -23,6 +25,7 @@ OP_API_TOKEN=<Get from 1Password entry named "Connect Server: Production Access 
 OP_CONNECT=<Get from 1Password entry named "Endpoint for 1Password Connect Server API">
 OP_VAULT_ID=<Get from 1Password entry named "Vault ID of API Accessible Secrets vault">
 ```
+
 Then, to build and start the stack:
 
 ```bash
@@ -31,6 +34,7 @@ $ docker compose up -d
 ```
 
 Now,
+
 - Airflow is available at http://localhost:8080
   - You can log in to the dashboard using the username and password set in your `.env` file
 - The test weather DAG output is available at http://localhost:8081
@@ -54,21 +58,25 @@ The 1Password utility is a light wrapper of the [1Password Connect Python SDK](h
 The Slack operator utility makes use of the integration between the Airflow and a Slack app webhook. The purpose of the utility is to add Slack notifications to DAGs using the [callback](https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/callbacks.html#callback-types) parameters. Failure, critical failure, and success notifications are implemented.
 
 ## Useful Commands
-* 🐚 get a shell on a worker, for example
+
+- 🐚 get a shell on a worker, for example
+
 ```
 docker exec -it airflow-airflow-worker-1 bash
 ```
 
-* ⛔ Stop all containers and execute this to reset your local database.
-  * Do not run in production unless you feel really great about your backups. 
-  * This will reset the history of your dag runs and switch states.
+- ⛔ Stop all containers and execute this to reset your local database.
+  - Do not run in production unless you feel really great about your backups.
+  - This will reset the history of your dag runs and switch states.
+
 ```
 docker compose down --volumes --remove-orphans
 ```
 
 ## Ideas
-* Make it disable all DAGs on start locally so it fails to safe
-* Create remote worker image example
-  * Use `docker compose` new `profile` support
-* 🤔 Extend webhook to rotate key in 1Password after every use
-  * a true rolling token, 1 use per value
+
+- Make it disable all DAGs on start locally so it fails to safe
+- Create remote worker image example
+  - Use `docker compose` new `profile` support
+- 🤔 Extend webhook to rotate key in 1Password after every use
+  - a true rolling token, 1 use per value
