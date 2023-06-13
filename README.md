@@ -37,9 +37,9 @@ Now,
 
 - Airflow is available at http://localhost:8080
   - You can log in to the dashboard using the username and password set in your `.env` file
-- The test weather DAG output is available at http://localhost:8081
-- The webhook flask app is available at http://localhost:8082
-- The workers' status page is available at http://localhost:8083
+- The webhook flask app is available at http://localhost:8081
+- The workers' status page available at http://localhost:8082 
+- The test weather DAG output is available at http://localhost:8083
 
 ### Developing a DAG
 
