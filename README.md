@@ -61,7 +61,7 @@ The same process can be used when updating the stack with changes that originate
   - Apache Airflow is a very active project, and these release notes are pretty dense. Keeping a regular update cadence will be helpful to keep up the task of updating airflow from becoming an "information overload" job.
 - Snap a backup of the Airflow postgreSQL database
   - You shouldn't need it, but it can't hurt.
-  - The following command requires that the stack being update is running.
+  - The following command requires that the stack being updated is running.
   - The string `postgres` in the following command is denoting the `docker compose` service name and not the `postgres` system database which is present on all postgres database servers. The target database is set via the environment variable `PGDATABASE`.
   - `docker compose exec -t -e PGUSER=airflow -e PGPASSWORD=airflow -e PGDATABASE=airflow postgres pg_dump > DB_backup.sql`
 - Stop the Airflow stack
