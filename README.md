@@ -49,6 +49,12 @@ These instructions were created while updating a local Airflow stack from 2.5.3 
 span larger intervals of versions or time should be given extra care in testing and in terms of reviewing
 change logs.
 
+The same process can be used when updating the stack with changes that originate from our team. These might include:
+  * Adding new requirements to the `requirements.txt` for the local stack
+  * Modifying the `Dockerfile`
+  * Modifying the webhook or webhook proxy system
+  * Modifying the haproxy configuration
+
 #### Update Process
 
 - Read the "Significant Changes" sections of the Airflow release notes between the versions in question: https://github.com/apache/airflow/releases/
