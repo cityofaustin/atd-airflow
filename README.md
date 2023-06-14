@@ -130,7 +130,7 @@ Finally, the workflow issues the webhook, which is really nothing more than an e
 
 ### Airflow Webhook
 
-The Airflow stack contains a webhook, provided by a flask app running in a docker container named `webhook`. It listens for `GET` requests, which it will respond with a status message and for `POST` requests, where it will verify the `X-Webhook-Key` header, and if it's a match, issue a `git pull` on the checkout, causing our DAGs to be updated from `production` as found in GitHub. Airflow will immediately pick up on the changed DAG files and begin to operate under the their directives.
+The Airflow stack contains a webhook, provided by a flask app running in a docker container named `webhook`. It listens for `GET` requests, which it will respond with a status message and for `POST` requests, where it will verify the `X-Webhook-Key` header, and if it's a match, issue a `git pull` on the checkout, causing our DAGs to be updated from `production` as found in GitHub. Airflow will immediately pick up on the changed DAG files and begin to operate under their directives.
 
 ### Airflow Webhook Proxy system via [smee.io](https://smee.io/)
 
