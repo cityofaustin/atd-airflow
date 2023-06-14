@@ -8,3 +8,5 @@ venv
 *.swp
 *.http
 *sql
+.DS_Store
+
