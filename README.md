@@ -126,7 +126,7 @@ Found [here](https://github.com/cityofaustin/atd-airflow/tree/master/.github/wor
 
 The workflow uses a handful of secrets found in the repository's secrets section. These secrets concern access to the 1Password connect server, and are used to get the current value of the Airflow stack's webhook access token and the current URL where we want to invoke our webhook.
 
-Finally, the workflow issues the webhook, which is really nothing more than an empty POST to a certain address. It's the event that matters to us, not any data in the post, with the one exception of a `X-Webhook-Key` header which contains the access key retrieved from 1Password.
+Finally, the workflow issues the webhook, which is really nothing more than an empty `POST` to a certain address. It's the event that matters to us, not any data in the `POST`, with the one exception of a `X-Webhook-Key` header which contains the access key retrieved from 1Password.
 
 ### Airflow Webhook
 
@@ -134,7 +134,7 @@ The Airflow stack contains a webhook, provided by a flask app running in a docke
 
 ### Airflow Webhook Proxy system via [smee.io](https://smee.io/)
 
-The Airflow stack operates on an on-premises machine behind the COA edge router, and therefore it has no method for listening on a publicly routable IP address. Because of this, a webhook proxy system is used which is provided by smee.io. Smee.io offers up unique hostnames, called a "channel", on which it will listen for a webhook POST event. Upon receipt, it will relay the post's contents to any smee.io daemons which have subscribed to that particular smee.io channel.  The smee.io daemon, upon receiving notice that a webhook was received at the public hostname, will issue its own POST request to the Airflow webhook bearing the same headers that were passed down through the smee.io daemon. In this manner, the post event is relayed from the public internet down into the stack residing on the COA internal IPs.
+The Airflow stack operates on an on-premises machine behind the COA edge router, and therefore it has no method for listening on a publicly routable IP address. Because of this, a webhook proxy system is used which is provided by smee.io. Smee.io offers up unique hostnames, called a "channel", on which it will listen for a webhook `POST` event. Upon receipt, it will relay the `POST`'s contents to any smee.io daemons which have subscribed to that particular smee.io channel.  The smee.io daemon, upon receiving notice that a webhook was received at the public hostname, will issue its own `POST` request to the Airflow webhook bearing the same headers that were passed down through the smee.io daemon. In this manner, the `POST` event is relayed from the public internet down into the stack residing on the COA internal IPs.
 
 ## Utilities
 
