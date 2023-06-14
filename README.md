@@ -43,6 +43,11 @@ Now,
 
 ### Developing a DAG
 
+Example command to execute a DAG in development. This is the CLI version of triggering the DAG manually in the web UI.
+```
+docker compose run --rm airflow-cli dags test weather-checker
+```
+
 ### Updating the stack
 
 These instructions were created while updating a local Airflow stack from 2.5.3 to 2.6.1. Updates which
