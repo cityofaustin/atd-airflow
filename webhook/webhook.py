@@ -31,7 +31,7 @@ app.config['DEBUG'] = True
 
 @app.route('/')
 def status():
-    return 'Airflow 2.5.3 `git pull` webhook @ ' + time.ctime()
+    return 'Airflow 2.6.1 `git pull` webhook @ ' + time.ctime()
 
 @app.route('/webhook', methods=['POST'])
 def handle_webhook():
