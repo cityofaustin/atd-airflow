@@ -21,3 +21,4 @@ weather/*.html
 weather/*.jpg
 *.swp
 *.http
+db/*
