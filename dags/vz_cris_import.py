@@ -13,7 +13,7 @@ DEPLOYMENT_ENVIRONMENT = os.environ.get("ENVIRONMENT", 'development') # operatin
     schedule="0 7 * * *",
     start_date=datetime(2023, 6, 1),
     catchup=False,
-    tags=["vision-zero", "cris"],
+    tags=["vision-zero", "cris", "repo:atd-vz-data"],
     on_failure_callback=task_fail_slack_alert,
 )
 def cris_import():
