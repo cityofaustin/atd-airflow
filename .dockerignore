@@ -1,5 +1,8 @@
-.git
-*.pem
+# See: https://github.com/github/gitignore/blob/main/Python.gitignore
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
 
 # Environments
 .env
@@ -9,4 +12,13 @@ venv/
 ENV/
 env.bak/
 venv.bak/
- 
+
+# Misc
+*.pem
+.DS_Store
+logs/*
+weather/*.html
+weather/*.jpg
+*.swp
+*.http
+db/*
