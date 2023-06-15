@@ -1,6 +1,6 @@
 # DTS Airflow stack
 
-This stack is used to run DTS ETL processes and the production instance is deployed on `atd-data03`. Local development is available, and instructions are below.
+This stack is used to run DTS ETL processes and the production instance is deployed on `atd-data03` at `/usr/airflow/atd-airflow`. Local development is available, and instructions are below.
 
 The stack is composed of:
 
@@ -41,7 +41,7 @@ Now,
 - The workers' status page available at http://localhost:8082
 - The test weather DAG output is available at http://localhost:8083
 
-### Developing a DAG
+### Developing and executing a DAG
 
 Example command to execute a DAG in development. This is the CLI version of triggering the DAG manually in the web UI. Exchange `weather-checker` with the ID you've given your DAG in the DAG decorator or configuration.
 ```
