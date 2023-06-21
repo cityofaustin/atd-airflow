@@ -35,15 +35,29 @@ $ docker compose up -d
 
 Now,
 
-- Airflow is available at http://localhost:8080
+- The Airflow webserver is available at http://localhost:8080
   - You can log in to the dashboard using the username and password set in your `.env` file
 - The webhook flask app is available at http://localhost:8081
-- The workers' status page available at http://localhost:8082
+- The Flower workers' status page available at http://localhost:8082
 - The test weather DAG output is available at http://localhost:8083
 
-### Developing and executing a DAG
+### DAGs
 
-Example command to execute a DAG in development. This is the CLI version of triggering the DAG manually in the web UI. Exchange `weather-checker` with the ID you've given your DAG in the DAG decorator or configuration.
+#### Developing
+
+Once the local stack is up and running, you can start writing a new DAG by adding a script to the `dags/` folder. Any new utilities can be placed in the `dags/utils/` folder. As you develop, you can check the local Airflow webserver for any errors that are encountered when loading the DAG.
+
+If any new files that are not DAGs or folders that don't contain DAGs are placed within the `dags/` folder, they should be added to the `dags/.airflowignore` file so the stack doesn't log errors about files that are not recognized as DAGs.
+
+#### Tags
+
+If a DAG corresponds with another repo, be sure to add a [tag](https://airflow.apache.org/docs/apache-airflow/stable/howto/add-dag-tags.html) with the naming convention of `repo:name-of-the-repo`.
+
+#### Executing
+
+Once a DAG is recognized by Airflow as valid, it will appear in the local webserver where you can trigger the DAG for testing.
+
+You can also use this example command to execute a DAG in development. This is the CLI version of triggering the DAG manually in the web UI. Exchange `weather-checker` with the ID you've given your DAG in the DAG decorator or configuration.
 ```
 docker compose run --rm airflow-cli dags test weather-checker
 ```
@@ -137,6 +151,8 @@ The Airflow stack contains a webhook, provided by a flask app running in a docke
 The Airflow stack operates on an on-premises machine behind the COA edge router, and therefore it has no method for listening on a publicly routable IP address. Because of this, a webhook proxy system is used which is provided by smee.io. Smee.io offers up unique hostnames, called a "channel", on which it will listen for a webhook `POST` event. Upon receipt, it will relay the `POST`'s contents to any smee.io daemons which have subscribed to that particular smee.io channel.  The smee.io daemon, upon receiving notice that a webhook was received at the public hostname, will issue its own `POST` request to the Airflow webhook bearing the same headers that were passed down through the smee.io daemon. In this manner, the `POST` event is relayed from the public internet down into the stack residing on the COA internal IPs.
 
 ## Utilities
+
+Utilities used by multiple DAGs 
 
 ### 1Password utility
 
