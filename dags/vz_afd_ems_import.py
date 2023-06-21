@@ -23,7 +23,7 @@ ENVIRONMENT = {
     schedule="0 7 * * *",
     start_date=pendulum.datetime(2023, 1, 1, tz="UTC"),
     catchup=False,
-    tags=["repo:atd-vz-data", "vision-zero", "ems"],
+    tags=["repo:atd-vz-data", "vision-zero", "ems", "import"],
 )
 
 def etl_ems_import():
@@ -59,7 +59,7 @@ etl_ems_import()
     schedule="0 7 * * *",
     start_date=pendulum.datetime(2023, 1, 1, tz="UTC"),
     catchup=False,
-    tags=["repo:atd-vz-data", "vision-zero", "afd"],
+    tags=["repo:atd-vz-data", "vision-zero", "afd", "import"],
 )
 
 def etl_afd_import():
