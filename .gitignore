@@ -1,6 +1,7 @@
 *__pycache__
 haproxy/ssl/*pem
 logs/*
+db/*
 weather/*.html
 weather/*.jpg
 .env
