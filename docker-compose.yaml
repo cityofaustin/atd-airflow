@@ -120,6 +120,8 @@ services:
       - weather
       - airflow-webserver
       - webhook
+    volumes:
+      - ${AIRFLOW_PROJ_DIR:-.}/haproxy/ssl:/usr/local/etc/haproxy/ssl
 
   webhook:
     restart: always
