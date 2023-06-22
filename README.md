@@ -150,6 +150,25 @@ The Airflow stack contains a webhook, provided by a flask app running in a docke
 
 The Airflow stack operates on an on-premises machine behind the COA edge router, and therefore it has no method for listening on a publicly routable IP address. Because of this, a webhook proxy system is used which is provided by smee.io. Smee.io offers up unique hostnames, called a "channel", on which it will listen for a webhook `POST` event. Upon receipt, it will relay the `POST`'s contents to any smee.io daemons which have subscribed to that particular smee.io channel.  The smee.io daemon, upon receiving notice that a webhook was received at the public hostname, will issue its own `POST` request to the Airflow webhook bearing the same headers that were passed down through the smee.io daemon. In this manner, the `POST` event is relayed from the public internet down into the stack residing on the COA internal IPs.
 
+## HAProxy as part of the stack
+
+This Airflow stack uses [HAProxy](https://www.haproxy.org/) as a reverse proxy to terminate incoming SSL/TLS connections and then to route the requests over HTTP to the appropriate backend web service. The SSL certificates are stored in the `haproxy/ssl` folder and are maintained by a `bash` script, executed monthly by `cron`. This script uses the EFF's CertBot service to renew and replace the SSL certificates used by HAProxy to secure the Airflow services. 
+
+The Airflow stack contains the following web services:
+
+* The Airflow main web UI
+* The Airflow workers dashboard
+* The output of the diagnostic weather ETL
+
+In local development, we don't have any special host names we can use to differentiate which back-end service a request needs to be routed to, so we do this by listening on multiple, local ports. Depending on what port you request from, the local HAProxy will pick the correct backend web service to send your request to.
+
+In production, however, we do have different host names assigned for each resource, so we're able to listen on a single port. Based on the hostname specified in the HTTP header which available to HAProxy after terminating the SSL connection, the proxy is able to pick which backend to route the request to. 
+
+### HAProxy operation
+
+* The service needs to be restarted when the SSL certificates are rotated. This is normally handled by the automated renewal scripts.
+* The service can be restarted independently of the rest of the stack if needed, as well. This can be done using `docker compose stop haproxy; docker compose build haproxy; docker compose up -d haproxy;` or similar, for example.
+
 ## Utilities
 
 Utilities used by multiple DAGs 
