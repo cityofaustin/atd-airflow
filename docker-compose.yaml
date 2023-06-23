@@ -11,8 +11,6 @@ x-airflow-common: &airflow-common
   build: .
   environment: &airflow-common-env
     AIRFLOW__CORE__FERNET_KEY: ${_AIRFLOW__CORE__FERNET_KEY}
-    AIRFLOW__CELERY__FLOWER_BASIC_AUTH: ${_AIRFLOW_WWW_USER_USERNAME}:${_AIRFLOW_WWW_USER_PASSWORD}
-
     # You need to explictly allow .env vars into the airflow containers's environments here
     OP_API_TOKEN: ${OP_API_TOKEN}
     OP_CONNECT: ${OP_CONNECT}
@@ -21,7 +19,6 @@ x-airflow-common: &airflow-common
     FLOWER_AUTH_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME}
     FLOWER_AUTH_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD}
     AIRFLOW_CHECKOUT_PATH: ${AIRFLOW_PROJ_DIR}
-
     # Quiet SQLAlchemy warnings
     SQLALCHEMY_SILENCE_UBER_WARNING: 1
 
@@ -50,8 +47,6 @@ services:
     ports:
       - 8080:80
       - 8081:81
-      - 8082:82
-      - 8083:83
     depends_on:
       - airflow-webserver
     volumes:
@@ -251,7 +246,7 @@ services:
 
   flower:
     <<: *airflow-common
-    command: ["celery", "flower"]
+    command: celery flower
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:5555/"]
       interval: 30s
