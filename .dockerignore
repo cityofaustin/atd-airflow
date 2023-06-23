@@ -19,8 +19,6 @@ venv.bak/
 *.pem
 .DS_Store
 logs/*
-weather/*.html
-weather/*.jpg
 *.swp
 *.http
 db/*
