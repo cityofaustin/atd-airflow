@@ -106,9 +106,9 @@ The Airflow stack contains the following web services:
 * The Airflow main web UI
 * The Airflow workers dashboard
 
-In local development, we don't have any special host names we can use to differentiate which back-end service a request needs to be routed to, so we do this by listening on multiple, local ports. Depending on what port you request from, the local HAProxy will pick the correct backend web service to send your request to.
+In local development, we don't have any special host names we can use to differentiate which back-end service a request needs to be routed to, so we do this by listening on multiple, local ports. Depending on what port you request from, the local HAProxy will pick the correct backend web service to send your request to. Local development also does not require auth for the Flower service.
 
-In production, however, we do have different host names assigned for each resource, so we're able to listen on a single port. Based on the hostname specified in the HTTP header which available to HAProxy after terminating the SSL connection, the proxy is able to pick which backend to route the request to. 
+In production, however, we do have different host names assigned for each resource, so we're able to listen on a single port. Based on the hostname specified in the HTTP header which available to HAProxy after terminating the SSL connection, the proxy is able to pick which backend to route the request to. Production does require auth for the Flower service, and the username and password is set in `docker-compose.yaml` where it reuses the Airflow username and password set in the stack's environment variables.
 
 ### HAProxy operation
 
