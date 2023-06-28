@@ -34,7 +34,6 @@ REQUIRED_SECRETS = {
     "GITHUB_ACCESS_TOKEN": {
         "opitem": "Github Access Token Service Bot",
         "opfield": ".password",
-
     },
 }
 
