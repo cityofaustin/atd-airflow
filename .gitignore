@@ -1,9 +1,13 @@
 *__pycache__
 haproxy/ssl/*pem
 logs/*
+db/*
 weather/*.html
 weather/*.jpg
 .env
 venv
 *.swp
 *.http
+*sql
+.DS_Store
+
