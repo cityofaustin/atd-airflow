@@ -51,7 +51,6 @@ services:
     volumes:
       - ${AIRFLOW_PROJ_DIR}/haproxy/ssl:/usr/local/etc/haproxy/ssl
       - ${AIRFLOW_PROJ_DIR}/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
-      - ${AIRFLOW_PROJ_DIR:-.}/haproxy/ssl:/usr/local/etc/haproxy/ssl
 
   postgres:
     image: postgres:13
@@ -60,7 +59,7 @@ services:
       POSTGRES_PASSWORD: airflow
       POSTGRES_DB: airflow
     volumes:
-      - ${AIRFLOW_PROJ_DIR}/db:/var/lib/postgresql/data
+      - postgres-db-volume:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 10s
@@ -258,3 +257,6 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+# postgres db data persisted here
+volumes:
+  postgres-db-volume:
