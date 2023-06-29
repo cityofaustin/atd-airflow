@@ -8,7 +8,7 @@ The request script has already been run when Airflow was set up on atd-data03. T
 
 ## Renew certificate
 
-The renew script is set up as a cron job as root user with a monthly frequency with output logged to `/var/log/airflow_cert_renewal.log`. The `renew.sh` script renews all of the domains used by the stack using the `renew_domain_with_certbot.sh` script that takes one argument like:
+The renew script is set up as a cron job as root user that runs every 12 hours with output logged to `/var/log/airflow_cert_renewal.log`. The `renew.sh` script renews all of the domains used by the stack using the `renew_domain_with_certbot.sh` script that takes one argument like:
 
 ```bash
 $ renew_domain_with_certbot.sh airflow.austinmobility.io

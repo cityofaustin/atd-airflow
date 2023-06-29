@@ -51,6 +51,7 @@ services:
     volumes:
       - ${AIRFLOW_PROJ_DIR}/haproxy/ssl:/usr/local/etc/haproxy/ssl
       - ${AIRFLOW_PROJ_DIR}/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+      - ${AIRFLOW_PROJ_DIR:-.}/haproxy/ssl:/usr/local/etc/haproxy/ssl
 
   postgres:
     image: postgres:13
