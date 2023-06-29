@@ -7,12 +7,9 @@ x-airflow-common: &airflow-common
   # In order to add custom dependencies or upgrade provider packages you can use your extended image.
   # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
-  # image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.6.1}
-  build: .
+  image: atddocker/atd-airflow:production
   environment: &airflow-common-env
     AIRFLOW__CORE__FERNET_KEY: ${_AIRFLOW__CORE__FERNET_KEY}
-    AIRFLOW__CELERY__FLOWER_BASIC_AUTH: ${_AIRFLOW_WWW_USER_USERNAME}:${_AIRFLOW_WWW_USER_PASSWORD}
-
     # You need to explictly allow .env vars into the airflow containers's environments here
     OP_API_TOKEN: ${OP_API_TOKEN}
     OP_CONNECT: ${OP_CONNECT}
@@ -21,7 +18,6 @@ x-airflow-common: &airflow-common
     FLOWER_AUTH_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME}
     FLOWER_AUTH_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD}
     AIRFLOW_CHECKOUT_PATH: ${AIRFLOW_PROJ_DIR}
-
     # Quiet SQLAlchemy warnings
     SQLALCHEMY_SILENCE_UBER_WARNING: 1
 
@@ -31,7 +27,6 @@ x-airflow-common: &airflow-common
     - ${AIRFLOW_PROJ_DIR}/plugins:/opt/airflow/plugins
     - ${AIRFLOW_PROJ_DIR}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR}/airflow.cfg:/opt/airflow/airflow.cfg
-    - ${AIRFLOW_PROJ_DIR}/weather:/opt/airflow/weather
     - /var/run/docker.sock:/var/run/docker.sock
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on: &airflow-common-depends-on
@@ -51,43 +46,11 @@ services:
     ports:
       - 8080:80
       - 8081:81
-      - 8082:82
-      - 8083:83
-
     depends_on:
-      - weather
       - airflow-webserver
-      - webhook
     volumes:
       - ${AIRFLOW_PROJ_DIR}/haproxy/ssl:/usr/local/etc/haproxy/ssl
       - ${AIRFLOW_PROJ_DIR}/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
-      - ${AIRFLOW_PROJ_DIR:-.}/haproxy/ssl:/usr/local/etc/haproxy/ssl
-
-  webhook:
-    restart: always
-    build: ./webhook
-    environment:
-      <<: *airflow-common-env
-    depends_on:
-      <<: *airflow-common-depends-on
-    volumes:
-      - ${AIRFLOW_PROJ_DIR}/webhook:/app
-      - ${AIRFLOW_PROJ_DIR}:/opt/airflow
-
-  webhook-relay:
-    build: ./webhook-relay
-    environment:
-      <<: *airflow-common-env
-      OP_CONNECT_TOKEN: ${OP_API_TOKEN}
-      OP_CONNECT_HOST: ${OP_CONNECT}
-      OP_VAULT_ID: ${OP_VAULT_ID}
-    command: /entry_point.sh
-
-  weather:
-    restart: always
-    image: httpd:2.4
-    volumes:
-      - ${AIRFLOW_PROJ_DIR}/weather:/usr/local/apache2/htdocs
 
   postgres:
     image: postgres:13
@@ -96,7 +59,7 @@ services:
       POSTGRES_PASSWORD: airflow
       POSTGRES_DB: airflow
     volumes:
-      - ${AIRFLOW_PROJ_DIR}/db:/var/lib/postgresql/data
+      - postgres-db-volume:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 10s
@@ -282,7 +245,7 @@ services:
 
   flower:
     <<: *airflow-common
-    command: ["celery", "flower"]
+    command: celery flower
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:5555/"]
       interval: 30s
@@ -294,3 +257,6 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+# postgres db data persisted here
+volumes:
+  postgres-db-volume:
