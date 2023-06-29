@@ -1,5 +1,7 @@
 services:
   haproxy:
     ports:
-      - 80:80
-      - 81:81
+      - 80:8080
+      - 443:8443
+    volumes:
+      - ${AIRFLOW_PROJ_DIR}/haproxy/haproxy-production.cfg:/usr/local/etc/haproxy/haproxy.cfg
