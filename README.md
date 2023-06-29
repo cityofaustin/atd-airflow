@@ -1,93 +1,150 @@
-# Airflow 2.5.3 for local/production use
+# DTS Airflow stack
 
-## Features
-* [local development](https://github.com/frankhereford/airflow#local-setup) with a high quality DX
-  * you get a full, local airflow stack
-    * so you can trigger it as if in airflow, via [the UI](http://localhost:8080/home)
-      * stack traces available in UI
-  * you can run the ETL in a terminal and get `stdout` from the program and also a color-coded output of the DAG's interactions with the airflow orchestration
-    * `docker compose run --rm airflow-cli dags test weather-checker`, for example
-    * continue to make changes to the code outside of docker, and they will show up in airflow as you save
-* [1Password secret support](https://github.com/frankhereford/airflow/blob/main/dags/weather.py#L27-L38)
-  * built in, zero-config. You give it the secret name in 1Password, it gives you the value, right in the DAG
-* [working CI](https://github.com/frankhereford/airflow/blob/main/.github/workflows/production_deployment.yml), triggered [via](https://github.com/frankhereford/airflow/blob/main/haproxy/haproxy.cfg#L64) [webhook](https://github.com/frankhereford/airflow/blob/main/webhook/webhook.py#L33-L46), [secured](https://github.com/frankhereford/airflow/blob/main/webhook/webhook.py#L37) using a 1Password entry 
-  * automatically pulls from `production` when PRs are merged into the branch
-  * you can rotate the webhook token by opening 1Password, editing [the entry](https://github.com/frankhereford/airflow/blob/main/webhook/webhook.py#L13), generating a new password, and saving it. 10 seconds, tops. 🏁
-* support for picking [environment based secrets](https://github.com/frankhereford/airflow/blob/main/dags/weather.py#L19-L23) based on local/production
-  * zero-config in DAG, based out of `.env`
-* supports remote workers
-  * monitor their status with a [web UI](https://workers.airflow.fyi/)
-    * shared credentials with admin airflow account
-* [production environment](https://airflow.fyi) which runs on a `t3a.xlarge` class instance comfortably
-  * full control over [production server configuration](https://github.com/frankhereford/airflow/blob/main/airflow.cfg), yet keeping the perks of a docker stack
-* [customizable python environment](https://github.com/frankhereford/airflow/blob/main/requirements.txt) for DAGs, including [external, binary libraries](https://github.com/frankhereford/airflow/blob/main/Dockerfile#L1414-L1415) built right into the container
-  * based on bog standard `requirements.txt` & ubuntu `apt` commands
-* access to the [server's docker service](https://github.com/frankhereford/airflow/blob/main/docker-compose.yaml#L93)
-  * available on worker containers and available for DAGs
-  * you can package your ETL up as an image and then run it in the DAG 📦🐳
-    * skip installing libraries on the server
-* [flexible reverse proxy](https://github.com/frankhereford/airflow/blob/main/haproxy/haproxy.cfg#L38-L68) to distribute HTTP requests over stack
-* Interface with Airflow via Web UI, CLI and API
-  * CLI interface locally via: `docker compose run --rm airflow-cli <command>`
-* [very minimal production deployment changes](https://github.com/frankhereford/airflow/pull/34/files)
-  * server is EC2's vanilla Ubuntu LTS AMI + docker from docker's official PPA
+This stack is used to run DTS ETL processes and the production instance is deployed on `atd-data03` at `/usr/airflow/atd-airflow`. Local development is available, and instructions are below.
 
-## Building multi-architecture docker images
+The stack is composed of:
 
-* Images created locally by default are ARM64 on a modern mac. They need to also support the server's architecture, which is AMD64.
-* This is helpful when building images to be called as the heavy-lifting component of an ETL.
-* This is not a part of building or operating the stack locally.
+- Airflow v2 ([Docker image](https://hub.docker.com/r/apache/airflow))
+- [HAProxy](https://www.haproxy.org/) to distribute HTTP requests over the stack
+- [Flower](https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/security/flower.html) workers dashboard to monitor remote workers
+
+## Getting Started
+
+### Local Setup
+
+To get started, create a `.env` file with the following variables:
 
 ```
-docker buildx build \
---push \
---platform linux/arm/v7,linux/arm64/v8,linux/amd64 \
---tag frankinaustin/signal-annotate:latest .
-```
-
-## Local Setup
-* `.env` file:
-
-```
-AIRFLOW_UID=<the numeric output of the following command: id -u>
-ENVIRONMENT=<development|production>
+AIRFLOW_UID=0
+ENVIRONMENT=development
 _AIRFLOW_WWW_USER_USERNAME=admin
-_AIRFLOW_WWW_USER_PASSWORD=<pick your initial admin pw here>
-AIRFLOW_PROJ_DIR=<absolute path of airflow checkout>
-OP_API_TOKEN=<Get from 1Password here: 'name TBD'>
-OP_CONNECT=<URL of the 1Password Connect install>
-OP_VAULT_ID=<OP Vault ID>
+_AIRFLOW_WWW_USER_PASSWORD=<Pick your initial admin password here>
+AIRFLOW_PROJ_DIR=<The absolute path of your Airflow repository checkout>
+OP_API_TOKEN=<Get from 1Password entry named "Connect Server: Production Access Token: API Accessible Secrets">
+OP_CONNECT=<Get from 1Password entry named "Endpoint for 1Password Connect Server API">
+OP_VAULT_ID=<Get from 1Password entry named "Vault ID of API Accessible Secrets vault">
 ```
 
-* `docker compose build`
-* `docker compose up -d`
-* Airflow is available at http://localhost:8080
-* The test weather DAG output at http://localhost:8081
-* The webhook flask app at http://localhost:8082
-* The workers' status page at http://localhost:8083
+Then, to build and start the stack:
 
+```bash
+$ docker compose build
+$ docker compose up -d
+```
+
+Now,
+
+- The Airflow webserver is available at http://localhost:8080
+  - You can log in to the dashboard using the username and password set in your `.env` file
+- The Flower workers' status page available at http://localhost:8082
+
+### DAGs
+
+#### Developing
+
+Once the local stack is up and running, you can start writing a new DAG by adding a script to the `dags/` folder. Any new utilities can be placed in the `dags/utils/` folder. As you develop, you can check the local Airflow webserver for any errors that are encountered when loading the DAG.
+
+If any new files that are not DAGs or folders that don't contain DAGs are placed within the `dags/` folder, they should be added to the `dags/.airflowignore` file so the stack doesn't log errors about files that are not recognized as DAGs.
+
+#### Tags
+
+If a DAG corresponds with another repo, be sure to add a [tag](https://airflow.apache.org/docs/apache-airflow/stable/howto/add-dag-tags.html) with the naming convention of `repo:name-of-the-repo`.
+
+#### Executing
+
+Once a DAG is recognized by Airflow as valid, it will appear in the local webserver where you can trigger the DAG for testing.
+
+You can also use this example command to execute a DAG in development. This is the CLI version of triggering the DAG manually in the web UI. Exchange `<dag-id>` with the ID you've given your DAG in the DAG decorator or configuration.
+```
+docker compose run --rm airflow-cli dags test <dag-id>
+```
+
+### Updating the stack
+
+These instructions were created while updating a local Airflow stack from 2.5.3 to 2.6.1. Updates which
+span larger intervals of versions or time should be given extra care in testing and in terms of reviewing
+change logs.
+
+The same process can be used when updating the stack with changes that originate from our team. These might include:
+  * Adding new requirements to the `requirements.txt` for the local stack
+  * Modifying the `Dockerfile`
+  * Modifying the haproxy configuration
+
+#### Update Process
+
+- Read the "Significant Changes" sections of the Airflow release notes between the versions in question: https://github.com/apache/airflow/releases/
+  - Apache Airflow is a very active project, and these release notes are pretty dense. Keeping a regular update cadence will be helpful to keep up the task of updating airflow from becoming an "information overload" job.
+- Snap a backup of the Airflow postgreSQL database
+  - You shouldn't need it, but it can't hurt.
+  - The following command requires that the stack being updated is running.
+  - The string `postgres` in the following command is denoting the `docker compose` service name and not the `postgres` system database which is present on all postgres database servers. The target database is set via the environment variable `PGDATABASE`.
+  - `docker compose exec -t -e PGUSER=airflow -e PGPASSWORD=airflow -e PGDATABASE=airflow postgres pg_dump > DB_backup.sql`
+- Stop the Airflow stack
+  - `docker compose stop`
+- Compare the `docker-compose.yaml` file in a way that is easily sharable with the team if needed
+  - Start a new, blank gist at https://gist.github.com/
+  - Copy the source code of the older version, for example: https://raw.githubusercontent.com/apache/airflow/2.5.3/docs/apache-airflow/howto/docker-compose/docker-compose.yaml
+  - Paste that into your gist and save it. Make it public if you want to demonstrate the diff to anyone.
+  - Copy the source code of the newer, target version and replace the contents of the file in your gist. An example URL would be: https://raw.githubusercontent.com/apache/airflow/2.6.1/docs/apache-airflow/howto/docker-compose/docker-compose.yaml.
+  - Look at the revisions of this gist and find the most recent one. This diff represents the changes from the older to the newer versions of the upstream `docker-compose.yaml` file. For example (2.5.3 to 2.6.1): https://gist.github.com/frankhereford/c844d0674e9ad13ece8e2354c657854e/revisions.
+  - Consider each change, and generally, you'll want to apply these changes to the `docker-compose.yaml` file.
+- Update the `FROM` line in the `Dockerfile` found in the top of the repo to the target version.
+- Update the comments in the docker-compose file that reference the version number. (2X)
+- Build the core docker images
+  - `docker compose build`
+- Build the `airflow-cli` image, which the Airflow team keeps in its own profile
+  - `docker compose build airflow-cli`
+- Restart the Airflow stack
+  - `docker compose up -d`
+
+## HAProxy as part of the stack
+
+This Airflow stack uses [HAProxy](https://www.haproxy.org/) as a reverse proxy to terminate incoming SSL/TLS connections and then to route the requests over HTTP to the appropriate backend web service. The SSL certificates are stored in the `haproxy/ssl` folder and are maintained by a `bash` script, executed monthly by `cron`. This script uses the EFF's CertBot service to renew and replace the SSL certificates used by HAProxy to secure the Airflow services. 
+
+The Airflow stack contains the following web services:
+
+* The Airflow main web UI
+* The Airflow workers dashboard
+
+In local development, we don't have any special host names we can use to differentiate which back-end service a request needs to be routed to, so we do this by listening on multiple, local ports. Depending on what port you request from, the local HAProxy will pick the correct backend web service to send your request to. Local development also does not require auth for the Flower service.
+
+In production, however, we do have different host names assigned for each resource, so we're able to listen on a single port. Based on the hostname specified in the HTTP header which available to HAProxy after terminating the SSL connection, the proxy is able to pick which backend to route the request to. Production does require auth for the Flower service, and the username and password is set in `docker-compose.yaml` where it reuses the Airflow username and password set in the stack's environment variables.
+
+### HAProxy operation
+
+* The service needs to be restarted when the SSL certificates are rotated. This is normally handled by the automated renewal scripts.
+* The service can be restarted independently of the rest of the stack if needed, as well. This can be done using `docker compose stop haproxy; docker compose build haproxy; docker compose up -d haproxy;` or similar, for example.
+
+## Utilities
+
+Utilities used by multiple DAGs 
+
+### 1Password utility
+
+The 1Password utility is a light wrapper of the [1Password Connect Python SDK](https://github.com/1Password/connect-sdk-python) methods. The purpose of the utility is to reduce imports of the 1Password library, its methods, and vault ID in each DAG that requires secrets.
+
+### Slack operator utility
+
+The Slack operator utility makes use of the integration between the Airflow and a Slack app webhook. The purpose of the utility is to add Slack notifications to DAGs using the [callback](https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/callbacks.html#callback-types) parameters. Failure, critical failure, and success notifications are implemented.
 
 ## Useful Commands
-* 🐚 get a shell on a worker, for example
+
+- 🐚 get a shell on a worker, for example
+
 ```
 docker exec -it airflow-airflow-worker-1 bash
 ```
 
-* ⛔ Stop all containers and execute this to reset your local database.
-  * Do not run in production unless you feel really great about your backups. 
-  * This will reset the history of your dag runs and switch states.
+- ⛔ Stop all containers and execute this to reset your local database.
+  - Do not run in production unless you feel really great about your backups.
+  - This will reset the history of your dag runs and switch states.
+
 ```
 docker compose down --volumes --remove-orphans
 ```
 
 ## Ideas
-* Make it disable all DAGs on start locally so it fails to safe
-* Fix UID being applied by `webhook` image on `git pull`
-* Create remote worker image example
-  * Use `docker compose` new `profile` support
-* Add slack integration
-* 🤔 Extend webhook to rotate key in 1Password after every use
-  * a true rolling token, 1 use per value
 
-## Example DAGs
-* You can turn on [this field](https://github.com/frankhereford/airflow/blob/main/docker-compose.yaml#L65) to get about 50 example DAGs of various complexity to borrow from
+- Make it disable all DAGs on start locally so it fails to safe
+- Create remote worker image example
+  - Use `docker compose` new `profile` support
