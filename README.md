@@ -20,6 +20,8 @@ ENVIRONMENT=development
 _AIRFLOW_WWW_USER_USERNAME=admin
 _AIRFLOW_WWW_USER_PASSWORD=<Pick your initial admin password here>
 AIRFLOW_PROJ_DIR=<The absolute path of your Airflow repository checkout>
+# this fernet key is for testing purposes only
+_AIRFLOW__CORE__FERNET_KEYY=PTkIRwL-c46jgnaohlkkXfVikC-roKa95ipXfqST7JM=
 OP_API_TOKEN=<Get from 1Password entry named "Connect Server: Production Access Token: API Accessible Secrets">
 OP_CONNECT=<Get from 1Password entry named "Endpoint for 1Password Connect Server API">
 OP_VAULT_ID=<Get from 1Password entry named "Vault ID of API Accessible Secrets vault">
