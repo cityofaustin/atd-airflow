@@ -1,11 +1,12 @@
 import os
 from datetime import datetime, timedelta
 
+from airflow.decorators import task
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
 
 from utils.slack_operator import task_fail_slack_alert
-from utils.onepassword import load_dict
+
 
 DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
@@ -53,7 +54,7 @@ REQUIRED_SECRETS = {
     },
 }
 
-env_vars = load_dict(REQUIRED_SECRETS)
+
 
 with DAG(
     dag_id=f"atd_service_bot_github_to_socrata_{DEPLOYMENT_ENVIRONMENT}",
@@ -62,16 +63,26 @@ with DAG(
     dagrun_timeout=timedelta(minutes=60),
     tags=["repo:atd-service-bot", "socrata", "github"],
     catchup=False,
+    render_template_as_native_obj=True,
 ) as dag:
+    @task(
+        task_id="get_env_vars",
+        execution_timeout=timedelta(seconds=30),
+    )
+    def get_env_vars():
+        from utils.onepassword import load_dict
+        env_vars = load_dict(REQUIRED_SECRETS)
+        return env_vars
+
     t1 = DockerOperator(
         task_id="dts_github_to_socrata",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
         command="./atd-service-bot/issues_to_socrata.py",
-        environment=env_vars,
+        environment="{{ task_instance.xcom_pull(task_ids='get_env_vars') }}",
         tty=True,
         force_pull=True,
     )
 
-    t1
+    get_env_vars() >> t1
