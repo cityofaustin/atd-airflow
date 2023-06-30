@@ -1,6 +1,10 @@
-# DTS Airflow stack
+# DTS Airflow
 
-This stack is used to run DTS ETL processes and the production instance is deployed on `atd-data03` at `/usr/airflow/atd-airflow`. Local development is available, and instructions are below.
+This repository hosts Data & Technology Service's [Airflow](https://airflow.apache.org/) code. We use Airflow as our primary orchestration platform for scheduling and monitoring our automated scripts and integrations.
+
+The production Airflow instance is available at `https://airflow.austinmobility.io/`. It requires COA network access.
+
+Our Airflow instance is hosted on `atd-data03` at `/usr/airflow/atd-airflow`. Local development is available, and instructions are below.
 
 The stack is composed of:
 
@@ -8,11 +12,25 @@ The stack is composed of:
 - [HAProxy](https://www.haproxy.org/) to distribute HTTP requests over the stack
 - [Flower](https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/security/flower.html) workers dashboard to monitor remote workers
 
+## Table of Contents
+
+- [Getting Started](#getting-started)
+  - [Developing a new DAG](#developing-a-new-dag)
+  - [Tags](#tags)
+  - [Moving to production](#moving-to-production)
+- [Utilities](#utilities)
+  - [1Password utility](#1password-utility)
+  - [Slack operator utility](#slack-operator-utility)
+- [Useful Commands](#useful-commands)
+- [Updating the stack](#updating-the-stack)
+- [HAProxy and SSL](#haproxy-and-ssl)
+  - [HAProxy operation](#haproxy-operation)
+
 ## Getting Started
 
-### Local Setup
+1. Clone this repository and start a new development branch based on the `production` branch.
 
-To get started, create a `.env` file with the following variables:
+2. Create a `.env` file with the following variables:
 
 ```
 AIRFLOW_UID=0
@@ -27,50 +45,120 @@ OP_CONNECT=<Get from 1Password entry named "Endpoint for 1Password Connect Serve
 OP_VAULT_ID=<Get from 1Password entry named "Vault ID of API Accessible Secrets vault">
 ```
 
-Then, to build and start the stack:
+3. Start the Docker the stack (optionlly use the `-d` flag to run containers in the background):
 
 ```bash
-$ docker compose build
 $ docker compose up -d
 ```
 
-Now,
+4. Log in to the dashboard at ` http://localhost:8080` using the username and password set in your `.env` file.
 
-- The Airflow webserver is available at http://localhost:8080
-  - You can log in to the dashboard using the username and password set in your `.env` file
-- The Flower workers' status page available at http://localhost:8082
+5. The Flower workers' status page available at `http://localhost:8081`
 
-### DAGs
-
-#### Developing
+### Developing a new DAG
 
 Once the local stack is up and running, you can start writing a new DAG by adding a script to the `dags/` folder. Any new utilities can be placed in the `dags/utils/` folder. As you develop, you can check the local Airflow webserver for any errors that are encountered when loading the DAG.
 
 If any new files that are not DAGs or folders that don't contain DAGs are placed within the `dags/` folder, they should be added to the `dags/.airflowignore` file so the stack doesn't log errors about files that are not recognized as DAGs.
 
-#### Tags
-
-If a DAG corresponds with another repo, be sure to add a [tag](https://airflow.apache.org/docs/apache-airflow/stable/howto/add-dag-tags.html) with the naming convention of `repo:name-of-the-repo`.
-
-#### Executing
-
 Once a DAG is recognized by Airflow as valid, it will appear in the local webserver where you can trigger the DAG for testing.
 
 You can also use this example command to execute a DAG in development. This is the CLI version of triggering the DAG manually in the web UI. Exchange `<dag-id>` with the ID you've given your DAG in the DAG decorator or configuration.
+
 ```
 docker compose run --rm airflow-cli dags test <dag-id>
 ```
 
-### Updating the stack
+### Tags
 
-These instructions were created while updating a local Airflow stack from 2.5.3 to 2.6.1. Updates which
-span larger intervals of versions or time should be given extra care in testing and in terms of reviewing
-change logs.
+If a DAG corresponds with another repo, be sure to add a [tag](https://airflow.apache.org/docs/apache-airflow/stable/howto/add-dag-tags.html) with the naming convention of `repo:name-of-the-repo`.
 
-The same process can be used when updating the stack with changes that originate from our team. These might include:
-  * Adding new requirements to the `requirements.txt` for the local stack
-  * Modifying the `Dockerfile`
-  * Modifying the haproxy configuration
+### Moving to production
+
+Never commit directly to the `production` branch. Commit your changes to a development branch, push the branch to Github, and open a pull request against `production`. Once your PR is reviwed and approved, merge the branch to `production`.
+
+Once merged, you will need to connect to our production Airflow host on the COA network.
+
+From the `atd-airflow` directory, use `git pull` to bring down your changes from Github. Airflow will automatically load any DAG changes within five minutes. Activate your DAG through the Airflow web interface at `https://airflow.austinmobility.io/`.
+
+## Utilities
+
+Utilities used by multiple DAGs
+
+### 1Password utility
+
+Secrets stored in 1Password can be directly integrated into Airflow DAGs. As a best practice, DAGs should always use the 1Password utilities when accessing secrets.
+
+The 1Password utility is a light wrapper of the [1Password Connect Python SDK](https://github.com/1Password/connect-sdk-python) methods. The utility communicates with our [self-hosted 1Password connect server](https://github.com/cityofaustin/dts-onepassword-connect) using the `OP` environment variables set in your `.env` file.
+
+You can model your code off of existing DAGs which use our 1Password utility. 
+
+For example, this snippet loads 1Password secrets into [XComs storage](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/xcoms.html) so that they can be used by subsequent tasks.
+
+```python
+REQUIRED_SECRETS = {
+    "SOME_SECRET": {
+        "opitem": "My Secret 1Pass Item",  # must match item name in 1Password vault
+        "opfield": f"My Secret Value",  # must match field name in 1Password item
+    },
+}
+
+with DAG(
+    dag_id=f"my_dag",
+    # ...other DAG settings
+    render_template_as_native_obj=True,  # <- enables secrets dictionary to be passed in template variable
+) as dag:
+    @task(
+        task_id="get_env_vars",
+        execution_timeout=timedelta(seconds=30),
+    )
+    def get_env_vars():
+        from utils.onepassword import load_dict
+        env_vars = load_dict(REQUIRED_SECRETS)
+        return env_vars # <- returns secrets as XCom value
+    
+    my_docker_task = DockerOperator(
+        task_id="my_docker_task",
+        image="some-image-name",
+        auto_remove=True,
+        command="hello_world.py",
+        environment="{{ task_instance.xcom_pull(task_ids='get_env_vars') }}", # <- loads secrets dict from `get_env_vars` task
+        tty=True,
+        force_pull=True,
+    )
+
+    get_env_vars() >> my_docker_task
+```
+
+### Slack operator utility
+
+The Slack operator utility makes use of the integration between the Airflow and a Slack app webhook. The purpose of the utility is to add Slack notifications to DAGs using the [callback](https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/callbacks.html#callback-types) parameters. Failure, critical failure, and success notifications are implemented.
+
+To configure the Slack operator in your local instance, from the Airflow UI go to **Admin** > **Connections** and choose **Slack API** as the **connection type**. You can find the remainings in 1Password under the **Airflow - Slack Bot** item.
+
+## Useful Commands
+
+- 🐚 get a shell on a worker, for example
+
+```
+docker exec -it airflow-airflow-worker-1 bash
+```
+
+- ⛔ Stop all containers and execute this to reset your local database.
+  - Do not run in production unless you feel really great about your backups.
+  - This will reset the history of your dag runs and switch states.
+
+```
+docker compose down --volumes --remove-orphans
+```
+
+## Updating the stack
+
+Follow these steps to update the Airflow docker step. Reasons for doing this include:
+
+- Adding new requirements to the `requirements.txt` for the local stack
+- Modifying the `Dockerfile` to upgrade the Airflow version
+- Modifying the haproxy configuration
 
 #### Update Process
 
@@ -99,14 +187,14 @@ The same process can be used when updating the stack with changes that originate
 - Restart the Airflow stack
   - `docker compose up -d`
 
-## HAProxy as part of the stack
+## HAProxy and SSL
 
-This Airflow stack uses [HAProxy](https://www.haproxy.org/) as a reverse proxy to terminate incoming SSL/TLS connections and then to route the requests over HTTP to the appropriate backend web service. The SSL certificates are stored in the `haproxy/ssl` folder and are maintained by a `bash` script, executed monthly by `cron`. This script uses the EFF's CertBot service to renew and replace the SSL certificates used by HAProxy to secure the Airflow services. 
+This Airflow stack uses [HAProxy](https://www.haproxy.org/) as a reverse proxy to terminate incoming SSL/TLS connections and then to route the requests over HTTP to the appropriate backend web service. The SSL certificates are stored in the `haproxy/ssl` folder and are maintained by a `bash` script, executed monthly by `cron`. This script uses the EFF's CertBot service to renew and replace the SSL certificates used by HAProxy to secure the Airflow services.
 
 The Airflow stack contains the following web services:
 
-* The Airflow main web UI
-* The Airflow workers dashboard
+- The Airflow main web UI
+- The Airflow workers dashboard
 
 In local development, we don't have any special host names we can use to differentiate which back-end service a request needs to be routed to, so we do this by listening on multiple, local ports. Depending on what port you request from, the local HAProxy will pick the correct backend web service to send your request to. Local development also does not require auth for the Flower service.
 
@@ -114,36 +202,8 @@ In production, however, we do have different host names assigned for each resour
 
 ### HAProxy operation
 
-* The service needs to be restarted when the SSL certificates are rotated. This is normally handled by the automated renewal scripts.
-* The service can be restarted independently of the rest of the stack if needed, as well. This can be done using `docker compose stop haproxy; docker compose build haproxy; docker compose up -d haproxy;` or similar, for example.
-
-## Utilities
-
-Utilities used by multiple DAGs 
-
-### 1Password utility
-
-The 1Password utility is a light wrapper of the [1Password Connect Python SDK](https://github.com/1Password/connect-sdk-python) methods. The purpose of the utility is to reduce imports of the 1Password library, its methods, and vault ID in each DAG that requires secrets.
-
-### Slack operator utility
-
-The Slack operator utility makes use of the integration between the Airflow and a Slack app webhook. The purpose of the utility is to add Slack notifications to DAGs using the [callback](https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/callbacks.html#callback-types) parameters. Failure, critical failure, and success notifications are implemented.
-
-## Useful Commands
-
-- 🐚 get a shell on a worker, for example
-
-```
-docker exec -it airflow-airflow-worker-1 bash
-```
-
-- ⛔ Stop all containers and execute this to reset your local database.
-  - Do not run in production unless you feel really great about your backups.
-  - This will reset the history of your dag runs and switch states.
-
-```
-docker compose down --volumes --remove-orphans
-```
+- The service needs to be restarted when the SSL certificates are rotated. This is normally handled by the automated renewal scripts.
+- The service can be restarted independently of the rest of the stack if needed, as well. This can be done using `docker compose stop haproxy; docker compose build haproxy; docker compose up -d haproxy;` or similar, for example.
 
 ## Ideas
 
