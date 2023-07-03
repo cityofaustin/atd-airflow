@@ -19,5 +19,6 @@ venv.bak/
 logs/*
 *.swp
 *.http
+
 *sql
 .DS_Store
