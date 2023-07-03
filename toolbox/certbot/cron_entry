@@ -1,0 +1,1 @@
+0 */12 * * * root /usr/airflow/atd-airflow/toolbox/certbot/renew.sh >> /var/log/airflow_cert_renewal.log
