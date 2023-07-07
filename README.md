@@ -93,7 +93,7 @@ The 1Password utility is a light wrapper of the [1Password Connect Python SDK](h
 
 You can model your code off of existing DAGs which use our 1Password utility. 
 
-For example, this snippet loads 1Password secrets into [XComs storage](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/xcoms.html) so that they can be used by subsequent tasks.
+For example, this snippet fetches 1Password secrets from a task so that they can be used by subsequent tasks.
 
 ```python
 REQUIRED_SECRETS = {
@@ -106,7 +106,6 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id=f"my_dag",
     # ...other DAG settings
-    render_template_as_native_obj=True,  # <- enables secrets dictionary to be passed in template variable
 ) as dag:
     @task(
         task_id="get_env_vars",
@@ -116,18 +115,19 @@ with DAG(
         from utils.onepassword import load_dict
         env_vars = load_dict(REQUIRED_SECRETS)
         return env_vars # <- returns secrets as XCom value
-    
-    my_docker_task = DockerOperator(
-        task_id="my_docker_task",
-        image="some-image-name",
-        auto_remove=True,
-        command="hello_world.py",
-        environment="{{ task_instance.xcom_pull(task_ids='get_env_vars') }}", # <- loads secrets dict from `get_env_vars` task
-        tty=True,
-        force_pull=True,
+
+    env_vars = get_env_vars()
+
+    DockerOperator(
+      task_id="my_docker_task",
+      image="some-image-name",
+      auto_remove=True,
+      command="hello_world.py",
+      environment=env_vars,
+      tty=True,
+      force_pull=True,
     )
 
-    get_env_vars() >> my_docker_task
 ```
 
 ### Slack operator utility
