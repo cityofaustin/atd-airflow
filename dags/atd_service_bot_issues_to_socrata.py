@@ -73,16 +73,17 @@ with DAG(
         from utils.onepassword import load_dict
         env_vars = load_dict(REQUIRED_SECRETS)
         return env_vars
-
-    t1 = DockerOperator(
+    
+    env_vars = get_env_vars()
+    
+    DockerOperator(
         task_id="dts_github_to_socrata",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
         command="./atd-service-bot/issues_to_socrata.py",
-        environment="{{ task_instance.xcom_pull(task_ids='get_env_vars') }}",
+        environment=env_vars,
         tty=True,
         force_pull=True,
     )
 
-    get_env_vars() >> t1

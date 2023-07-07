@@ -60,18 +60,17 @@ with DAG(
     )
     def get_env_vars():
         from utils.onepassword import load_dict
-        env_vars = load_dict(REQUIRED_SECRETS)
-        return env_vars
+        return load_dict(REQUIRED_SECRETS)
+
+    env_vars = get_env_vars()
     
-    t1 = DockerOperator(
+    DockerOperator(
         task_id="dts_sr_to_github",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
         command="./atd-service-bot/intake.py",
-        environment="{{ task_instance.xcom_pull(task_ids='get_env_vars') }}",
+        environment=env_vars,
         tty=True,
         force_pull=True,
     )
-
-    get_env_vars() >> t1
