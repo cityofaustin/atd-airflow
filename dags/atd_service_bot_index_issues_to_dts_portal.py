@@ -44,7 +44,6 @@ with DAG(
     dagrun_timeout=timedelta(minutes=60),
     tags=["repo:atd-service-bot", "knack", "github"],
     catchup=False,
-    render_template_as_native_obj=True,
 ) as dag:
     @task(
         task_id="get_env_vars",
