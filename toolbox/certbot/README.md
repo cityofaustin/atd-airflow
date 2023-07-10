@@ -13,3 +13,12 @@ The renew script is set up as a cron job as root user that runs every 12 hours w
 ```bash
 $ renew_domain_with_certbot.sh airflow.austinmobility.io
 ```
+
+## Verify certificate renewal
+
+If you'd like to check the current expiration of a certificate, you can run:
+```bash
+$ openssl x509 -dates -noout -in /path/to/certificate/certname.pem
+```
+
+See https://www.openssl.org/docs/man1.1.1/man1/x509.html
