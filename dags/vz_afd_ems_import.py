@@ -1,7 +1,6 @@
 # stuff to make the airflow, 1Password integration work
 import os
 import pendulum
-import docker
 from airflow.decorators import dag, task
 
 DEPLOYMENT_ENVIRONMENT = os.environ.get("ENVIRONMENT", 'development')   # our current environment from ['production', 'development']
@@ -26,6 +25,7 @@ ENVIRONMENT = {
 )
 
 def etl_ems_import():
+    import docker
 
     @task()
     def run_ems_import_in_docker():
