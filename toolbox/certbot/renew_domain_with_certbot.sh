@@ -31,11 +31,11 @@ rm $DOMAIN.pem
 docker pull certbot/dns-route53:v2.6.0
 
 docker run -it --rm --name certbot \
--e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
--e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \ 
+-e AWS_ACCESS_KEY_ID=$(echo $AWS_ACCESS_KEY_ID | tr -d '\r' ) \
+-e AWS_SECRET_ACCESS_KEY=$(echo $AWS_SECRET_ACCESS_KEY | tr -d '\r' ) \
 -v "/etc/letsencrypt:/etc/letsencrypt" \
--v "/var/lib/letsencrypt:/var/lib/letsencrypt" \ 
-certbot/dns-route53 certonly --dns-route53 -d $DOMAIN
+-v "/var/lib/letsencrypt:/var/lib/letsencrypt" \
+certbot/dns-route53 certonly --dns-route53 --force-renewal -d $DOMAIN
 
 cat /etc/letsencrypt/live/$DOMAIN/cert.pem > $ATD_AIRFLOW_HOMEDIR/haproxy/ssl/$DOMAIN.pem
 
