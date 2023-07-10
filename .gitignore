@@ -21,3 +21,4 @@ logs/*
 *.http
 *sql
 .DS_Store
+db/*
