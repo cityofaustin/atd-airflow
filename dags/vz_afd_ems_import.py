@@ -3,7 +3,6 @@ import os
 import pendulum
 import docker
 from airflow.decorators import dag, task
-from onepasswordconnectsdk.client import Client, new_client
 
 DEPLOYMENT_ENVIRONMENT = os.environ.get("ENVIRONMENT", 'development')   # our current environment from ['production', 'development']
 
