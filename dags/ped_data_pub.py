@@ -3,6 +3,7 @@
 import os
 from datetime import datetime, timedelta
 
+from airflow.decorators import task
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
 
@@ -38,10 +39,11 @@ REQUIRED_SECRETS = {
         "opitem": "Socrata Key ID, Secret, and Token",
         "opfield": "socrata.apiKeyId",
     },
+    "COUNTERS_DATASET": {
+        "opitem": "Socrata Dataset IDs",
+        "opfield": "datasets.Trail Counters",
+    },
 }
-
-env_vars = load_dict(REQUIRED_SECRETS)
-env_vars["COUNTERS_DATASET"] = "26tt-cp67"
 
 with DAG(
     dag_id="atd_trail_counters",
@@ -51,12 +53,26 @@ with DAG(
     tags=["repo:atd-trail-counter-data", "Socrata"],
     catchup=False,
 ) as dag:
+
+    @task(
+        task_id="get_env_vars",
+        execution_timeout=timedelta(seconds=30),
+    )
+    def get_env_vars():
+        from utils.onepassword import load_dict
+
+        env_vars = load_dict(REQUIRED_SECRETS)
+        return env_vars
+
+    env_vars = get_env_vars()
+
+    start = "{{ prev_start_date_success.strftime('%Y-%m-%d') if prev_start_date_success or '1970-01-01'}}"
     t1 = DockerOperator(
         task_id="trail_counter_data_publish",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command="python counter_data.py",
+        command=f"python counter_data.py --start {start}",
         environment=env_vars,
         tty=True,
     )

@@ -7,7 +7,14 @@ ONEPASSWORD_CONNECT_HOST = os.getenv("OP_CONNECT")
 ONEPASSWORD_CONNECT_TOKEN = os.getenv("OP_API_TOKEN")
 VAULT_ID = os.getenv("OP_VAULT_ID")
 
-client: Client = new_client(ONEPASSWORD_CONNECT_HOST, ONEPASSWORD_CONNECT_TOKEN)
+
+def get_client():
+    """Get oneopassword connect client
+
+    Returns:
+        Client
+    """
+    return new_client(ONEPASSWORD_CONNECT_HOST, ONEPASSWORD_CONNECT_TOKEN)
 
 
 def load_dict(required_secrets):
@@ -16,6 +23,7 @@ def load_dict(required_secrets):
     Keyword arguments:
     required_secrets -- a dict of specified keys and values of location config w/o vault id
     """
+    client = get_client()
     for value in required_secrets.values():
         value["opvault"] = VAULT_ID
 
@@ -28,4 +36,5 @@ def get_item_by_title(entry_name):
     Keyword arguments:
     entry_name -- string value of the 1Password entry name in the vault
     """
+    client = get_client()
     return client.get_item_by_title(entry_name, VAULT_ID)
