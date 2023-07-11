@@ -61,6 +61,7 @@ etl_ems_import()
 )
 
 def etl_afd_import():
+    import docker
 
     @task()
     def run_afd_import_in_docker():
