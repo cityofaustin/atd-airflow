@@ -30,8 +30,7 @@ def etl_ems_import():
     @task()
     def run_ems_import_in_docker():
         client = docker.from_env()
-        docker_image = "atddocker/vz-afd-ems-import:latest"
-        # pull at run time; remember to publish a amd64 image to docker hub
+        docker_image = "atddocker/vz-afd-ems-import:production"
         client.images.pull(docker_image)
         logs = client.containers.run(
             image=docker_image, 
@@ -66,8 +65,7 @@ def etl_afd_import():
     @task()
     def run_afd_import_in_docker():
         client = docker.from_env()
-        docker_image = "atddocker/vz-afd-ems-import:latest"
-        # pull at run time; remember to publish a amd64 image to docker hub
+        docker_image = "atddocker/vz-afd-ems-import:production"
         client.images.pull(docker_image)
         logs = client.containers.run(
             image=docker_image, 
