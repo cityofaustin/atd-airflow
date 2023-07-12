@@ -9,7 +9,7 @@ VAULT_ID = os.getenv("OP_VAULT_ID")
 
 
 def get_client():
-    """Get oneopassword connect client
+    """Get onepassword connect client
 
     Returns:
         Client
