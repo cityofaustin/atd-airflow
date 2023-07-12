@@ -5,6 +5,7 @@ from airflow.decorators import dag
 from airflow.operators.docker_operator import DockerOperator
 from utils.slack_operator import task_fail_slack_alert
 
+
 @dag(
     dag_id="vz-cris-import",
     description="A process which will import the VZ CRIS data into the database on a daily basis using data on the SFTP endpoint",
@@ -15,7 +16,7 @@ from utils.slack_operator import task_fail_slack_alert
     on_failure_callback=task_fail_slack_alert,
 )
 def cris_import():
-    
+
     DockerOperator(
         task_id="run_cris_import",
         environment=dict(os.environ),
@@ -24,5 +25,6 @@ def cris_import():
         tty=True,
         force_pull=True,
     )
+
 
 cris_import()
