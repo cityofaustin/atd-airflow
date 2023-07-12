@@ -1,6 +1,5 @@
 # test locally with: docker compose run --rm airflow-cli dags test atd_trail_counters
 
-import os
 from datetime import datetime, timedelta
 
 from airflow.decorators import task
@@ -8,10 +7,6 @@ from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
 
 from utils.slack_operator import task_fail_slack_alert
-from utils.onepassword import load_dict
-
-from onepasswordconnectsdk.client import Client, new_client
-import onepasswordconnectsdk
 
 default_args = {
     "owner": "airflow",
@@ -40,8 +35,8 @@ REQUIRED_SECRETS = {
         "opfield": "socrata.apiKeyId",
     },
     "COUNTERS_DATASET": {
-        "opitem": "Socrata Dataset IDs",
-        "opfield": "datasets.Trail Counters",
+        "opitem": "Trail Counters",
+        "opfield": "production.Dataset ID",
     },
 }
 
@@ -66,7 +61,7 @@ with DAG(
 
     env_vars = get_env_vars()
 
-    start = "{{ prev_start_date_success.strftime('%Y-%m-%d') if prev_start_date_success or '1970-01-01'}}"
+    start = "{{ prev_start_date_success.strftime('%Y-%m-%d') if prev_start_date_success else '1970-01-01'}}"
     t1 = DockerOperator(
         task_id="trail_counter_data_publish",
         image=docker_image,
