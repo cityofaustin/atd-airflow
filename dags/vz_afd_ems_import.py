@@ -13,8 +13,7 @@ ENVIRONMENT = {
     "OP_VAULT_ID": os.getenv("OP_VAULT_ID"),
 }
 
-# EMS DAG
-
+# EMS
 @dag(
     dag_id="vz-ems-import",
     description="A DAG which imports EMS data into the Vision Zero database.",
@@ -39,36 +38,26 @@ def etl_ems_import():
 etl_ems_import()
 
 
-
-
-# AFD DAG
-
+# AFD
 @dag(
     dag_id="vz-afd-import",
     description="A DAG which imports AFD data into the Vision Zero database.",
     schedule="0 7 * * *",
-    start_date=pendulum.datetime(2023, 1, 1, tz="UTC"),
+    start_date=pendulum.datetime(2023, 1, 1, tz="America/Chicago"),
     catchup=False,
     tags=["repo:atd-vz-data", "vision-zero", "afd", "import"],
 )
 
 def etl_afd_import():
-    import docker
-
-    @task()
-    def run_afd_import_in_docker():
-        client = docker.from_env()
-        docker_image = "atddocker/vz-afd-ems-import:production"
-        client.images.pull(docker_image)
-        logs = client.containers.run(
-            image=docker_image, 
-            environment=ENVIRONMENT,
-            entrypoint=["/entrypoint.sh"],
-            command=['afd'],
-            auto_remove=True,
-            )
-        return logs.decode("utf-8")
-
-    run_afd_import_in_docker()
+    DockerOperator(
+        task_id="run_ems_import",
+        environment=dict(os.environ),
+        image="atddocker/vz-afd-ems-import:production",
+        auto_remove=True,
+        entrypoint=["/entrypoint.sh"],
+        command=["afd"],
+        tty=True,
+        force_pull=True,
+    )
 
 etl_afd_import()
