@@ -2,6 +2,7 @@
 import os
 import pendulum
 from airflow.decorators import dag, task
+from airflow.operators.docker_operator import DockerOperator
 
 DEPLOYMENT_ENVIRONMENT = os.environ.get("ENVIRONMENT", 'development')   # our current environment from ['production', 'development']
 
@@ -14,34 +15,26 @@ ENVIRONMENT = {
 
 # EMS DAG
 
-# define the parameters of the DAG
 @dag(
     dag_id="vz-ems-import",
     description="A DAG which imports EMS data into the Vision Zero database.",
     schedule="0 7 * * *",
-    start_date=pendulum.datetime(2023, 1, 1, tz="UTC"),
+    start_date=pendulum.datetime(2023, 1, 1, tz="America/Chicago"),
     catchup=False,
     tags=["repo:atd-vz-data", "vision-zero", "ems", "import"],
 )
 
 def etl_ems_import():
-    import docker
-
-    @task()
-    def run_ems_import_in_docker():
-        client = docker.from_env()
-        docker_image = "atddocker/vz-afd-ems-import:production"
-        client.images.pull(docker_image)
-        logs = client.containers.run(
-            image=docker_image, 
-            environment=ENVIRONMENT,
-            entrypoint=["/entrypoint.sh"],
-            command=['ems'],
-            auto_remove=True,
-            )
-        return logs.decode("utf-8")
-
-    run_ems_import_in_docker()
+    DockerOperator(
+        task_id="run_ems_import",
+        environment=dict(os.environ),
+        image="atddocker/vz-afd-ems-import:production",
+        auto_remove=True,
+        entrypoint=["/entrypoint.sh"],
+        command=["ems"],
+        tty=True,
+        force_pull=True,
+    )
 
 etl_ems_import()
 
@@ -50,7 +43,6 @@ etl_ems_import()
 
 # AFD DAG
 
-# define the parameters of the DAG
 @dag(
     dag_id="vz-afd-import",
     description="A DAG which imports AFD data into the Vision Zero database.",
