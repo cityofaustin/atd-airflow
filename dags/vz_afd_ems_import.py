@@ -1,7 +1,7 @@
 # stuff to make the airflow, 1Password integration work
 import os
 import pendulum
-from airflow.decorators import dag, task
+from airflow.decorators import dag
 from airflow.operators.docker_operator import DockerOperator
 
 DEPLOYMENT_ENVIRONMENT = os.environ.get("ENVIRONMENT", 'development')   # our current environment from ['production', 'development']
