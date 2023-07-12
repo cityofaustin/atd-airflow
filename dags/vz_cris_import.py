@@ -10,7 +10,7 @@ from utils.slack_operator import task_fail_slack_alert
     dag_id="vz-cris-import",
     description="A process which will import the VZ CRIS data into the database on a daily basis using data on the SFTP endpoint",
     schedule="0 7 * * *",
-    start_date=pendulum.datetime(2023, 1, 1, tz="America/Chicago"),
+    start_date=pendulum.datetime(2023, 1, 1),
     catchup=False,
     tags=["vision-zero", "cris", "repo:atd-vz-data"],
     on_failure_callback=task_fail_slack_alert,
