@@ -70,6 +70,7 @@ with DAG(
         command=f"python counter_data.py --start {start}",
         environment=env_vars,
         tty=True,
+        force_pull=True,
     )
 
     t1
