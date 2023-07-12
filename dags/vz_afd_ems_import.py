@@ -4,7 +4,9 @@ import pendulum
 from airflow.decorators import dag
 from airflow.operators.docker_operator import DockerOperator
 
-DEPLOYMENT_ENVIRONMENT = os.environ.get("ENVIRONMENT", 'development')   # our current environment from ['production', 'development']
+DEPLOYMENT_ENVIRONMENT = os.environ.get(
+    "ENVIRONMENT", "development"
+)  # our current environment from ['production', 'development']
 
 ENVIRONMENT = {
     "ENVIRONMENT": DEPLOYMENT_ENVIRONMENT,
@@ -34,6 +36,7 @@ def etl_ems_import():
         force_pull=True,
     )
 
+
 etl_ems_import()
 
 
@@ -57,5 +60,6 @@ def etl_afd_import():
         tty=True,
         force_pull=True,
     )
+
 
 etl_afd_import()
