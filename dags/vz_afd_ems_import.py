@@ -1,20 +1,9 @@
-# stuff to make the airflow, 1Password integration work
 import os
 import pendulum
 from airflow.decorators import dag
 from airflow.operators.docker_operator import DockerOperator
 from utils.slack_operator import task_fail_slack_alert
 
-DEPLOYMENT_ENVIRONMENT = os.environ.get(
-    "ENVIRONMENT", "development"
-)  # our current environment from ['production', 'development']
-
-ENVIRONMENT = {
-    "ENVIRONMENT": DEPLOYMENT_ENVIRONMENT,
-    "OP_API_TOKEN": os.getenv("OP_API_TOKEN"),
-    "OP_CONNECT": os.getenv("OP_CONNECT"),
-    "OP_VAULT_ID": os.getenv("OP_VAULT_ID"),
-}
 
 # EMS
 @dag(
