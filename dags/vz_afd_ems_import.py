@@ -3,6 +3,7 @@ import os
 import pendulum
 from airflow.decorators import dag
 from airflow.operators.docker_operator import DockerOperator
+from utils.slack_operator import task_fail_slack_alert
 
 DEPLOYMENT_ENVIRONMENT = os.environ.get(
     "ENVIRONMENT", "development"
@@ -23,6 +24,7 @@ ENVIRONMENT = {
     start_date=pendulum.datetime(2023, 1, 1, tz="America/Chicago"),
     catchup=False,
     tags=["repo:atd-vz-data", "vision-zero", "ems", "import"],
+    on_failure_callback=task_fail_slack_alert,
 )
 def etl_ems_import():
     DockerOperator(
@@ -48,6 +50,7 @@ etl_ems_import()
     start_date=pendulum.datetime(2023, 1, 1, tz="America/Chicago"),
     catchup=False,
     tags=["repo:atd-vz-data", "vision-zero", "afd", "import"],
+    on_failure_callback=task_fail_slack_alert,
 )
 def etl_afd_import():
     DockerOperator(
