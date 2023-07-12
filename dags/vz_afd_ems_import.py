@@ -22,7 +22,6 @@ ENVIRONMENT = {
     catchup=False,
     tags=["repo:atd-vz-data", "vision-zero", "ems", "import"],
 )
-
 def etl_ems_import():
     DockerOperator(
         task_id="run_ems_import",
@@ -47,7 +46,6 @@ etl_ems_import()
     catchup=False,
     tags=["repo:atd-vz-data", "vision-zero", "afd", "import"],
 )
-
 def etl_afd_import():
     DockerOperator(
         task_id="run_ems_import",
