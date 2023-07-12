@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - production
-      - multi-arch-building
 
 jobs:
   docker:
@@ -25,7 +24,6 @@ jobs:
         with:
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/atd-airflow:testing
-          # tags: |
-            # ${{ secrets.DOCKER_USERNAME }}/atd-airflow:production
-            # ${{ secrets.DOCKER_USERNAME }}/atd-airflow:latest
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/atd-airflow:production
+            ${{ secrets.DOCKER_USERNAME }}/atd-airflow:latest
