@@ -41,7 +41,7 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id=f"atd_service_bot_issues_to_dts_portal_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
-    schedule_interval="13 7 * * *",
+    schedule_interval="0 5 * * *",
     dagrun_timeout=timedelta(minutes=60),
     tags=["repo:atd-service-bot", "knack", "github"],
     catchup=False,
