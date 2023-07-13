@@ -20,8 +20,6 @@ default_args = {
     "on_failure_callback": task_fail_slack_alert,
 }
 
-docker_image = "atddocker/atd-vz-cr3-extract:production"
-
 REQUIRED_SECRETS = {
     "HASURA_ENDPOINT": {
         "opitem": "Vision Zero CRIS Import",
@@ -62,7 +60,7 @@ with DAG(
     
     DockerOperator(
         task_id="ocr_narrative_extract",
-        image=docker_image,
+        image="atddocker/atd-vz-cr3-extract:production",
         api_version="auto",
         auto_remove=True,
         command="./cr3_extract_diagram/cr3_extract_diagram_ocr_narrative.py -v -d --update-narrative --update-timestamp --batch 100 --cr3-source atd-vision-zero-editor production/cris-cr3-files --save-diagram-s3 atd-vision-zero-website cr3_crash_diagrams/production",
