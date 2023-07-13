@@ -59,7 +59,7 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id=f"atd_service_bot_github_to_socrata_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
-    schedule_interval="10 5 * * *",
+    schedule_interval="0 22 * * *",
     dagrun_timeout=pendulum.duration(minutes=60),
     tags=["repo:atd-service-bot", "socrata", "github"],
     catchup=False,
