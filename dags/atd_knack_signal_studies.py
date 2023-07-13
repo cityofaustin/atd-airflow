@@ -1,9 +1,9 @@
 import os
-from datetime import datetime, timedelta
 
 from airflow.decorators import task
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
+from pendulum import datetime, duration
 
 from utils.slack_operator import task_fail_slack_alert
 
@@ -13,7 +13,7 @@ default_args = {
     "owner": "airflow",
     "description": "Publishes all signal stuides records from Knack to Socrata",
     "depends_on_past": False,
-    "start_date": datetime(2015, 12, 1),
+    "start_date": datetime(2015, 1, 1, tz="America/Chicago"),
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
@@ -54,9 +54,9 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id=f"atd_knack_services_signal_studies",
     default_args=default_args,
-    schedule_interval=None,
-    dagrun_timeout=timedelta(minutes=5),
-    tags=["repo:atd-knack-services", "knack", "github", "socrata"],
+    schedule_interval="5 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    dagrun_timeout=duration(minutes=5),
+    tags=["repo:atd-knack-services", "knack", "socrata"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/atd-knack-services:production"
@@ -65,7 +65,7 @@ with DAG(
 
     @task(
         task_id="get_env_vars",
-        execution_timeout=timedelta(seconds=30),
+        execution_timeout=duration(seconds=30),
     )
     def get_env_vars():
         from utils.onepassword import load_dict
