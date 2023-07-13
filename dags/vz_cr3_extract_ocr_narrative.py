@@ -45,7 +45,8 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id=f"vz_cr3_ocr_narrative_extract_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
-    schedule_interval="*/5 8-10 * * *", # Every 5 minutes, at 8A, 9A, and 10A 
+    # Every 5 minutes, at 8A, 9A, and 10A
+    schedule_interval="*/5 8-10 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=timedelta(minutes=5),
     tags=["repo:atd-vz-data", "vision-zero"],
     catchup=False,
