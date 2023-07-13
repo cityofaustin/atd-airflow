@@ -1,4 +1,5 @@
 import os
+import pendulum
 from datetime import datetime, timedelta
 
 from airflow.decorators import task
@@ -13,7 +14,7 @@ default_args = {
     "owner": "airflow",
     "description": "Create/update 'Index' issues in the DTS portal from Github.",
     "depends_on_past": False,
-    "start_date": datetime(2015, 12, 1),
+    "start_date": pendulum.datetime(2015, 12, 1, tz="America/Chicago"),
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,

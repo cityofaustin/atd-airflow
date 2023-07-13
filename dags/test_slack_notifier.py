@@ -1,5 +1,6 @@
 import os
-from datetime import datetime, timedelta
+import pendulum
+from datetime import timedelta
 
 from airflow.models import DAG
 from airflow.operators.python_operator import PythonOperator
@@ -12,7 +13,7 @@ default_args = {
     "owner": "airflow",
     "description": "Test if the Slack notifier is working",
     "depends_on_past": False,
-    "start_date": datetime(2015, 12, 1),
+    "start_date": pendulum.datetime(2015, 12, 1, tz="America/Chicago"),
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
