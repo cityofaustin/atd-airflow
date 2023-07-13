@@ -1,0 +1,1 @@
+1 4 * * * root /usr/airflow/atd-airflow/toolbox/docker/image_prune.sh >> /var/log/airflow_image_prune.log
