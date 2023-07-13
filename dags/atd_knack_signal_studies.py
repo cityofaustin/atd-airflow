@@ -11,7 +11,7 @@ DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 default_args = {
     "owner": "airflow",
-    "description": "Publishes all signal stuides records from Knack to Socrata",
+    "description": "Publishes all signal studies records from Knack to Socrata",
     "depends_on_past": False,
     "start_date": datetime(2015, 1, 1, tz="America/Chicago"),
     "email_on_failure": False,
