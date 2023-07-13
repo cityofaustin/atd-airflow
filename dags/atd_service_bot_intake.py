@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta
+from pendulum import datetime, duration
 
 from airflow.decorators import task
 from airflow.models import DAG
@@ -13,7 +13,7 @@ default_args = {
     "owner": "airflow",
     "description": "Fetch new DTS service requests and create Github issues",
     "depends_on_past": False,
-    "start_date": datetime(2015, 12, 1),
+    "start_date": datetime(2015, 12, 1, tz="America/Chicago"),
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
@@ -49,13 +49,13 @@ with DAG(
     dag_id=f"atd_service_bot_issue_intake_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
     schedule_interval="*/3 * * * *",
-    dagrun_timeout=timedelta(minutes=5),
+    dagrun_timeout=duration(minutes=5),
     tags=["repo:atd-service-bot", "knack", "github"],
     catchup=False,
 ) as dag:
     @task(
         task_id="get_env_vars",
-        execution_timeout=timedelta(seconds=30),
+        execution_timeout=duration(seconds=30),
     )
     def get_env_vars():
         from utils.onepassword import load_dict

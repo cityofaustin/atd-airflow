@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta
+from pendulum import datetime, duration
 
 from airflow.decorators import task
 from airflow.models import DAG
@@ -14,7 +14,7 @@ default_args = {
     "owner": "airflow",
     "description": "Publish atd-data-tech Github issues to Socrata",
     "depends_on_past": False,
-    "start_date": datetime(2015, 12, 1),
+    "start_date": datetime(2015, 12, 1, tz="America/Chicago"),
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
@@ -59,14 +59,14 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id=f"atd_service_bot_github_to_socrata_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
-    schedule_interval="21 5 * * *",
-    dagrun_timeout=timedelta(minutes=60),
+    schedule_interval="0 22 * * *",
+    dagrun_timeout=duration(minutes=60),
     tags=["repo:atd-service-bot", "socrata", "github"],
     catchup=False,
 ) as dag:
     @task(
         task_id="get_env_vars",
-        execution_timeout=timedelta(seconds=30),
+        execution_timeout=duration(seconds=30),
     )
     def get_env_vars():
         from utils.onepassword import load_dict

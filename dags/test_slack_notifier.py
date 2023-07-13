@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta
+from pendulum import datetime, duration
 
 from airflow.models import DAG
 from airflow.operators.python_operator import PythonOperator
@@ -12,7 +12,7 @@ default_args = {
     "owner": "airflow",
     "description": "Test if the Slack notifier is working",
     "depends_on_past": False,
-    "start_date": datetime(2015, 12, 1),
+    "start_date": datetime(2015, 12, 1, tz="America/Chicago"),
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
@@ -28,7 +28,7 @@ with DAG(
     dag_id=f"test_slack_notifier_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
     schedule_interval=None,
-    dagrun_timeout=timedelta(minutes=60),
+    dagrun_timeout=duration(minutes=60),
     tags=["slack"],
     catchup=False,
 ) as dag:
