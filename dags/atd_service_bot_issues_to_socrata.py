@@ -1,6 +1,5 @@
 import os
 import pendulum
-from datetime import timedelta
 
 from airflow.decorators import task
 from airflow.models import DAG
@@ -61,13 +60,13 @@ with DAG(
     dag_id=f"atd_service_bot_github_to_socrata_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
     schedule_interval="10 5 * * *",
-    dagrun_timeout=timedelta(minutes=60),
+    dagrun_timeout=pendulum.duration(minutes=60),
     tags=["repo:atd-service-bot", "socrata", "github"],
     catchup=False,
 ) as dag:
     @task(
         task_id="get_env_vars",
-        execution_timeout=timedelta(seconds=30),
+        execution_timeout=pendulum.duration(seconds=30),
     )
     def get_env_vars():
         from utils.onepassword import load_dict
