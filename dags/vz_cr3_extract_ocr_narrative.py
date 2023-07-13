@@ -1,6 +1,5 @@
 import os
 from pendulum import datetime, duration
-from datetime import datetime, timedelta
 
 from airflow.decorators import task
 from airflow.models import DAG
@@ -47,13 +46,13 @@ with DAG(
     default_args=default_args,
     # Every 5 minutes, at 8A, 9A, and 10A
     schedule_interval="*/5 8-10 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=timedelta(minutes=5),
+    dagrun_timeout=pendulum.duration(minutes=5),
     tags=["repo:atd-vz-data", "vision-zero"],
     catchup=False,
 ) as dag:
     @task(
         task_id="get_env_vars",
-        execution_timeout=timedelta(seconds=30),
+        execution_timeout=pendulum.duration(seconds=30),
     )
     def get_env_vars():
         from utils.onepassword import load_dict
