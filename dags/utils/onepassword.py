@@ -51,7 +51,8 @@ def get_item_by_title(entry_name):
     execution_timeout=duration(seconds=30),
 )
 def get_env_vars_task(required_secrets):
-    """Airfow task to fetch required secrets via load_dict
+    """This is a wrapper around `load_dict` so that it can be 
+    imported as an airflow task.
 
     Args:
         required_secrets (dict):  a dict of specified keys and values of location config
