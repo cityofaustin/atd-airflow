@@ -79,8 +79,12 @@ t2_required_secrets["KNACK_API_KEY"] = t2_required_secrets["KNACK_API_KEY_DATA_T
 # postgres (finance) > data tracker
 t3_required_secrets = dict(REQUIRED_SECRETS)
 t3_required_secrets["KNACK_APP_ID_SRC"] = t3_required_secrets["KNACK_APP_ID_FINANCE"]
-t3_required_secrets["KNACK_APP_ID_DEST"] = t3_required_secrets["KNACK_APP_ID_DATA_TRACKER"]
-t3_required_secrets["KNACK_API_KEY_DEST"] =t3_required_secrets["KNACK_API_KEY_DATA_TRACKER"]
+t3_required_secrets["KNACK_APP_ID_DEST"] = t3_required_secrets[
+    "KNACK_APP_ID_DATA_TRACKER"
+]
+t3_required_secrets["KNACK_API_KEY_DEST"] = t3_required_secrets[
+    "KNACK_API_KEY_DATA_TRACKER"
+]
 
 with DAG(
     dag_id="atd_knack_inventory_items_finance_to_data_tracker",
@@ -105,7 +109,7 @@ with DAG(
         task_id="atd_knack_finance_inventory_items_to_postgrest",
         image=docker_image,
         auto_remove=True,
-        command=f'./atd-knack-services/services/records_to_postgrest.py -a {app_name_src} -c {container_src} {date_filter_arg}', 
+        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name_src} -c {container_src} {date_filter_arg}",
         environment=env_vars_t1,
         tty=True,
         force_pull=True,
@@ -116,18 +120,17 @@ with DAG(
         task_id="atd_knack_data_tracker_inventory_items_to_postgrest",
         image=docker_image,
         auto_remove=True,
-        command=f'./atd-knack-services/services/records_to_postgrest.py -a {app_name_dest} -c {container_dest} {date_filter_arg}',
+        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name_dest} -c {container_dest} {date_filter_arg}",
         environment=env_vars_t2,
         tty=True,
         mount_tmp_dir=False,
     )
 
-
     t3 = DockerOperator(
         task_id="atd_knack_update_data_tracker_inventory_items_from_finance_inventory",
         image=docker_image,
         auto_remove=True,
-        command=f'./atd-knack-services/services/records_to_knack.py -a {app_name_src} -c {container_src} {date_filter_arg} -dest {app_name_dest}', 
+        command=f"./atd-knack-services/services/records_to_knack.py -a {app_name_src} -c {container_src} {date_filter_arg} -dest {app_name_dest}",
         environment=env_vars_t3,
         tty=True,
         mount_tmp_dir=False,

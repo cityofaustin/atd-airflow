@@ -49,7 +49,7 @@ REQUIRED_SECRETS = {
     "PGREST_JWT": {
         "opitem": "atd-knack-services PostgREST",
         "opfield": "production.jwt",
-    }
+    },
 }
 
 
