@@ -1,3 +1,7 @@
+"""
+Various utilities for interacting with the onepasswordconnectsdk.
+See: https://github.com/1Password/connect-sdk-python
+"""
 import os
 
 from airflow.decorators import task
@@ -47,5 +51,13 @@ def get_item_by_title(entry_name):
     execution_timeout=duration(seconds=30),
 )
 def get_env_vars_task(required_secrets):
-    """Airlfow task to fetch required secrets via load_dict"""
+    """Airfow task to fetch required secrets via load_dict
+
+    Args:
+        required_secrets (dict):  a dict of specified keys and values of location config
+        w/o vault id
+
+    Returns:
+        dict: a dict with one key/val per secret
+    """
     return load_dict(required_secrets)
