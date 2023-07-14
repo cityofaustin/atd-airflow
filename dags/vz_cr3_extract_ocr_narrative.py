@@ -44,13 +44,13 @@ with DAG(
     default_args=default_args,
     # Every 5 minutes, at 8A, 9A, and 10A
     schedule_interval="*/5 8-10 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=pendulum.duration(minutes=5),
+    dagrun_timeout=duration(minutes=5),
     tags=["repo:atd-vz-data", "vision-zero"],
     catchup=False,
 ) as dag:
     @task(
         task_id="get_env_vars",
-        execution_timeout=pendulum.duration(seconds=30),
+        execution_timeout=duration(seconds=30),
     )
     def get_env_vars():
         from utils.onepassword import load_dict
@@ -67,4 +67,5 @@ with DAG(
         environment=env_vars,
         tty=True,
         force_pull=True,
+        mount_tmp_dir=False,
     )
