@@ -13,7 +13,7 @@ default_args = {
     "owner": "airflow",
     "description": "Extracts the diagram and narrative out of CR3 pdfs",
     "depends_on_past": False,
-    "start_date": pendulum.datetime(2019, 1, 1, tz="America/Chicago"),
+    "start_date": datetime(2019, 1, 1, tz="America/Chicago"),
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
