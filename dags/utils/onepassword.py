@@ -1,7 +1,9 @@
 import os
 
+from airflow.decorators import task
 from onepasswordconnectsdk.client import Client, new_client
 import onepasswordconnectsdk
+from pendulum import duration
 
 ONEPASSWORD_CONNECT_HOST = os.getenv("OP_CONNECT")
 ONEPASSWORD_CONNECT_TOKEN = os.getenv("OP_API_TOKEN")
@@ -38,3 +40,12 @@ def get_item_by_title(entry_name):
     """
     client = get_client()
     return client.get_item_by_title(entry_name, VAULT_ID)
+
+
+@task(
+    task_id="get_env_vars",
+    execution_timeout=duration(seconds=30),
+)
+def get_env_vars_task(required_secrets):
+    """Airlfow task to fetch required secrets via load_dict"""
+    return load_dict(required_secrets)
