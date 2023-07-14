@@ -6,7 +6,7 @@ from pendulum import datetime, duration, now
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
-
+from utils.knack import get_date_filter_arg
 
 DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
@@ -73,12 +73,8 @@ with DAG(
     docker_image = "atddocker/atd-knack-services:production"
     app_name = "data-tracker"
     container = "view_197"
-    prev_start_date = "{{ prev_start_date_success.strftime('%Y-%m-%d') if prev_start_date_success else ''}}"
 
-    # completely replace data on the 1st of the month
-    # this is to pick up any edge-case edits that incremental modified date loading may have missed
-    if now().day == 1:
-        prev_start_date = None
+    date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
@@ -86,7 +82,7 @@ with DAG(
         task_id="atd_knack_signals_to_postgrest",
         image=docker_image,
         auto_remove=True,
-        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} -d {prev_start_date}",
+        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
         force_pull=True,
@@ -97,7 +93,7 @@ with DAG(
         task_id="atd_knack_signals_to_socrata",
         image=docker_image,
         auto_remove=True,
-        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} -d {prev_start_date}",
+        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
@@ -107,10 +103,10 @@ with DAG(
         task_id="atd_knack_signals_to_agol",
         image=docker_image,
         auto_remove=True,
-        command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container} -d {prev_start_date}",
+        command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
     )
 
-    t1 >> t2 >> t3
+    date_filter_arg >> t1 >> t2 >> t3
