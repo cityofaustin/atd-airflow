@@ -10,8 +10,10 @@ def get_date_filter_arg(should_replace_monthly=False, **context):
 
     Args:
         should_replace_monthly (boolean): if true, no date filter will be returned,
-        which has the effect in knack services scripts of triggering a full
-        truncate/replace of downstream datasets.
+            which has the effect in knack services scripts of triggering a full
+            truncate/replace of downstream datasets.
+        context (dict): Airflow task context, which contains the prev_start_date_success
+            variable.
 
     Returns:
         Str or None: and ISO date string or None
