@@ -63,6 +63,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id="atd_knack_signal_cabinets",
+    description="Load signal cabinets (view_1567) records from Knack to Postgrest to AGOL and Socrata",
     default_args=DEFAULT_ARGS,
     schedule_interval="30 3 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=5),

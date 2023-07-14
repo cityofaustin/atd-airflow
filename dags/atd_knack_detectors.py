@@ -63,6 +63,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id="atd_knack_detectors",
+    description="Load detectors (view_1333) records from Knack to Postgrest to AGOL and Socrata",
     default_args=DEFAULT_ARGS,
     schedule_interval="10 9 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=5),

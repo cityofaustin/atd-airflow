@@ -63,6 +63,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id="atd_knack_cctv_cameras",
+    description="Publishes CCTV records from Data Tracker to Socrata and AGOL",
     default_args=DEFAULT_ARGS,
     schedule_interval="55 1 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=5),

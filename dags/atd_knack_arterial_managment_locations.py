@@ -51,6 +51,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id="atd_knack_arterial_managment_locations",
+    description="Publishes AMD location records to AGOL",
     default_args=DEFAULT_ARGS,
     schedule_interval="30 21 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=5),

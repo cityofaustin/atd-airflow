@@ -51,6 +51,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id="atd_knack_school_beacons",
+    description="Load school beacons (view_3086) records from Knack to Postgrest to AGOL",
     default_args=DEFAULT_ARGS,
     schedule_interval="25 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=5),

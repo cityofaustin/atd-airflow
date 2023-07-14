@@ -55,6 +55,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id="atd_knack_mmc_issues",
+    description="Loads MMC issue records (aka 311 service requests from Data Tracker to Socrata",
     default_args=DEFAULT_ARGS,
     schedule_interval="10 6 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=5),

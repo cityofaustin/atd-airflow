@@ -63,6 +63,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id="atd_knack_metrobike_kiosks",
+    description="Load metrobike kiosk records from Knack to Postgrest to AGOL and Socata",
     default_args=DEFAULT_ARGS,
     schedule_interval="5 2 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=5),

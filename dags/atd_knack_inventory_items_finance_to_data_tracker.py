@@ -88,6 +88,7 @@ t3_required_secrets["KNACK_API_KEY_DEST"] = t3_required_secrets[
 
 with DAG(
     dag_id="atd_knack_inventory_items_finance_to_data_tracker",
+    description="Update inventory items in the Data Tracker from the Finance & Purchassing system",
     default_args=DEFAULT_ARGS,
     schedule_interval="55 1 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=5),

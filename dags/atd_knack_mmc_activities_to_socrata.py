@@ -54,7 +54,8 @@ REQUIRED_SECRETS = {
 
 
 with DAG(
-    dag_id="atd_knack_mmc_activities_to_s3_to_socrata",
+    dag_id="atd_knack_mmc_activities_to_socrata",
+    description="Load mmc activities from Knack to Poostgres to Socrata",
     default_args=DEFAULT_ARGS,
     schedule_interval="20 6 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=5),
@@ -70,7 +71,7 @@ with DAG(
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
-        task_id="atd_knack_mmc_activities_to_s3_to_socrata_to_postgrest",
+        task_id="atd_knack_mmc_activities_to_socrata_to_postgrest",
         image=docker_image,
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
@@ -81,7 +82,7 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id="atd_knack_mmc_activities_to_s3_to_socrata_to_socrata",
+        task_id="atd_knack_mmc_activities_to_socrata_to_socrata",
         image=docker_image,
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}",
