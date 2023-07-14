@@ -54,7 +54,7 @@ with DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval="25 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=5),
-    tags=["repo:atd-knack-services", "knack", "agol"],
+    tags=["repo:atd-knack-services", "knack", "agol", "data-tracker"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/atd-knack-services:production"
