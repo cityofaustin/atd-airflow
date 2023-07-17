@@ -18,7 +18,40 @@ default_args = {
     "on_failure_callback": task_fail_slack_alert,
 }
 
-REQUIRED_SECRETS = {}
+REQUIRED_SECRETS = {
+    "HASURA_ENDPOINT": {
+        "opitem": "Vision Zero CRIS Import",
+        "opfield": "production.GraphQL Endpoint",
+    },
+    "HASURA_ADMIN_KEY": {
+        "opitem": "Vision Zero CRIS Import",
+        "opfield": "production.GraphQL Endpoint key",
+    },
+    "AWS_ACCESS_KEY_ID": {
+        "opitem": "CR3 Download IAM Access Key and Secret",
+        "opfield": "production.accessKeyId",
+    },
+    "AWS_SECRET_ACCESS_KEY": {
+        "opitem": "CR3 Download IAM Access Key and Secret",
+        "opfield": "production.accessSecret",
+    },
+    "AWS_DEFAULT_REGION": {
+        "opitem": "CR3 Download IAM Access Key and Secret",
+        "opfield": "production.awsDefaultRegion",
+    },
+    "ATD_CRIS_CR3_URL": {
+        "opitem": "CRIS CR3 Download",
+        "opfield": "production.ATD_CRIS_CR3_URL",
+    },
+    "AWS_CRIS_CR3_DOWNLOAD_PATH": {
+        "opitem": "CRIS CR3 Download",
+        "opfield": "production.AWS_CRIS_CR3_DOWNLOAD_PATH",
+    },
+    "AWS_CRIS_CR3_BUCKET_NAME": {
+        "opitem": "CRIS CR3 Download",
+        "opfield": "production.AWS_CRIS_CR3_BUCKET_NAME",
+    },
+}
 
 with DAG(
     dag_id=f"vz-cr3-download",
