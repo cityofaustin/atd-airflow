@@ -58,7 +58,7 @@ with DAG(
     default_args=DEFAULT_ARGS,
     description="Fetch all cost of service fees fom amanda publish to ROW knack app",
     schedule_interval="7 0 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=duration(minutes=5),
+    dagrun_timeout=duration(minutes=30),
     tags=["repo:atd-cost-of-service-reporting", "knack", "amanda"],
     catchup=False,
 ) as dag:
