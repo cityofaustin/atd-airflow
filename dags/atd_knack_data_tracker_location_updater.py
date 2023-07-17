@@ -38,23 +38,15 @@ REQUIRED_SECRETS = {
         "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
         "opfield": "production.password",
     },
-    "PGREST_ENDPOINT": {
-        "opitem": "atd-knack-services PostgREST",
-        "opfield": "production.endpoint",
-    },
-    "PGREST_JWT": {
-        "opitem": "atd-knack-services PostgREST",
-        "opfield": "production.jwt",
-    },
 }
 
 with DAG(
     dag_id=f"atd_knack_data_tracker_location_updater",
     description="Assigns signal records to CSR issues in data tracker based on CSR location",
     default_args=DEFAULT_ARGS,
-    schedule_interval="* * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="19 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=5),
-    tags=["repo:atd-knack-services", "knack", "data-tracker"],
+    tags=["repo:atd-knack-services", "knack", "data-tracker", "agol"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/atd-knack-services:production"
