@@ -61,7 +61,6 @@ with DAG(
     tags=["repo:atd-vz-data", "cris", "s3", "cr3"],
     catchup=False,
 ) as dag:
-    docker_image = "atddocker/"
 
     @task(
         task_id="get_env_vars",
@@ -74,16 +73,19 @@ with DAG(
 
     env_vars = get_env_vars()
 
-    t1 = DockerOperator(
-        task_id="vz_cr3_download",
-        image=docker_image,
-        api_version="auto",
-        auto_remove=True,
-        command="",
-        environment=env_vars,
-        tty=True,
-        force_pull=True,
-        mount_tmp_dir=False,
-    )
+    print(env_vars)
 
-    t1
+    # t1 = DockerOperator(
+    #     task_id="vz_cr3_download",
+    #     # image=docker_image,
+    #     image="vz_etl",
+    #     api_version="auto",
+    #     auto_remove=True,
+    #     command="",
+    #     environment=env_vars,
+    #     tty=True,
+    #     force_pull=True,
+    #     mount_tmp_dir=False,
+    # )
+
+    # t1
