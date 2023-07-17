@@ -1,16 +1,20 @@
 # test locally with: docker compose run --rm airflow-cli dags test atd_trail_counters
 
+import os
+
 from datetime import datetime, timedelta
 
 from airflow.decorators import task
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
 
+from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
+
+DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 default_args = {
     "owner": "airflow",
-    "description": "Scrapes trail counter data from the public eco-counter website and publishes it in Socrata",
     "depends_on_past": False,
     "start_date": datetime(2015, 12, 1),
     "email_on_failure": False,
@@ -42,24 +46,14 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id="atd_trail_counters",
+    description="Scrapes trail counter data from the public eco-counter website and publishes it in Socrata",
     default_args=default_args,
-    schedule_interval="00 8 * * *",
+    schedule_interval="00 8 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=timedelta(minutes=60),
-    tags=["repo:atd-trail-counter-data", "Socrata"],
+    tags=["repo:atd-trail-counter-data", "socrata"],
     catchup=False,
 ) as dag:
-
-    @task(
-        task_id="get_env_vars",
-        execution_timeout=timedelta(seconds=30),
-    )
-    def get_env_vars():
-        from utils.onepassword import load_dict
-
-        env_vars = load_dict(REQUIRED_SECRETS)
-        return env_vars
-
-    env_vars = get_env_vars()
+    env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     start = "{{ prev_start_date_success.strftime('%Y-%m-%d') if prev_start_date_success else '1970-01-01'}}"
     t1 = DockerOperator(
