@@ -78,7 +78,7 @@ with DAG(
     dag_id=f"atd_knack_artbox_signals",
     description="Load signals (view_197) records from Knack data tracker to smart mobility",
     default_args=DEFAULT_ARGS,
-    schedule_interval="" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="30 0 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=5),
     tags=["repo:atd-knack-services", "knack", "data-tracker", "smart-mobility"],
     catchup=False,
