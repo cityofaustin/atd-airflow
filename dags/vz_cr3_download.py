@@ -7,7 +7,7 @@ from airflow.operators.dummy_operator import DummyOperator
 from pendulum import datetime, duration, now, parse
 
 from utils.onepassword import get_env_vars_task, get_item_last_update_date
-from utils.slack_operator import task_fail_slack_alert
+from utils.slack_operator import task_fail_slack_alert, task_success_slack_alert
 
 DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
@@ -19,6 +19,8 @@ default_args = {
     "retries": 0,
     "on_failure_callback": task_fail_slack_alert,
 }
+
+COOKIE_1PW_ENTRY = "CRIS CR3 Download Cookie"
 
 REQUIRED_SECRETS = {
     "HASURA_ENDPOINT": {
@@ -54,8 +56,8 @@ REQUIRED_SECRETS = {
         "opfield": "production.AWS_CRIS_CR3_BUCKET_NAME",
     },
     "CRIS_CR3_DOWNLOAD_COOKIE": {
-        "opitem": "CRIS CR3 Download",
-        "opfield": "production.CRIS_CR3_DOWNLOAD_COOKIE",
+        "opitem": COOKIE_1PW_ENTRY,
+        "opfield": "production.COOKIE",
     },
 }
 
@@ -63,18 +65,18 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id=f"vz-cr3-download",
     default_args=default_args,
-    schedule_interval=None,
+    schedule_interval="*/5 * * * *",
     dagrun_timeout=duration(minutes=5),
     tags=["repo:atd-vz-data", "cris", "s3", "cr3"],
     catchup=False,
 ) as dag:
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    updated_at_dict = get_item_last_update_date("CRIS CR3 Download")
+    updated_at_dict = get_item_last_update_date(COOKIE_1PW_ENTRY)
 
     branch_true = DockerOperator(
         task_id="vz_cr3_download",
-        image="atddocker/atd-vz-etl:development",
+        image=f"atddocker/atd-vz-etl:{DEPLOYMENT_ENVIRONMENT}",
         api_version="auto",
         auto_remove=True,
         command="python process_cris_cr3.py",
@@ -82,6 +84,7 @@ with DAG(
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
+        on_success_callback=task_success_slack_alert,
     )
 
     branch_false = DummyOperator(task_id="skip_vz_cr3_download")
@@ -93,7 +96,6 @@ with DAG(
 
         if updated_at_utc > minutes_ago_utc:
             print("Downloading CR3 pdfs")
-            print(env_vars)
             return ["vz_cr3_download"]
         else:
             print("Cookie entry not updated - skipping CR3 pdf downloads")
