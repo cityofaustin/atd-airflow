@@ -14,7 +14,6 @@ The stack is composed of:
 
 ## Table of Contents
 
-
 - [Getting Started](#getting-started)
   - [Developing a new DAG](#developing-a-new-dag)
   - [Tags](#tags)
