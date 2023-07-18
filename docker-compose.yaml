@@ -10,6 +10,7 @@ x-airflow-common: &airflow-common
   image: atddocker/atd-airflow:production
   environment: &airflow-common-env
     AIRFLOW__CORE__FERNET_KEY: ${_AIRFLOW__CORE__FERNET_KEY}
+    AIRFLOW__WEBSERVER__BASE_URL: ${_AIRFLOW__WEBSERVER__BASE_URL:-http://defaultvalue:8080}
     # You need to explictly allow .env vars into the airflow containers's environments here
     OP_API_TOKEN: ${OP_API_TOKEN}
     OP_CONNECT: ${OP_CONNECT}
