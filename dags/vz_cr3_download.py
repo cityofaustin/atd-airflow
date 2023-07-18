@@ -3,6 +3,7 @@ import os
 from airflow.decorators import task
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
+from airflow.operators.dummy_operator import DummyOperator
 from pendulum import datetime, duration, now, parse
 
 from utils.onepassword import get_env_vars_task, get_item_last_update_date
@@ -58,6 +59,7 @@ REQUIRED_SECRETS = {
     },
 }
 
+
 with DAG(
     dag_id=f"vz-cr3-download",
     default_args=default_args,
@@ -70,10 +72,9 @@ with DAG(
 
     updated_at_dict = get_item_last_update_date("CRIS CR3 Download")
 
-    t1 = DockerOperator(
+    branch_true = DockerOperator(
         task_id="vz_cr3_download",
-        # image=docker_image,
-        image="atddocker/atd-vz-etl:cr3dltest",
+        image="atddocker/atd-vz-etl:development",
         api_version="auto",
         auto_remove=True,
         command="python process_cris_cr3.py",
@@ -83,19 +84,21 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    @task.branch
+    branch_false = DummyOperator(task_id="skip_vz_cr3_download")
+
+    @task.branch(task_id="choose_branch")
     def choose_branch(updated_at):
         minutes_ago_utc = now() - duration(minutes=5)
         updated_at_utc = updated_at
 
         if updated_at_utc > minutes_ago_utc:
-            print("Download CR3")
+            print("Downloading CR3 pdfs")
             print(env_vars)
-            # return ["t1"]
+            return ["vz_cr3_download"]
         else:
-            print("Cookie entry not updated - skipping CR3 download")
+            print("Cookie entry not updated - skipping CR3 pdf downloads")
+            return ["skip_vz_cr3_download"]
 
-    choose_branch(updated_at=updated_at_dict["updated_at"])
+    choose_branch = choose_branch(updated_at=updated_at_dict["updated_at"])
 
-# TODO: build, tag, and push test image
-# TODO: test this DAG with that image (atddocker/atd-vz-etl:cr3dltest)
+    choose_branch >> [branch_true, branch_false]
