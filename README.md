@@ -14,17 +14,21 @@ The stack is composed of:
 
 ## Table of Contents
 
-- [Getting Started](#getting-started)
-  - [Developing a new DAG](#developing-a-new-dag)
-  - [Tags](#tags)
-  - [Moving to production](#moving-to-production)
-- [Utilities](#utilities)
-  - [1Password utility](#1password-utility)
-  - [Slack operator utility](#slack-operator-utility)
-- [Useful Commands](#useful-commands)
-- [Updating the stack](#updating-the-stack)
-- [HAProxy and SSL](#haproxy-and-ssl)
-  - [HAProxy operation](#haproxy-operation)
+- [DTS Airflow](#dts-airflow)
+  - [Table of Contents](#table-of-contents)
+  - [Getting Started](#getting-started)
+    - [Developing a new DAG](#developing-a-new-dag)
+    - [Tags](#tags)
+    - [Moving to production](#moving-to-production)
+  - [Utilities](#utilities)
+    - [1Password utility](#1password-utility)
+    - [Slack operator utility](#slack-operator-utility)
+  - [Useful Commands](#useful-commands)
+  - [Updating the stack](#updating-the-stack)
+      - [Update Process](#update-process)
+  - [HAProxy and SSL](#haproxy-and-ssl)
+    - [HAProxy operation](#haproxy-operation)
+  - [Ideas](#ideas)
 
 ## Getting Started
 
@@ -40,6 +44,7 @@ _AIRFLOW_WWW_USER_PASSWORD=<Pick your initial admin password here>
 AIRFLOW_PROJ_DIR=<The absolute path of your Airflow repository checkout>
 # this fernet key is for testing purposes only
 _AIRFLOW__CORE__FERNET_KEY=PTkIRwL-c46jgnaohlkkXfVikC-roKa95ipXfqST7JM=
+_AIRFLOW__WEBSERVER__BASE_URL=http://localhost:8080
 OP_API_TOKEN=<Get from 1Password entry named "Connect Server: Production Access Token: API Accessible Secrets">
 OP_CONNECT=<Get from 1Password entry named "Endpoint for 1Password Connect Server API">
 OP_VAULT_ID=<Get from 1Password entry named "Vault ID of API Accessible Secrets vault">
