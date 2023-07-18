@@ -6,10 +6,6 @@ from airflow.contrib.operators.slack_webhook_operator import SlackWebhookOperato
 # in Admin > Connections.
 SLACK_CONN_ID = "slack"
 
-def handle_production_url(log_url):
-    if os.getenv('ENVIRONMENT') == 'production':
-        log_url = log_url.replace('http://localhost:8080', 'https://airflow.austinmobility.io')
-    return log_url
 
 def task_fail_slack_alert_critical(context):
     slack_webhook_token = BaseHook.get_connection(SLACK_CONN_ID).password
@@ -24,7 +20,7 @@ def task_fail_slack_alert_critical(context):
         dag=context.get("task_instance").dag_id,
         ti=context.get("task_instance"),
         exec_date=context.get("execution_date"),
-        log_url=handle_production_url(context.get("task_instance").log_url),
+        log_url=context.get("task_instance").log_url,
     )
     failed_alert = SlackWebhookOperator(
         task_id="slack_critical_failure",
@@ -38,6 +34,9 @@ def task_fail_slack_alert_critical(context):
 
 def task_fail_slack_alert(context):
     slack_webhook_token = BaseHook.get_connection(SLACK_CONN_ID).password
+    log_url = context.get("task_instance").log_url
+    if os.getenv('ENVIRONMENT') == 'production':
+        log_url = log_url.replace('http://localhost:8080', 'https://airflow.austinmobility.io')
     slack_msg = """
             :red_circle: Task Failed. 
             *Task*: {task}  
@@ -49,7 +48,7 @@ def task_fail_slack_alert(context):
         dag=context.get("task_instance").dag_id,
         ti=context.get("task_instance"),
         exec_date=context.get("execution_date"),
-        log_url=handle_production_url(context.get("task_instance").log_url),
+        log_url=log_url,
     )
 
     failed_alert = SlackWebhookOperator(
@@ -75,7 +74,7 @@ def task_success_slack_alert(context):
         dag=context.get("task_instance").dag_id,
         ti=context.get("task_instance"),
         exec_date=context.get("execution_date"),
-        log_url=handle_production_url(context.get("task_instance").log_url),
+        log_url=context.get("task_instance").log_url,
     )
     success_alert = SlackWebhookOperator(
         task_id="slack_success",
