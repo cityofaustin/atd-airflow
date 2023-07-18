@@ -66,32 +66,28 @@ with DAG(
 
     updated_at_dict = get_item_last_update_date("CRIS CR3 Download")
 
-    # 1PW returns 2023-07-11T22:32:58Z
-    @task(task_id="download_cr3", execution_timeout=duration(seconds=30))
-    def print_message(updated_at):
+    # t1 = DockerOperator(
+    #     task_id="vz_cr3_download",
+    #     # image=docker_image,
+    #     image="vz_etl",
+    #     api_version="auto",
+    #     auto_remove=True,
+    #     command="",
+    #     environment=env_vars,
+    #     tty=True,
+    #     force_pull=True,
+    #     mount_tmp_dir=False,
+    # )
+
+    @task.branch
+    def choose_branch(updated_at):
         minutes_ago_utc = now() - duration(minutes=5)
         updated_at_utc = updated_at
 
         if updated_at_utc > minutes_ago_utc:
             print("Download CR3")
+            # return ["t1"]
         else:
-            print("Don't download CR3")
+            print("Cookie entry not updated - skipping CR3 download")
 
-    t1 = print_message(updated_at=updated_at_dict["updated_at"])
-
-    t1 = DockerOperator(
-        task_id="vz_cr3_download",
-        # image=docker_image,
-        image="vz_etl",
-        api_version="auto",
-        auto_remove=True,
-        command="",
-        environment=env_vars,
-        tty=True,
-        force_pull=True,
-        mount_tmp_dir=False,
-    )
-
-    # t1
-
-    # t1
+    choose_branch(updated_at=updated_at_dict["updated_at"])
