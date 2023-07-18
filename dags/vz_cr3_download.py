@@ -52,6 +52,10 @@ REQUIRED_SECRETS = {
         "opitem": "CRIS CR3 Download",
         "opfield": "production.AWS_CRIS_CR3_BUCKET_NAME",
     },
+    "CRIS_CR3_DOWNLOAD_COOKIE": {
+        "opitem": "CRIS CR3 Download",
+        "opfield": "production.CRIS_CR3_DOWNLOAD_COOKIE",
+    },
 }
 
 with DAG(
@@ -66,18 +70,18 @@ with DAG(
 
     updated_at_dict = get_item_last_update_date("CRIS CR3 Download")
 
-    # t1 = DockerOperator(
-    #     task_id="vz_cr3_download",
-    #     # image=docker_image,
-    #     image="vz_etl",
-    #     api_version="auto",
-    #     auto_remove=True,
-    #     command="",
-    #     environment=env_vars,
-    #     tty=True,
-    #     force_pull=True,
-    #     mount_tmp_dir=False,
-    # )
+    t1 = DockerOperator(
+        task_id="vz_cr3_download",
+        # image=docker_image,
+        image="atddocker/atd-vz-etl:cr3dltest",
+        api_version="auto",
+        auto_remove=True,
+        command="python process_cris_cr3.py",
+        environment=env_vars,
+        tty=True,
+        force_pull=True,
+        mount_tmp_dir=False,
+    )
 
     @task.branch
     def choose_branch(updated_at):
@@ -86,8 +90,12 @@ with DAG(
 
         if updated_at_utc > minutes_ago_utc:
             print("Download CR3")
+            print(env_vars)
             # return ["t1"]
         else:
             print("Cookie entry not updated - skipping CR3 download")
 
     choose_branch(updated_at=updated_at_dict["updated_at"])
+
+# TODO: build, tag, and push test image
+# TODO: test this DAG with that image (atddocker/atd-vz-etl:cr3dltest)
