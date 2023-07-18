@@ -14,21 +14,18 @@ The stack is composed of:
 
 ## Table of Contents
 
-- [DTS Airflow](#dts-airflow)
-  - [Table of Contents](#table-of-contents)
-  - [Getting Started](#getting-started)
-    - [Developing a new DAG](#developing-a-new-dag)
-    - [Tags](#tags)
-    - [Moving to production](#moving-to-production)
-  - [Utilities](#utilities)
-    - [1Password utility](#1password-utility)
-    - [Slack operator utility](#slack-operator-utility)
-  - [Useful Commands](#useful-commands)
-  - [Updating the stack](#updating-the-stack)
-      - [Update Process](#update-process)
-  - [HAProxy and SSL](#haproxy-and-ssl)
-    - [HAProxy operation](#haproxy-operation)
-  - [Ideas](#ideas)
+
+- [Getting Started](#getting-started)
+  - [Developing a new DAG](#developing-a-new-dag)
+  - [Tags](#tags)
+  - [Moving to production](#moving-to-production)
+- [Utilities](#utilities)
+  - [1Password utility](#1password-utility)
+  - [Slack operator utility](#slack-operator-utility)
+- [Useful Commands](#useful-commands)
+- [Updating the stack](#updating-the-stack)
+- [HAProxy and SSL](#haproxy-and-ssl)
+  - [HAProxy operation](#haproxy-operation)
 
 ## Getting Started
 
