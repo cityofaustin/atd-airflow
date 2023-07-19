@@ -1,11 +1,11 @@
 import os
 from pendulum import datetime, duration
 
-from airflow.decorators import task
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
 
 from utils.slack_operator import task_fail_slack_alert
+from utils.onepassword import get_env_vars_task
 
 DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
@@ -40,17 +40,17 @@ REQUIRED_SECRETS = {
         "opfield": "socrata.appToken",
     },
     "SOCRATA_DATASET_CRASHES": {
-        "opitem": "Vision Zero CRIS Import",
+        "opitem": "Vision Zero Socrata Export",
         "opfield": f"{DEPLOYMENT_ENVIRONMENT}.SOCRATA_DATASET_CRASHES",
     },
     "SOCRATA_DATASET_PERSONS": {
-        "opitem": "Vision Zero CRIS Import",
+        "opitem": "Vision Zero Socrata Export",
         "opfield": f"{DEPLOYMENT_ENVIRONMENT}.SOCRATA_DATASET_PERSONS",
     },
 }
 
 with DAG(
-    dag_id=f"vz-cr3-download_{DEPLOYMENT_ENVIRONMENT}",
+    dag_id=f"vz_socrata_export_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
     schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=5),
