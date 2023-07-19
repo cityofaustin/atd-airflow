@@ -97,6 +97,8 @@ You can model your code off of existing DAGs which use our 1Password utility.
 For example, this snippet fetches 1Password secrets from a task so that they can be used by subsequent tasks.
 
 ```python
+from utils.onepassword import get_env_vars_task
+
 REQUIRED_SECRETS = {
     "SOME_SECRET": {
         "opitem": "My Secret 1Pass Item",  # must match item name in 1Password vault
@@ -108,18 +110,9 @@ with DAG(
     dag_id=f"my_dag",
     # ...other DAG settings
 ) as dag:
-    @task(
-        task_id="get_env_vars",
-        execution_timeout=timedelta(seconds=30),
-    )
-    def get_env_vars():
-        from utils.onepassword import load_dict
-        env_vars = load_dict(REQUIRED_SECRETS)
-        return env_vars # <- returns secrets as XCom value
+    env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    env_vars = get_env_vars()
-
-    DockerOperator(
+    task_1 = DockerOperator(
       task_id="my_docker_task",
       image="some-image-name",
       auto_remove=True,
@@ -128,7 +121,6 @@ with DAG(
       tty=True,
       force_pull=True,
     )
-
 ```
 
 ### Slack operator utility
