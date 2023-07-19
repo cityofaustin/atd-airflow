@@ -76,4 +76,4 @@ def get_item_last_update_date(entry_name):
     entry_name -- string value of the 1Password entry name in the vault
     """
     updated_at_datetime = get_item_by_title(entry_name).updated_at
-    return {"updated_at": updated_at_datetime}
+    return {"updated_at_datetime": updated_at_datetime}
