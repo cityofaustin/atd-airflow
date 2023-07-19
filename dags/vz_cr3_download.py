@@ -47,10 +47,6 @@ REQUIRED_SECRETS = {
         "opitem": "CRIS CR3 Download",
         "opfield": "production.ATD_CRIS_CR3_URL",
     },
-    "AWS_CRIS_CR3_DOWNLOAD_PATH": {
-        "opitem": "CRIS CR3 Download",
-        "opfield": "production.AWS_CRIS_CR3_DOWNLOAD_PATH",
-    },
     "AWS_CRIS_CR3_BUCKET_NAME": {
         "opitem": "CRIS CR3 Download",
         "opfield": "production.AWS_CRIS_CR3_BUCKET_NAME",
@@ -76,10 +72,10 @@ with DAG(
 
     branch_true = DockerOperator(
         task_id="vz_cr3_download",
-        image=f"atddocker/atd-vz-etl:{DEPLOYMENT_ENVIRONMENT}",
+        image=f"atddocker/vz-cr3-download:{DEPLOYMENT_ENVIRONMENT}",
         api_version="auto",
         auto_remove=True,
-        command="python process_cris_cr3.py",
+        command="python cr3_download.py",
         environment=env_vars,
         tty=True,
         force_pull=True,
