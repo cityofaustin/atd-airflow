@@ -53,7 +53,7 @@ with DAG(
     dag_id=f"vz_socrata_export_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
     schedule_interval="0 9 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=duration(minutes=5),
+    dagrun_timeout=duration(minutes=20),
     tags=["repo:atd-vz-data", "socrata"],
     catchup=False,
 ) as dag:
