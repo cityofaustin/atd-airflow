@@ -51,7 +51,7 @@ def get_item_by_title(entry_name):
     execution_timeout=duration(seconds=30),
 )
 def get_env_vars_task(required_secrets):
-    """This is a wrapper around `load_dict` so that it can be 
+    """This is a wrapper around `load_dict` so that it can be
     imported as an airflow task.
 
     Args:
@@ -62,3 +62,18 @@ def get_env_vars_task(required_secrets):
         dict: a dict with one key/val per secret
     """
     return load_dict(required_secrets)
+
+
+@task(
+    task_id="get_item_last_update_date",
+    multiple_outputs=True,
+    execution_timeout=duration(seconds=30),
+)
+def get_item_last_update_date(entry_name):
+    """Return a specific item's last update date
+
+    Keyword arguments:
+    entry_name -- string value of the 1Password entry name in the vault
+    """
+    updated_at_datetime = get_item_by_title(entry_name).updated_at
+    return {"updated_at_datetime": updated_at_datetime}
