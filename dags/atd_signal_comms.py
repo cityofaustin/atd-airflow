@@ -8,7 +8,7 @@ from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 from utils.knack import get_date_filter_arg
 
-DEPLOYMENT_ENVIRONMENT = "prod" if os.getenv("ENVIRONMENT") == "production" else "dev"
+DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 DEFAULT_ARGS = {
     "owner": "airflow",
