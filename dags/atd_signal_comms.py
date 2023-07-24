@@ -2,11 +2,11 @@ import os
 
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
-from pendulum import datetime, duration, now
+from airflow.decorators import task
+from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
-from utils.knack import get_date_filter_arg
 
 DEPLOYMENT_ENVIRONMENT = "prod" if os.getenv("ENVIRONMENT") == "production" else "dev"
 
@@ -61,6 +61,17 @@ REQUIRED_SECRETS = {
     },
 }
 
+@task(
+    task_id="get_start_date",
+)
+def get_start_date(**context):
+    """Get the --start date argument. Returns either the prev start date or today
+    if the DAG has no successful run history"""
+    from pendulum import now
+    prev_start_date = context.get("prev_start_date_success") or now()
+    return prev_start_date.strftime('%Y-%m-%d')
+
+
 
 with DAG(
     dag_id=f"atd_signal_comms",
@@ -73,8 +84,8 @@ with DAG(
 ) as dag:
     docker_image = "atddocker/atd-signal-comms:production"
 
-    start_date = get_date_filter_arg()
-
+    start_date = get_start_date()
+    
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     cameras_s3 = DockerOperator(
