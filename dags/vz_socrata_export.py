@@ -50,7 +50,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id=f"vz_socrata_export_{DEPLOYMENT_ENVIRONMENT}",
-    description="Downloads CR3 pdfs from CRIS and uploads to S3",
+    description="Exports Vision Zero crash and people datasets to Socrata from Vision Zero database.",
     default_args=default_args,
     schedule_interval="0 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=20),
