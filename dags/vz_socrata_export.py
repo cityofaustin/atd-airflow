@@ -20,12 +20,12 @@ default_args = {
 
 REQUIRED_SECRETS = {
     "HASURA_ENDPOINT": {
-        "opitem": "Vision Zero CRIS Import",
+        "opitem": "Vision Zero graphql-engine Endpoints",
         "opfield": f"{DEPLOYMENT_ENVIRONMENT}.GraphQL Endpoint",
     },
     "HASURA_ADMIN_KEY": {
-        "opitem": "Vision Zero CRIS Import",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.GraphQL Endpoint key",
+        "opitem": "Vision Zero graphql-engine Endpoints",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.Admin Key",
     },
     "SOCRATA_API_KEY_ID": {
         "opitem": "Socrata Key ID, Secret, and Token",
@@ -52,7 +52,7 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id=f"vz_socrata_export_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
-    schedule_interval="0 9 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="0 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=20),
     tags=["repo:atd-vz-data", "socrata"],
     catchup=False,
