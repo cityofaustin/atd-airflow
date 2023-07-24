@@ -99,3 +99,16 @@ with DAG(
         force_pull=True,
         mount_tmp_dir=False,
     )
+
+    reassociate_wrong_locations = DockerOperator(
+        task_id="reassociate_wrong_locations",
+        image=docker_image,
+        auto_remove=True,
+        command="python scripts/atd_vzd_reassociate_wrong_locations.py",
+        environment=env_vars,
+        tty=True,
+        force_pull=True,
+        mount_tmp_dir=False,
+    )
+
+update_cr3_locations >> update_noncr3_locations >> dissociate_cr3 >> dissociate_noncr3 >> reassociate_wrong_locations
