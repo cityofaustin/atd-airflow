@@ -24,12 +24,12 @@ COOKIE_1PW_ENTRY = "CRIS CR3 Download Cookie"
 
 REQUIRED_SECRETS = {
     "HASURA_ENDPOINT": {
-        "opitem": "Vision Zero CRIS Import",
+        "opitem": "Vision Zero graphql-engine Endpoints",
         "opfield": "production.GraphQL Endpoint",
     },
     "HASURA_ADMIN_KEY": {
-        "opitem": "Vision Zero CRIS Import",
-        "opfield": "production.GraphQL Endpoint key",
+        "opitem": "Vision Zero graphql-engine Endpoints",
+        "opfield": "production.Admin Key",
     },
     "AWS_ACCESS_KEY_ID": {
         "opitem": "CR3 Download IAM Access Key and Secret",
