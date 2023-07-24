@@ -11,7 +11,6 @@ DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 default_args = {
     "owner": "airflow",
-    "description": "Downloads CR3 pdfs from CRIS and uploads to S3",
     "depends_on_past": False,
     "start_date": datetime(2015, 1, 1, tz="America/Chicago"),
     "retries": 0,
@@ -51,6 +50,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id=f"vz_socrata_export_{DEPLOYMENT_ENVIRONMENT}",
+    description="Downloads CR3 pdfs from CRIS and uploads to S3",
     default_args=default_args,
     schedule_interval="0 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=20),
