@@ -35,12 +35,12 @@ REQUIRED_SECRETS = {
 }
 
 with DAG(
-    dag_id="vision-zero-reassociate-missing-locations",
+    dag_id="vision_zero_reassociate_missing_locations",
     description="Execute housekeeping routine to associate VZ Polygons and Crashes together",
     default_args=DEFAULT_ARGS,
     schedule_interval="0 3 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=15),
-    tags=["repo:atd-vz-data", "vision-zero", "polygons", "crashes"],
+    tags=["repo:atd_vz_data", "vision-zero", "polygons", "crashes"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/vz-location-associations:latest"
@@ -64,11 +64,36 @@ with DAG(
 
     # This process will find the locations for Non-CR3 crashes that do not have one but
     # fall into a location and they are not mainlanes.
-    update_non_cr3_locations = DockerOperator(
+    update_noncr3_locations = DockerOperator(
         task_id="update_noncr3_locations",
         image=docker_image,
         auto_remove=True,
         command="python scripts/atd_vzd_update_noncr3_locations.py",
+        environment=env_vars,
+        tty=True,
+        force_pull=True,
+        mount_tmp_dir=False,
+    )
+
+    # This process will remove the location for CR3 crashes that are main-lanes.
+    dissociate_cr3 = DockerOperator(
+        task_id="dissociate_cr3",
+        image=docker_image,
+        auto_remove=True,
+        command="python scripts/atd_vzd_dissociate_cr3_mainlanes.py",
+        environment=env_vars,
+        tty=True,
+        force_pull=True,
+        mount_tmp_dir=False,
+    )
+
+
+    # This process will remove the location for Non-CR3 crashes that are main-lanes.
+    dissociate_noncr3 = DockerOperator(
+        task_id="dissociate_noncr3",
+        image=docker_image,
+        auto_remove=True,
+        command="python scripts/atd_vzd_dissociate_noncr3_mainlanes.py",
         environment=env_vars,
         tty=True,
         force_pull=True,
