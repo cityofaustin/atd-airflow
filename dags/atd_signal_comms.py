@@ -8,7 +8,7 @@ from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 from utils.knack import get_date_filter_arg
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+DEPLOYMENT_ENVIRONMENT = "prod" if os.getenv("ENVIRONMENT") == "production" else "dev"
 
 DEFAULT_ARGS = {
     "owner": "airflow",
@@ -66,7 +66,7 @@ with DAG(
     dag_id=f"atd_signal_comms",
     description="Ping network devices and publish to S3, then socrata",
     default_args=DEFAULT_ARGS,
-    schedule_interval="7 2 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="7 2 * * *" if DEPLOYMENT_ENVIRONMENT == "prod" else None,
     dagrun_timeout=duration(minutes=30),
     tags=["repo:atd-signal-comms", "socrata"],
     catchup=False,
