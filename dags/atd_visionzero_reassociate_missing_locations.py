@@ -21,8 +21,6 @@ DEFAULT_ARGS = {
     "on_failure_callback": task_fail_slack_alert,
 }
 
-# secrets atd_visionzero_hasura_sql_production
-
 REQUIRED_SECRETS = {
     "HASURA_ENDPOINT": {
         "opitem": "Vision Zero graphql-engine Endpoints",
