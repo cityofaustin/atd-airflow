@@ -65,7 +65,7 @@ with DAG(
     # This process will find the locations for Non-CR3 crashes that do not have one but
     # fall into a location and they are not mainlanes.
     update_non_cr3_locations = DockerOperator(
-        task_id="update_cr3_locations",
+        task_id="update_noncr3_locations",
         image=docker_image,
         auto_remove=True,
         command="python scripts/atd_vzd_update_noncr3_locations.py",
