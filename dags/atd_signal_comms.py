@@ -185,7 +185,8 @@ with DAG(
     )
 
     (
-        cameras_s3
+        start_date
+        >> cameras_s3
         >> detectors_s3
         >> dms_s3
         >> battery_backup_s3
