@@ -29,7 +29,7 @@ REQUIRED_SECRETS = {
     "HASURA_ADMIN_KEY": {
         "opitem": "Vision Zero graphql-engine Endpoints",
         "opfield": f"{DEPLOYMENT_ENVIRONMENT}.Admin Key",
-    }, 
+    },
 }
 
 with DAG(
@@ -59,7 +59,6 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-
     # This process will find the locations for Non-CR3 crashes that do not have one but
     # fall into a location and they are not mainlanes.
     update_noncr3_locations = DockerOperator(
@@ -85,7 +84,6 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-
     # This process will remove the location for Non-CR3 crashes that are main-lanes.
     dissociate_noncr3 = DockerOperator(
         task_id="dissociate_noncr3",
@@ -109,4 +107,10 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-update_cr3_locations >> update_noncr3_locations >> dissociate_cr3 >> dissociate_noncr3 >> reassociate_wrong_locations
+(
+    update_cr3_locations
+    >> update_noncr3_locations
+    >> dissociate_cr3
+    >> dissociate_noncr3
+    >> reassociate_wrong_locations
+)

@@ -31,7 +31,7 @@ REQUIRED_SECRETS = {
     "HASURA_ADMIN_KEY": {
         "opitem": "Vision Zero graphql-engine Endpoints",
         "opfield": f"{DEPLOYMENT_ENVIRONMENT}.Admin Key",
-    }, 
+    },
     "AWS_BUCKET_NAME": {
         "opitem": "CRIS CR3 Download",
         "opfield": f"{DEPLOYMENT_ENVIRONMENT}.AWS_CRIS_CR3_BUCKET_NAME",
@@ -39,14 +39,16 @@ REQUIRED_SECRETS = {
     "AWS_BUCKET_ENVIRONMENT": {
         "opitem": "CRIS CR3 Download",
         "opfield": f"{DEPLOYMENT_ENVIRONMENT}.AWS_CRIS_CR3_BUCKET_PATH_ENVIRONMENT",
-    }
+    },
 }
 
 with DAG(
     dag_id="vision_zero_process_missing_pdfs",
     description="Execute housekeeping routine manage missing or malformed CR3 PDFs",
     default_args=DEFAULT_ARGS,
-    schedule_interval="*/30 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="*/30 * * * *"
+    if DEPLOYMENT_ENVIRONMENT == "production"
+    else None,
     dagrun_timeout=duration(minutes=15),
     tags=["repo:atd_vz_data", "vision-zero", "cr3", "pdf"],
     catchup=False,
