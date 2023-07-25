@@ -1,9 +1,18 @@
 from airflow.hooks.base_hook import BaseHook
 from airflow.contrib.operators.slack_webhook_operator import SlackWebhookOperator
+from pendulum import timezone
 
 # This is the Conn Id that we set when creating the connection in the Airflow dashboard
 # in Admin > Connections.
 SLACK_CONN_ID = "slack"
+
+
+def get_central_time_exec_data(context):
+    local_tz = timezone("America/Chicago")
+    execution_date_timestamp = context.get("data_interval_start")
+    central_execution_date = local_tz.convert(execution_date_timestamp).format(
+        "MM/DD/YYYY hh:mm:ss A"
+    )
 
 
 def task_fail_slack_alert_critical(context):
@@ -43,7 +52,7 @@ def task_fail_slack_alert(context):
         task=context.get("task_instance").task_id,
         dag=context.get("task_instance").dag_id,
         ti=context.get("task_instance"),
-        exec_date=context.get("execution_date"),
+        exec_date=context.get("ts"),
         log_url=context.get("task_instance").log_url,
     )
     failed_alert = SlackWebhookOperator(
