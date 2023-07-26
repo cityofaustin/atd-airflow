@@ -66,7 +66,7 @@ with DAG(
         command="python scripts/atd_vzd_update_noncr3_locations.py",
         environment=env_vars,
         tty=True,
-        force_pull=True,
+        force_pull=False,
         mount_tmp_dir=False,
     )
 
@@ -78,7 +78,7 @@ with DAG(
         command="python scripts/atd_vzd_dissociate_cr3_mainlanes.py",
         environment=env_vars,
         tty=True,
-        force_pull=True,
+        force_pull=False,
         mount_tmp_dir=False,
     )
 
@@ -90,7 +90,7 @@ with DAG(
         command="python scripts/atd_vzd_dissociate_noncr3_mainlanes.py",
         environment=env_vars,
         tty=True,
-        force_pull=True,
+        force_pull=False,
         mount_tmp_dir=False,
     )
 
@@ -101,7 +101,7 @@ with DAG(
         command="python scripts/atd_vzd_reassociate_wrong_locations.py",
         environment=env_vars,
         tty=True,
-        force_pull=True,
+        force_pull=False,
         mount_tmp_dir=False,
     )
 
