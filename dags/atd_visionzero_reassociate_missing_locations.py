@@ -41,7 +41,7 @@ with DAG(
     tags=["repo:atd_vz_data", "vision-zero", "polygons", "crashes"],
     catchup=False,
 ) as dag:
-    docker_image = "atddocker/vz-location-associations:latest"
+    docker_image = "atddocker/vz-location-associations:production"
 
     date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
     env_vars = get_env_vars_task(REQUIRED_SECRETS)

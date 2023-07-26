@@ -53,7 +53,7 @@ with DAG(
     tags=["repo:atd_vz_data", "vision-zero", "cr3", "pdf"],
     catchup=False,
 ) as dag:
-    docker_image = "atddocker/vz-pdf-maintenance:latest"
+    docker_image = "atddocker/vz-pdf-maintenance:production"
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
