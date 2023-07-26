@@ -26,11 +26,11 @@ REQUIRED_SECRETS = {
         "opitem": "Vision Zero graphql-engine Endpoints",
         "opfield": f"{DEPLOYMENT_ENVIRONMENT}.Admin Key",
     },
-    "SOCRATA_API_KEY_ID": {
+    "SOCRATA_KEY_ID": {
         "opitem": "Socrata Key ID, Secret, and Token",
         "opfield": "socrata.apiKeyId",
     },
-    "SOCRATA_API_KEY_SECRET": {
+    "SOCRATA_KEY_SECRET": {
         "opitem": "Socrata Key ID, Secret, and Token",
         "opfield": "socrata.apiKeySecret",
     },
