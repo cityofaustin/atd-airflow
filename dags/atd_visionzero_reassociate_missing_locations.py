@@ -5,7 +5,6 @@ from airflow.operators.docker_operator import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
-from utils.knack import get_date_filter_arg
 from utils.slack_operator import task_fail_slack_alert
 
 DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
@@ -43,7 +42,6 @@ with DAG(
 ) as dag:
     docker_image = "atddocker/vz-location-associations:production"
 
-    date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     # This process will find the locations for CR3 crashes that do not have one but
