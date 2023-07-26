@@ -59,7 +59,7 @@ with DAG(
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
-        task_id="atd_knack_signals_to_postgrest",
+        task_id="service_request_asset_assign",
         image= "atddocker/atd-knack-services:production",
         auto_remove=True,
         command=f"./atd-knack-services/services/sr_asset_assign.py -a data-tracker -c view_2362 -s signals",
