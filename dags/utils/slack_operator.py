@@ -1,6 +1,5 @@
 from airflow.hooks.base_hook import BaseHook
 from airflow.contrib.operators.slack_webhook_operator import SlackWebhookOperator
-from pendulum import timezone
 
 # This is the Conn Id that we set when creating the connection in the Airflow dashboard
 # in Admin > Connections.
@@ -8,6 +7,8 @@ SLACK_CONN_ID = "slack"
 
 
 def get_central_time_exec_data(context):
+    from pendulum import timezone
+
     local_tz = timezone("America/Chicago")
     execution_date_timestamp = context.get("data_interval_start")
     return local_tz.convert(execution_date_timestamp).format("MM/DD/YYYY hh:mm:ss A")
