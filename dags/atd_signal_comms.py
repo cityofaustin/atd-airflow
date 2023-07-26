@@ -61,6 +61,7 @@ REQUIRED_SECRETS = {
     },
 }
 
+
 @task(
     task_id="get_start_date",
 )
@@ -68,9 +69,9 @@ def get_start_date(**context):
     """Get the --start date argument. Returns either the prev start date or today
     if the DAG has no successful run history"""
     from pendulum import now
-    prev_start_date = context.get("prev_start_date_success") or now()
-    return prev_start_date.strftime('%Y-%m-%d')
 
+    prev_start_date = context.get("prev_start_date_success") or now()
+    return prev_start_date.strftime("%Y-%m-%d")
 
 
 with DAG(
@@ -85,7 +86,7 @@ with DAG(
     docker_image = "atddocker/atd-signal-comms:production"
 
     start_date = get_start_date()
-    
+
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     cameras_s3 = DockerOperator(
@@ -107,7 +108,7 @@ with DAG(
         command=f"python atd-signal-comms/run_comm_check.py detector --env {DEPLOYMENT_ENVIRONMENT}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
+        force_pull=False,
         mount_tmp_dir=False,
         network_mode="bridge",
     )
@@ -119,7 +120,7 @@ with DAG(
         command=f"python atd-signal-comms/run_comm_check.py digital_message_sign --env {DEPLOYMENT_ENVIRONMENT}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
+        force_pull=False,
         mount_tmp_dir=False,
         network_mode="bridge",
     )
@@ -131,7 +132,19 @@ with DAG(
         command=f"python atd-signal-comms/run_comm_check.py cabinet_battery_backup --env {DEPLOYMENT_ENVIRONMENT}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
+        force_pull=False,
+        mount_tmp_dir=False,
+        network_mode="bridge",
+    )
+
+    signal_monitors_s3 = DockerOperator(
+        task_id="run_comm_check_signal_monitors",
+        image=docker_image,
+        auto_remove=True,
+        command=f"python atd-signal-comms/run_comm_check.py signal_monitor --env {DEPLOYMENT_ENVIRONMENT}",
+        environment=env_vars,
+        tty=True,
+        force_pull=False,
         mount_tmp_dir=False,
         network_mode="bridge",
     )
@@ -143,7 +156,7 @@ with DAG(
         command=f"python atd-signal-comms/socrata_pub.py camera --start {start_date} -v --env {DEPLOYMENT_ENVIRONMENT}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
+        force_pull=False,
         mount_tmp_dir=False,
         network_mode="bridge",
     )
@@ -155,7 +168,7 @@ with DAG(
         command=f"python atd-signal-comms/socrata_pub.py detector --start {start_date} -v --env {DEPLOYMENT_ENVIRONMENT}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
+        force_pull=False,
         mount_tmp_dir=False,
         network_mode="bridge",
     )
@@ -167,7 +180,7 @@ with DAG(
         command=f"python atd-signal-comms/socrata_pub.py digital_message_sign --start {start_date} -v --env {DEPLOYMENT_ENVIRONMENT}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
+        force_pull=False,
         mount_tmp_dir=False,
         network_mode="bridge",
     )
@@ -179,7 +192,19 @@ with DAG(
         command=f"python atd-signal-comms/socrata_pub.py cabinet_battery_backup --start {start_date} -v --env {DEPLOYMENT_ENVIRONMENT}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
+        force_pull=False,
+        mount_tmp_dir=False,
+        network_mode="bridge",
+    )
+
+    signal_monitors_socrata = DockerOperator(
+        task_id="socrata_pub_signal_monitors",
+        image=docker_image,
+        auto_remove=True,
+        command=f"python atd-signal-comms/socrata_pub.py signal_monitors --start {start_date} -v --env {DEPLOYMENT_ENVIRONMENT}",
+        environment=env_vars,
+        tty=True,
+        force_pull=False,
         mount_tmp_dir=False,
         network_mode="bridge",
     )
@@ -190,8 +215,10 @@ with DAG(
         >> detectors_s3
         >> dms_s3
         >> battery_backup_s3
+        >> signal_monitors_s3
         >> cameras_socrata
         >> detectors_socrata
         >> dms_socrata
         >> battery_backup_socrata
+        >> signal_monitors_socrata
     )
