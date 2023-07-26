@@ -33,11 +33,11 @@ REQUIRED_SECRETS = {
         "opfield": f"{DEPLOYMENT_ENVIRONMENT}.Admin Key",
     },
     "AWS_BUCKET_NAME": {
-        "opitem": "CRIS CR3 Download",
+        "opitem": "Vision Zero CRIS CR3 Download",
         "opfield": f"{DEPLOYMENT_ENVIRONMENT}.AWS_CRIS_CR3_BUCKET_NAME",
     },
     "AWS_BUCKET_ENVIRONMENT": {
-        "opitem": "CRIS CR3 Download",
+        "opitem": "Vision Zero CRIS CR3 Download",
         "opfield": f"{DEPLOYMENT_ENVIRONMENT}.AWS_CRIS_CR3_BUCKET_PATH_ENVIRONMENT",
     },
 }
