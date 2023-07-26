@@ -33,7 +33,7 @@ REQUIRED_SECRETS = {
 }
 
 with DAG(
-    dag_id="vision_zero_reassociate_missing_locations",
+    dag_id="vz_reassociate_missing_locations",
     description="Execute housekeeping routine to associate VZ Polygons and Crashes together",
     default_args=DEFAULT_ARGS,
     schedule_interval="0 3 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,

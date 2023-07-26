@@ -43,7 +43,7 @@ REQUIRED_SECRETS = {
 }
 
 with DAG(
-    dag_id="vision_zero_process_missing_pdfs",
+    dag_id="vz_process_missing_pdfs",
     description="Execute housekeeping routine manage missing or malformed CR3 PDFs",
     default_args=DEFAULT_ARGS,
     schedule_interval="*/30 * * * *"
