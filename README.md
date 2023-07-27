@@ -78,9 +78,13 @@ If a DAG corresponds with another repo, be sure to add a [tag](https://airflow.a
 
 Never commit directly to the `production` branch. Commit your changes to a development branch, push the branch to Github, and open a pull request against `production`. Once your PR is reviwed and approved, merge the branch to `production`.
 
-Once merged, you will need to connect to our production Airflow host on the COA network.
+Once merged, you will need to connect to our production Airflow host on the COA network, then pull down your changes from Github. Airflow will automatically load any DAG changes within five minutes. Activate your DAG through the Airflow web interface at `https://airflow.austinmobility.io/`.
 
-From the `atd-airflow` directory, use `git pull` to bring down your changes from Github. Airflow will automatically load any DAG changes within five minutes. Activate your DAG through the Airflow web interface at `https://airflow.austinmobility.io/`.
+```shell
+# atd-data03
+$ cd /usr/airflow/atd-airflow
+$ sudo git pull
+```
 
 ## Utilities
 
