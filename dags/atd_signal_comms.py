@@ -201,7 +201,7 @@ with DAG(
         task_id="socrata_pub_signal_monitors",
         image=docker_image,
         auto_remove=True,
-        command=f"python atd-signal-comms/socrata_pub.py signal_monitors --start {start_date} -v --env {DEPLOYMENT_ENVIRONMENT}",
+        command=f"python atd-signal-comms/socrata_pub.py signal_monitor --start {start_date} -v --env {DEPLOYMENT_ENVIRONMENT}",
         environment=env_vars,
         tty=True,
         force_pull=False,
