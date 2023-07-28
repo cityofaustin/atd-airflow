@@ -46,7 +46,7 @@ with DAG(
     dag_id=f"atd_knack_banner",
     description="Update knack HR app based on records in Banner and CTM",
     default_args=DEFAULT_ARGS,
-    schedule_interval="45 8 * * *" if DEPLOYMENT_ENVIRONMENT == "prod" else None,
+    schedule_interval="45 7 * * *" if DEPLOYMENT_ENVIRONMENT == "prod" else None,
     dagrun_timeout=duration(minutes=30),
     tags=["repo:atd-knack-banner", "knack"],
     catchup=False,
