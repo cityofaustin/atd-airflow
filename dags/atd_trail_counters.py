@@ -55,7 +55,7 @@ with DAG(
 ) as dag:
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    start = "{{ prev_start_date_success.strftime('%Y-%m-%d') if prev_start_date_success else '1970-01-01'}}"
+    start = "{{ (prev_start_date_success - macros.timedelta(days=7)).strftime('%Y-%m-%d') if prev_start_date_success else '1970-01-01'}}"
     t1 = DockerOperator(
         task_id="trail_counter_data_publish",
         image=docker_image,
