@@ -23,7 +23,7 @@ default_args = {
     "on_failure_callback": task_fail_slack_alert,
 }
 
-docker_image = "atddocker/atd-trail-counters:latest"
+docker_image = "atddocker/atd-trail-counters:production"
 
 REQUIRED_SECRETS = {
     "SO_WEB": {
@@ -42,6 +42,10 @@ REQUIRED_SECRETS = {
         "opitem": "Trail Counters",
         "opfield": "production.Dataset ID",
     },
+    "DEVICE_DATASET": {
+        "opitem": "Trail Counters",
+        "opfield": "production.Device ID",
+    },
 }
 
 with DAG(
@@ -55,7 +59,7 @@ with DAG(
 ) as dag:
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    start = "{{ prev_start_date_success.strftime('%Y-%m-%d') if prev_start_date_success else '1970-01-01'}}"
+    start = "{{ (prev_start_date_success - macros.timedelta(days=7)).strftime('%Y-%m-%d') if prev_start_date_success else '1970-01-01'}}"
     t1 = DockerOperator(
         task_id="trail_counter_data_publish",
         image=docker_image,
