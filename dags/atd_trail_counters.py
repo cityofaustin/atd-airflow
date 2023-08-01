@@ -23,7 +23,7 @@ default_args = {
     "on_failure_callback": task_fail_slack_alert,
 }
 
-docker_image = "atddocker/atd-trail-counters:latest"
+docker_image = "atddocker/atd-trail-counters:production"
 
 REQUIRED_SECRETS = {
     "SO_WEB": {
