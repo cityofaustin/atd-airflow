@@ -42,6 +42,10 @@ REQUIRED_SECRETS = {
         "opitem": "Trail Counters",
         "opfield": "production.Dataset ID",
     },
+    "DEVICE_DATASET": {
+        "opitem": "Trail Counters",
+        "opfield": "production.Device ID",
+    },
 }
 
 with DAG(
