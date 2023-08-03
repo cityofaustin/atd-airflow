@@ -137,38 +137,62 @@ REQUIRED_SECRETS = {
 }
 
 docker_commands = [
-    "python txn_history.py -v --report transactions",
-    "python txn_history.py -v --report payments",
-    "python txn_history.py -v --report payments --user pard",
-    "python passport_txns.py -v",
-    "python fiserv_email_pub.py",
-    "python fiserv_DB.py",
-    "python payments_s3.py",
-    "python payments_s3.py --user pard",
-    "python passport_DB.py",
-    "python smartfolio_s3.py",
-    "python match_field_processing.py",
-    "python parking_socrata.py --dataset payments",
-    "python parking_socrata.py --dataset fiserv",
-    "python parking_socrata.py --dataset transactions",
-]
-
-# Task names for the above docker commands
-task_ids = [
-    "txn_history_report_transactions",
-    "txn_history_report_payments",
-    "txn_history_report_payments_user_pard",
-    "passport_txns",
-    "fiserv_email_pub",
-    "fiserv_DB",
-    "payments_s3",
-    "payments_s3_user_pard",
-    "passport_DB",
-    "smartfolio_s3",
-    "match_field_processing",
-    "parking_socrata_dataset_payments",
-    "parking_socrata_dataset_fiserv",
-    "parking_socrata_dataset_transactions",
+    {
+        "command": "python txn_history.py -v --report transactions",
+        "task_id": "txn_history_report_transactions",
+    },
+    {
+        "command": "python txn_history.py -v --report payments",
+        "task_id": "txn_history_report_payments",
+    },
+    {
+        "command": "python txn_history.py -v --report payments --user pard",
+        "task_id": "txn_history_report_payments_user_pard",
+    },
+    {
+        "command": "python passport_txns.py -v",
+        "task_id": "passport_txns",
+    },
+    {
+        "command": "python fiserv_email_pub.py",
+        "task_id": "fiserv_email_pub",
+    },
+    {
+        "command": "python fiserv_DB.py",
+        "task_id": "fiserv_DB",
+    },
+    {
+        "command": "python payments_s3.py",
+        "task_id": "payments_s3",
+    },
+    {
+        "command": "python payments_s3.py --user pard",
+        "task_id": "payments_s3_user_pard",
+    },
+    {
+        "command": "python passport_DB.py",
+        "task_id": "passport_DB",
+    },
+    {
+        "command": "python smartfolio_s3.py",
+        "task_id": "smartfolio_s3",
+    },
+    {
+        "command": "python match_field_processing.py",
+        "task_id": "match_field_processing",
+    },
+    {
+        "command": "python parking_socrata.py --dataset payments",
+        "task_id": "parking_socrata_dataset_payments",
+    },
+    {
+        "command": "python parking_socrata.py --dataset fiserv",
+        "task_id": "parking_socrata_dataset_fiserv",
+    },
+    {
+        "command": "python parking_socrata.py --dataset transactions",
+        "task_id": "parking_socrata_dataset_transactions",
+    },
 ]
 
 
@@ -198,33 +222,36 @@ def decide_prev_month(prev_exec):
         prev_month = False
 
 
-@task
+@task(
+    task_id="add_command_arguments",
+    multiple_outputs=True,
+)
 def add_command_arguments(commands, prev_exec, prev_month):
     # Adding parameters to to our docker commands to include the previous exec date
     # and wether or not to run the previous month
 
     output_tasks = []
     for c in commands:
-        if "txn_history.py" in c:
-            c = f"{c} --start {prev_exec}"
+        if "txn_history.py" in c["command"]:
+            c["command"] = f"{c['command']} --start {prev_exec}"
 
-        if "passport_txns.py" in c:
-            c = f"{c} --start {prev_exec}"
+        if "passport_txns.py" in c["command"]:
+            c["command"] = f"{c['command']} --start {prev_exec}"
 
-        if "fiserv_DB.py" in c:
-            c = f"{c} --lastmonth {prev_month}"
+        if "fiserv_DB.py" in c["command"]:
+            c["command"] = f"{c['command']} --lastmonth {prev_month}"
 
-        if "payments_s3.py" in c:
-            c = f"{c} --lastmonth {prev_month}"
+        if "payments_s3.py" in c["command"]:
+            c["command"] = f"{c['command']} --lastmonth {prev_month}"
 
-        if "passport_DB.py" in c:
-            c = f"{c} --lastmonth {prev_month}"
+        if "passport_DB.py" in c["command"]:
+            c["command"] = f"{c['command']} --lastmonth {prev_month}"
 
-        if "smartfolio_s3.py" in c:
-            c = f"{c} --lastmonth {prev_month}"
+        if "smartfolio_s3.py" in c["command"]:
+            c["command"] = f"{c['command']} --lastmonth {prev_month}"
 
         output_tasks.append(c)
-    return output_tasks
+    return {"docker_commands_amended": output_tasks}
 
 
 with DAG(
@@ -244,11 +271,11 @@ with DAG(
     tasks = add_command_arguments(docker_commands, prev_exec, prev_month)
 
     docker_tasks = []
-    for i, docker_command in enumerate(docker_commands):
+    for docker_command in tasks["docker_commands_amended"]:
         docker_task = DockerOperator(
-            task_id=task_ids[i],
+            task_id=docker_command["task_id"],
             image=docker_image,
-            command=docker_command,
+            command=docker_command["command"],
             api_version="auto",
             auto_remove=True,
             environment=env_vars,
