@@ -60,7 +60,7 @@ with DAG(
     tags=["repo:atd-kits", "knack", "kits", "dms"],
     catchup=False,
 ) as dag:
-    docker_image = "atddocker/atd-kits:latest"
+    docker_image = "atddocker/atd-kits:production"
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
@@ -71,7 +71,7 @@ with DAG(
         command="python ./atd-kits/atd-kits/dms_message_pub.py",
         environment=env_vars,
         tty=True,
-        # force_pull=True,
+        force_pull=True,
         mount_tmp_dir=False,
     )
 
