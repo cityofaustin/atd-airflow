@@ -64,7 +64,6 @@ with DAG(
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
-        network_mode="host",
     )
 
     update_employees
