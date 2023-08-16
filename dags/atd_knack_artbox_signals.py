@@ -17,7 +17,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "retry_delay": duration(minutes=5),
+    "execution_timeout": duration(minutes=30),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -79,7 +79,6 @@ with DAG(
     description="Load signals (view_197) records from Knack data tracker to smart mobility",
     default_args=DEFAULT_ARGS,
     schedule_interval="30 0 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=duration(minutes=5),
     tags=["repo:atd-knack-services", "knack", "data-tracker", "smart-mobility"],
     catchup=False,
 ) as dag:

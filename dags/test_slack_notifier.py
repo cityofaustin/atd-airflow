@@ -16,6 +16,7 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
+    "execution_timeout": duration(minutes=5),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -28,7 +29,6 @@ with DAG(
     dag_id=f"test_slack_notifier_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
     schedule_interval=None,
-    dagrun_timeout=duration(minutes=60),
     tags=["slack"],
     catchup=False,
 ) as dag:

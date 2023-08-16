@@ -17,6 +17,7 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
+    "execution_timeout": duration(minutes=5),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -44,7 +45,6 @@ with DAG(
     default_args=default_args,
     # Every 5 minutes, at 8A, 9A, and 10A
     schedule_interval="*/5 8-10 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=duration(minutes=5),
     tags=["repo:atd-vz-data", "vision-zero"],
     catchup=False,
 ) as dag:

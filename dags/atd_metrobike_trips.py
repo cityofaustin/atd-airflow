@@ -21,6 +21,7 @@ default_args = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
+    "execution_timeout": timedelta(minutes=20),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -51,7 +52,6 @@ with DAG(
     description="Fetch metrobike trip data from dropbox and publish to Socrata",
     default_args=default_args,
     schedule_interval="33 1 * * 1" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=timedelta(minutes=60),
     tags=["repo:atd-metrobike", "metrobike", "socrata"],
     catchup=False,
 ) as dag:

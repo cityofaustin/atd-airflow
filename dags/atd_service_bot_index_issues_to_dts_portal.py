@@ -1,5 +1,5 @@
 import os
-import pendulum
+from pendulum import datetime, duration
 
 from airflow.decorators import task
 from airflow.models import DAG
@@ -13,10 +13,11 @@ default_args = {
     "owner": "airflow",
     "description": "Create/update 'Index' issues in the DTS portal from Github.",
     "depends_on_past": False,
-    "start_date": pendulum.datetime(2015, 12, 1, tz="America/Chicago"),
+    "start_date": datetime(2015, 12, 1, tz="America/Chicago"),
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
+    "execution_timeout": duration(minutes=20),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -41,13 +42,12 @@ with DAG(
     dag_id=f"atd_service_bot_issues_to_dts_portal_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
     schedule_interval="0 5 * * *",
-    dagrun_timeout=pendulum.duration(minutes=60),
     tags=["repo:atd-service-bot", "knack", "github"],
     catchup=False,
 ) as dag:
     @task(
         task_id="get_env_vars",
-        execution_timeout=pendulum.duration(seconds=30),
+        execution_timeout=duration(seconds=30),
     )
     def get_env_vars():
         from utils.onepassword import load_dict
