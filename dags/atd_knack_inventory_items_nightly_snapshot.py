@@ -56,7 +56,7 @@ with DAG(
     dag_id="atd_knack_inventory_items_nightly_snapshot",
     description="Appends inventory item counts to running log in Socrata",
     default_args=DEFAULT_ARGS,
-    schedule_interval="13 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="13 23 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata"],
     catchup=False,
 ) as dag:
