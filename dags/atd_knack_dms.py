@@ -65,7 +65,6 @@ with DAG(
     dag_id="atd_knack_dms",
     default_args=DEFAULT_ARGS,
     description="Load dms (view_1564) records from Knack to Postgrest to AGOL and Socrata",
-    schedule_interval="10 10 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     schedule_interval="24 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "agol", "data-tracker"],
     catchup=False,
