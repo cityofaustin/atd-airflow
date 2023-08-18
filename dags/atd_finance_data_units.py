@@ -138,7 +138,7 @@ with DAG(
     finance_purchasing_env = get_env_vars_task(FINANCE_PURCHASING_SECRETS)
 
     t1 = DockerOperator(
-        task_id="task_orders_to_s3",
+        task_id="units_orders_to_s3",
         image="atddocker/atd-finance-data:production",
         auto_remove=True,
         command="python upload_to_s3.py units",
@@ -149,7 +149,7 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id="task_orders_to_data_tracker",
+        task_id="units_to_data_tracker",
         image="atddocker/atd-finance-data:production",
         auto_remove=True,
         command="python s3_to_knack.py units data-tracker",
@@ -160,7 +160,7 @@ with DAG(
     )
 
     t3 = DockerOperator(
-        task_id="task_orders_to_finance_purchasing",
+        task_id="units_to_socrata",
         image="atddocker/atd-finance-data:production",
         auto_remove=True,
         command="python s3_to_socrata.py --dataset dept_units",

@@ -138,7 +138,7 @@ with DAG(
     finance_purchasing_env = get_env_vars_task(FINANCE_PURCHASING_SECRETS)
 
     t1 = DockerOperator(
-        task_id="task_orders_to_s3",
+        task_id="master_agreements_to_s3",
         image="atddocker/atd-finance-data:production",
         auto_remove=True,
         command="python upload_to_s3.py master_agreements",

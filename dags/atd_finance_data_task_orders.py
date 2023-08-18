@@ -171,7 +171,7 @@ with DAG(
     )
 
     t4 = DockerOperator(
-        task_id="task_orders_to_finance_purchasing",
+        task_id="task_orders_to_socrata",
         image="atddocker/atd-finance-data:production",
         auto_remove=True,
         command="python s3_to_socrata.py --dataset task_orders",
