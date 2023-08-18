@@ -18,7 +18,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "retry_delay": duration(minutes=5),
+    "execution_timeout": duration(minutes=5),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -38,7 +38,6 @@ with DAG(
     description="Update traffic signal records with secondary signal relationships.",
     default_args=DEFAULT_ARGS,
     schedule_interval="25 2 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=duration(minutes=60),
     tags=["repo:atd-knack-services", "knack", "data-tracker"],
     catchup=False,
 ) as dag:
