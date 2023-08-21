@@ -17,7 +17,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "retry_delay": duration(minutes=5),
+    "execution_timeout": duration(minutes=5),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -50,7 +50,6 @@ with DAG(
     default_args=DEFAULT_ARGS,
     description="Fetch road condition sensor data from postgrest and publish to socrata",
     schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=duration(minutes=5),
     tags=["repo:atd-road-conditions", "socrata"],
     catchup=False,
 ) as dag:

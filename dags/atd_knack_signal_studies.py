@@ -17,6 +17,7 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
+    "execution_timeout": duration(minutes=5),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -55,7 +56,6 @@ with DAG(
     dag_id=f"atd_knack_services_signal_studies",
     default_args=default_args,
     schedule_interval="5 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=duration(minutes=5),
     tags=["repo:atd-knack-services", "knack", "socrata"],
     catchup=False,
 ) as dag:

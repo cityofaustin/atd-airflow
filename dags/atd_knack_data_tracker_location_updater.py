@@ -17,7 +17,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "retry_delay": duration(minutes=5),
+    "execution_timeout": duration(minutes=5),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -45,7 +45,6 @@ with DAG(
     description="Assigns signal records to CSR issues in data tracker based on CSR location",
     default_args=DEFAULT_ARGS,
     schedule_interval="19 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=duration(minutes=5),
     tags=["repo:atd-knack-services", "knack", "data-tracker", "agol"],
     catchup=False,
 ) as dag:

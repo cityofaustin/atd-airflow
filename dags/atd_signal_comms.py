@@ -17,7 +17,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "retry_delay": duration(minutes=5),
+    "execution_timeout": duration(minutes=20),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -79,7 +79,6 @@ with DAG(
     description="Ping network devices and publish to S3, then socrata",
     default_args=DEFAULT_ARGS,
     schedule_interval="7 2 * * *" if DEPLOYMENT_ENVIRONMENT == "prod" else None,
-    dagrun_timeout=duration(minutes=30),
     tags=["repo:atd-signal-comms", "socrata"],
     catchup=False,
 ) as dag:

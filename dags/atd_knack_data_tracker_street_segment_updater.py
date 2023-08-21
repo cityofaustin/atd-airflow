@@ -17,7 +17,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "retry_delay": duration(minutes=5),
+    "execution_timeout": duration(minutes=5),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -45,7 +45,6 @@ with DAG(
     description="Update street segment records in Data Tracker with feature data from ArcGIS Online",
     default_args=DEFAULT_ARGS,
     schedule_interval="45 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=duration(minutes=5),
     tags=["repo:atd-knack-services", "knack", "data-tracker", "agol"],
     catchup=False,
 ) as dag:

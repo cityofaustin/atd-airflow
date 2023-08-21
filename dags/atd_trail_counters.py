@@ -20,6 +20,7 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
+    "execution_timeout": timedelta(minutes=60),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -53,7 +54,6 @@ with DAG(
     description="Scrapes trail counter data from the public eco-counter website and publishes it in Socrata",
     default_args=default_args,
     schedule_interval="00 8 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=timedelta(minutes=60),
     tags=["repo:atd-trail-counter-data", "socrata"],
     catchup=False,
 ) as dag:
