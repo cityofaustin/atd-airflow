@@ -1,4 +1,4 @@
-# test locally with: docker compose run --rm airflow-cli dags test atd_finance_data_task_orders
+# test locally with: docker compose run --rm airflow-cli dags test atd_finance_data_master_agreements
 
 import os
 
@@ -72,23 +72,11 @@ OTHER_SECRETS = {
         "opitem": "atd-finance-data",
         "opfield": "production.Bucket",
     },
-    "BUCKET_NAME": {
-        "opitem": "atd-finance-data",
-        "opfield": "production.Bucket",
-    },
     "AWS_ACCESS_KEY_ID": {
         "opitem": "atd-finance-data",
         "opfield": "production.Access ID",
     },
     "AWS_SECRET_ACCESS_KEY": {
-        "opitem": "atd-finance-data",
-        "opfield": "production.Secret Access Key",
-    },
-    "AWS_ACCESS_ID": {
-        "opitem": "atd-finance-data",
-        "opfield": "production.Access ID",
-    },
-    "AWS_PASS": {
         "opitem": "atd-finance-data",
         "opfield": "production.Secret Access Key",
     },
@@ -103,6 +91,10 @@ OTHER_SECRETS = {
     "DEPT_UNITS_DATASET": {
         "opitem": "atd-finance-data",
         "opfield": "production.Department Units Dataset ID",
+    },
+    "SUBPROJECTS_DATASET": {
+        "opitem": "atd-finance-data",
+        "opfield": "production.Subprojects Dataset ID",
     },
     "SO_USER": {
         "opitem": "Socrata Key ID, Secret, and Token",

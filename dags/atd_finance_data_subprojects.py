@@ -1,4 +1,4 @@
-# test locally with: docker compose run --rm airflow-cli dags test atd_finance_data_objects
+# test locally with: docker compose run --rm airflow-cli dags test atd_finance_data_task_orders
 
 import os
 
@@ -119,10 +119,10 @@ DATA_TRACKER_SECRETS.update(OTHER_SECRETS)
 FINANCE_PURCHASING_SECRETS.update(OTHER_SECRETS)
 
 with DAG(
-    dag_id="atd_finance_data_objects",
+    dag_id="atd_finance_data_subprojects",
     description="Gets Finance data from a database, places it in an S3 bucket, then moves it along to Knack and socrata.",
     default_args=DEFAULT_ARGS,
-    schedule_interval="23 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="13 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-finance-data", "knack", "data-tracker", "socrata"],
     catchup=False,
 ) as dag:
@@ -130,14 +130,25 @@ with DAG(
     finance_purchasing_env = get_env_vars_task(FINANCE_PURCHASING_SECRETS)
 
     t1 = DockerOperator(
-        task_id="objects_to_s3",
+        task_id="subprojects_to_s3",
         image="atddocker/atd-finance-data:production",
         auto_remove=True,
-        command="python upload_to_s3.py objects",
+        command="python upload_to_s3.py subprojects",
         environment=data_tracker_env,
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
     )
 
-    t1
+    t2 = DockerOperator(
+        task_id="subprojects_to_data_tracker",
+        image="atddocker/atd-finance-data:production",
+        auto_remove=True,
+        command="python s3_to_knack.py subprojects finance-purchasing",
+        environment=data_tracker_env,
+        tty=True,
+        force_pull=False,
+        mount_tmp_dir=False,
+    )
+
+    t1 >> t2
