@@ -145,7 +145,7 @@ with DAG(
         image="atddocker/atd-finance-data:production",
         auto_remove=True,
         command="python s3_to_knack.py subprojects finance-purchasing",
-        environment=data_tracker_env,
+        environment=finance_purchasing_env,
         tty=True,
         force_pull=False,
         mount_tmp_dir=False,
