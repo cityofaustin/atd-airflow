@@ -17,7 +17,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "execution_timeout": duration(minutes=5),
+    "execution_timeout": duration(minutes=15),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -66,7 +66,9 @@ with DAG(
     description="Load work orders signs (view_3107) records from Knack to Postgrest to AGOL, Socrata",
     default_args=DEFAULT_ARGS,
     # runs once at ~10a cst and again at ~2pm cst
-    schedule_interval="50 9,13 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="50 9,13 * * *"
+    if DEPLOYMENT_ENVIRONMENT == "production"
+    else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "signs-markings"],
     catchup=False,
 ) as dag:
@@ -89,7 +91,6 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-
     t2 = DockerOperator(
         task_id="atd_knack_signs_work_orders_to_agol",
         image=docker_image,
@@ -101,12 +102,11 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-
     t3 = DockerOperator(
         task_id="atd_knack_work_orders_signs_to_socrata",
         image=docker_image,
         auto_remove=True,
-        command=f'./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}',
+        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
