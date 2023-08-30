@@ -137,108 +137,6 @@ REQUIRED_SECRETS = {
 }
 
 
-docker_commands = [
-    {
-        "command": "python txn_history.py -v --report transactions",
-        "task_id": "txn_history_report_transactions",
-        "dynamic_arg": "--start",
-    },
-    {
-        "command": "python txn_history.py -v --report payments",
-        "task_id": "txn_history_report_payments",
-        "dynamic_arg": "--start",
-    },
-    {
-        "command": "python txn_history.py -v --report payments --user pard",
-        "task_id": "txn_history_report_payments_user_pard",
-        "dynamic_arg": "--start",
-    },
-    {
-        "command": "python passport_txns.py -v",
-        "task_id": "passport_txns",
-        "dynamic_arg": "--start",
-    },
-    {
-        "command": "python fiserv_email_pub.py",
-        "task_id": "fiserv_email_pub",
-    },
-    {
-        "command": "python fiserv_DB.py",
-        "task_id": "fiserv_DB",
-        "dynamic_arg": "--lastmonth",
-    },
-    {
-        "command": "python payments_s3.py",
-        "task_id": "payments_s3",
-        "dynamic_arg": "--lastmonth",
-    },
-    {
-        "command": "python payments_s3.py --user pard",
-        "task_id": "payments_s3_user_pard",
-        "dynamic_arg": "--lastmonth",
-    },
-    {
-        "command": "python passport_DB.py",
-        "task_id": "passport_DB",
-        "dynamic_arg": "--lastmonth",
-    },
-    {
-        "command": "python smartfolio_s3.py",
-        "task_id": "smartfolio_s3",
-        "dynamic_arg": "--lastmonth",
-    },
-    {
-        "command": "python match_field_processing.py",
-        "task_id": "match_field_processing",
-    },
-    {
-        "command": "python parking_socrata.py --dataset payments",
-        "task_id": "parking_socrata_dataset_payments",
-    },
-    {
-        "command": "python parking_socrata.py --dataset fiserv",
-        "task_id": "parking_socrata_dataset_fiserv",
-    },
-    {
-        "command": "python parking_socrata.py --dataset transactions",
-        "task_id": "parking_socrata_dataset_transactions",
-    },
-]
-
-
-@task
-def decide_prev_month(prev_exec):
-    """
-    Determines if the current month or the current plus previous month S3
-        folders are needed. If it is within a week of the previous month,
-        also upsert that months data.
-    Parameters
-    ----------
-    prev_execution_date_success : String
-        Last date the flow was successful.
-
-    Returns
-    -------
-    Prev_month : Bool
-        Argument if the previous month should be run.
-
-    """
-    last_date = datetime.strptime(prev_exec, "%Y-%m-%d")
-    # If in the first 8 days of the month of last few days of the month re-run
-    # the previous month's data to make sure it is complete.
-    if last_date.day < 8 or last_date.day > 26:
-        return True
-    else:
-        return False
-    return False
-
-
-@task
-def log_commands(cmd):
-    print(cmd)
-    return
-
-
 with DAG(
     dag_id="atd_parking_data",
     description="Scripts that download and process parking data for finance reporting.",
@@ -250,37 +148,233 @@ with DAG(
 ) as dag:
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
     prev_exec = "{{ (prev_start_date_success - macros.timedelta(days=7)).strftime('%Y-%m-%d') if prev_start_date_success else '2023-08-01'}}"
-    prev_month = decide_prev_month(prev_exec)
 
     docker_tasks = []
-    commands_logging = []
 
-    for docker_command in docker_commands:
-        dynamic_arg = docker_command.get("dynamic_arg") or ""
-        if dynamic_arg:
-            dynamic_arg = (
-                f"{dynamic_arg} {prev_exec}"
-                if dynamic_arg == "--start"
-                else f"{dynamic_arg} {prev_month}"
-            )
-
-        docker_task = DockerOperator(
-            task_id=docker_command["task_id"],
+    docker_tasks.append(
+        DockerOperator(
+            task_id="smartfolio_transactions",
             image=docker_image,
-            command=f"{docker_command['command']} {dynamic_arg}",
+            command=f"python txn_history.py -v --report transactions --start {prev_exec}",
             api_version="auto",
             auto_remove=True,
             environment=env_vars,
-            dag=dag,
+            tty=True,
+            force_pull=True,
+            retries=3,
+            retry_delay=timedelta(seconds=60),
+        )
+    )
+
+    docker_tasks.append(
+        DockerOperator(
+            task_id="smartfolio_payments",
+            image=docker_image,
+            command=f"python txn_history.py -v --report payments --start {prev_exec}",
+            api_version="auto",
+            auto_remove=True,
+            environment=env_vars,
             tty=True,
             force_pull=False,
             retries=3,
             retry_delay=timedelta(seconds=60),
         )
-        docker_tasks.append(docker_task)
-        commands_logging.append(f"{docker_command['command']} {dynamic_arg}")
+    )
 
-    log_commands(commands_logging)
-    # Set up the dependencies between tasks
+    docker_tasks.append(
+        DockerOperator(
+            task_id="smartfolio_pard_payments",
+            image=docker_image,
+            command=f"python txn_history.py -v --report payments --user pard --start {prev_exec}",
+            api_version="auto",
+            auto_remove=True,
+            environment=env_vars,
+            tty=True,
+            force_pull=False,
+            retries=3,
+            retry_delay=timedelta(seconds=60),
+        )
+    )
+
+    docker_tasks.append(
+        DockerOperator(
+            task_id="passport_transactions",
+            image=docker_image,
+            command=f"python passport_txns.py -v --start {prev_exec}",
+            api_version="auto",
+            auto_remove=True,
+            environment=env_vars,
+            tty=True,
+            force_pull=False,
+            retries=3,
+            retry_delay=timedelta(seconds=60),
+        )
+    )
+
+    docker_tasks.append(
+        DockerOperator(
+            task_id="process_fiserv_emails",
+            image=docker_image,
+            command=f"python fiserv_email_pub.py",
+            api_version="auto",
+            auto_remove=True,
+            environment=env_vars,
+            tty=True,
+            force_pull=False,
+            retries=3,
+            retry_delay=timedelta(seconds=60),
+        )
+    )
+
+    docker_tasks.append(
+        DockerOperator(
+            task_id="process_fiserv_attachments",
+            image=docker_image,
+            command=f"python fiserv_DB.py --lastmonth True",
+            api_version="auto",
+            auto_remove=True,
+            environment=env_vars,
+            tty=True,
+            force_pull=False,
+            retries=3,
+            retry_delay=timedelta(seconds=60),
+        )
+    )
+
+    docker_tasks.append(
+        DockerOperator(
+            task_id="process_fiserv_attachments",
+            image=docker_image,
+            command=f"python fiserv_DB.py --lastmonth True",
+            api_version="auto",
+            auto_remove=True,
+            environment=env_vars,
+            tty=True,
+            force_pull=False,
+            retries=3,
+            retry_delay=timedelta(seconds=60),
+        )
+    )
+
+    docker_tasks.append(
+        DockerOperator(
+            task_id="process_smartfolio_payments",
+            image=docker_image,
+            command=f"python payments_s3.py --lastmonth True",
+            api_version="auto",
+            auto_remove=True,
+            environment=env_vars,
+            tty=True,
+            force_pull=False,
+            retries=3,
+            retry_delay=timedelta(seconds=60),
+        )
+    )
+
+    docker_tasks.append(
+        DockerOperator(
+            task_id="process_pard_smartfolio_payments",
+            image=docker_image,
+            command=f"python payments_s3.py --user pard --lastmonth True",
+            api_version="auto",
+            auto_remove=True,
+            environment=env_vars,
+            tty=True,
+            force_pull=False,
+            retries=3,
+            retry_delay=timedelta(seconds=60),
+        )
+    )
+
+    docker_tasks.append(
+        DockerOperator(
+            task_id="process_passport_transactions",
+            image=docker_image,
+            command=f"python passport_DB.py --lastmonth True",
+            api_version="auto",
+            auto_remove=True,
+            environment=env_vars,
+            tty=True,
+            force_pull=False,
+            retries=3,
+            retry_delay=timedelta(seconds=60),
+        )
+    )
+
+    docker_tasks.append(
+        DockerOperator(
+            task_id="process_smartfolio_transactions",
+            image=docker_image,
+            command=f"python smartfolio_s3.py --lastmonth True",
+            api_version="auto",
+            auto_remove=True,
+            environment=env_vars,
+            tty=True,
+            force_pull=False,
+            retries=3,
+            retry_delay=timedelta(seconds=60),
+        )
+    )
+
+    docker_tasks.append(
+        DockerOperator(
+            task_id="match_fiserv_and_smartfolio_payments",
+            image=docker_image,
+            command=f"python match_field_processing.py",
+            api_version="auto",
+            auto_remove=True,
+            environment=env_vars,
+            tty=True,
+            force_pull=False,
+            retries=3,
+            retry_delay=timedelta(seconds=60),
+        )
+    )
+
+    docker_tasks.append(
+        DockerOperator(
+            task_id="payments_to_socrata",
+            image=docker_image,
+            command=f"python parking_socrata.py --dataset payments",
+            api_version="auto",
+            auto_remove=True,
+            environment=env_vars,
+            tty=True,
+            force_pull=False,
+            retries=3,
+            retry_delay=timedelta(seconds=60),
+        )
+    )
+
+    docker_tasks.append(
+        DockerOperator(
+            task_id="payments_to_socrata",
+            image=docker_image,
+            command=f"python parking_socrata.py --dataset fiserv",
+            api_version="auto",
+            auto_remove=True,
+            environment=env_vars,
+            tty=True,
+            force_pull=False,
+            retries=3,
+            retry_delay=timedelta(seconds=60),
+        )
+    )
+
+    docker_tasks.append(
+        DockerOperator(
+            task_id="payments_to_socrata",
+            image=docker_image,
+            command=f"python parking_socrata.py --dataset transactions",
+            api_version="auto",
+            auto_remove=True,
+            environment=env_vars,
+            tty=True,
+            force_pull=False,
+            retries=3,
+            retry_delay=timedelta(seconds=60),
+        )
+    )
+
     for i in range(1, len(docker_tasks)):
         docker_tasks[i - 1] >> docker_tasks[i]
