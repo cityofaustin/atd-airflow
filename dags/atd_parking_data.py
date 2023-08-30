@@ -1,7 +1,6 @@
 # test locally with: docker compose run --rm airflow-cli dags test atd_parking_data
 import os
-
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from airflow.decorators import task
 from airflow.models import DAG
@@ -9,6 +8,7 @@ from airflow.models.dagrun import DagRun
 from airflow.models.param import Param
 from airflow.models.taskinstance import TaskInstance
 from airflow.operators.docker_operator import DockerOperator
+from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
@@ -22,6 +22,7 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
+    "execution_timeout": duration(minutes=60 * 5),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -142,12 +143,11 @@ with DAG(
     description="Scripts that download and process parking data for finance reporting.",
     default_args=default_args,
     schedule_interval="35 8 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=timedelta(minutes=60 * 5),
     tags=["repo:atd-parking-data", "parking", "socrata", "postgrest"],
     catchup=False,
 ) as dag:
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
-    prev_exec = "{{ (prev_start_date_success - macros.timedelta(days=7)).strftime('%Y-%m-%d') if prev_start_date_success else '2023-08-01'}}"
+    prev_exec = "{{ (prev_start_date_success - macros.timedelta(days=7)).strftime('%Y-%m-%d') if prev_start_date_success else '2023-08-28'}}"
 
     docker_tasks = []
 
@@ -162,7 +162,7 @@ with DAG(
             tty=True,
             force_pull=True,
             retries=3,
-            retry_delay=timedelta(seconds=60),
+            retry_delay=duration(seconds=60),
         )
     )
 
@@ -177,7 +177,7 @@ with DAG(
             tty=True,
             force_pull=False,
             retries=3,
-            retry_delay=timedelta(seconds=60),
+            retry_delay=duration(seconds=60),
         )
     )
 
@@ -192,7 +192,7 @@ with DAG(
             tty=True,
             force_pull=False,
             retries=3,
-            retry_delay=timedelta(seconds=60),
+            retry_delay=duration(seconds=60),
         )
     )
 
@@ -207,7 +207,7 @@ with DAG(
             tty=True,
             force_pull=False,
             retries=3,
-            retry_delay=timedelta(seconds=60),
+            retry_delay=duration(seconds=60),
         )
     )
 
@@ -222,7 +222,7 @@ with DAG(
             tty=True,
             force_pull=False,
             retries=3,
-            retry_delay=timedelta(seconds=60),
+            retry_delay=duration(seconds=60),
         )
     )
 
@@ -237,22 +237,7 @@ with DAG(
             tty=True,
             force_pull=False,
             retries=3,
-            retry_delay=timedelta(seconds=60),
-        )
-    )
-
-    docker_tasks.append(
-        DockerOperator(
-            task_id="process_fiserv_attachments",
-            image=docker_image,
-            command=f"python fiserv_DB.py --lastmonth True",
-            api_version="auto",
-            auto_remove=True,
-            environment=env_vars,
-            tty=True,
-            force_pull=False,
-            retries=3,
-            retry_delay=timedelta(seconds=60),
+            retry_delay=duration(seconds=60),
         )
     )
 
@@ -267,7 +252,7 @@ with DAG(
             tty=True,
             force_pull=False,
             retries=3,
-            retry_delay=timedelta(seconds=60),
+            retry_delay=duration(seconds=60),
         )
     )
 
@@ -282,7 +267,7 @@ with DAG(
             tty=True,
             force_pull=False,
             retries=3,
-            retry_delay=timedelta(seconds=60),
+            retry_delay=duration(seconds=60),
         )
     )
 
@@ -297,7 +282,7 @@ with DAG(
             tty=True,
             force_pull=False,
             retries=3,
-            retry_delay=timedelta(seconds=60),
+            retry_delay=duration(seconds=60),
         )
     )
 
@@ -312,7 +297,7 @@ with DAG(
             tty=True,
             force_pull=False,
             retries=3,
-            retry_delay=timedelta(seconds=60),
+            retry_delay=duration(seconds=60),
         )
     )
 
@@ -327,7 +312,7 @@ with DAG(
             tty=True,
             force_pull=False,
             retries=3,
-            retry_delay=timedelta(seconds=60),
+            retry_delay=duration(seconds=60),
         )
     )
 
@@ -342,13 +327,13 @@ with DAG(
             tty=True,
             force_pull=False,
             retries=3,
-            retry_delay=timedelta(seconds=60),
+            retry_delay=duration(seconds=60),
         )
     )
 
     docker_tasks.append(
         DockerOperator(
-            task_id="payments_to_socrata",
+            task_id="fiserv_to_socrata",
             image=docker_image,
             command=f"python parking_socrata.py --dataset fiserv",
             api_version="auto",
@@ -357,13 +342,13 @@ with DAG(
             tty=True,
             force_pull=False,
             retries=3,
-            retry_delay=timedelta(seconds=60),
+            retry_delay=duration(seconds=60),
         )
     )
 
     docker_tasks.append(
         DockerOperator(
-            task_id="payments_to_socrata",
+            task_id="transactions_to_socrata",
             image=docker_image,
             command=f"python parking_socrata.py --dataset transactions",
             api_version="auto",
@@ -372,9 +357,10 @@ with DAG(
             tty=True,
             force_pull=False,
             retries=3,
-            retry_delay=timedelta(seconds=60),
+            retry_delay=duration(seconds=60),
         )
     )
 
+    # All tasks will run sequentially
     for i in range(1, len(docker_tasks)):
         docker_tasks[i - 1] >> docker_tasks[i]
