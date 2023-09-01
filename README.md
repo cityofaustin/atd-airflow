@@ -44,6 +44,8 @@ _AIRFLOW__WEBSERVER__BASE_URL=http://localhost:8080
 OP_API_TOKEN=<Get from 1Password entry named "Connect Server: Production Access Token: API Accessible Secrets">
 OP_CONNECT=<Get from 1Password entry named "Endpoint for 1Password Connect Server API">
 OP_VAULT_ID=<Get from 1Password entry named "Vault ID of API Accessible Secrets vault">
+DOCKER_HUB_USERNAME=<Get from 1Password entry named "Docker Hub">
+DOCKER_HUB_TOKEN=<A docker hub access token assigned to specifically to you>
 ```
 
 3. Start the Docker the stack (optionlly use the `-d` flag to run containers in the background):
