@@ -5,6 +5,7 @@ from airflow.operators.docker_operator import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
+from utils.knack import get_date_filter_arg
 from utils.slack_operator import task_fail_slack_alert
 
 DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
@@ -49,40 +50,27 @@ REQUIRED_SECRETS = {
         "opitem": "atd-knack-services PostgREST",
         "opfield": "production.jwt",
     },
-    "AWS_ACCESS_ID": {
-        "opitem": "Socrata Dataset Backups S3 Bucket",
-        "opfield": "production.AWS Access Key",
-    },
-    "AWS_SECRET_ACCESS_KEY": {
-        "opitem": "Socrata Dataset Backups S3 Bucket",
-        "opfield": "production.AWS Secret Access Key",
-    },
-    "BUCKET": {
-        "opitem": "Socrata Dataset Backups S3 Bucket",
-        "opfield": "production.Bucket",
-    },
 }
 
 
 with DAG(
-    dag_id="atd_knack_inventory_items_nightly_snapshot",
-    description="Appends inventory item counts to running log in Socrata",
+    dag_id="atd_knack_inventory_transactions",
+    description="Updates a socrata dataset of AMD invetory transactions.",
     default_args=DEFAULT_ARGS,
-    schedule_interval="13 23 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="33 23 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/atd-knack-services:production"
     app_name = "data-tracker"
-    container = "view_2863"
+    container = "view_3897"
 
-    # we always want to append the the complete view contents every time
-    date_filter_arg = "-d 1970-01-01"
+    date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
-        task_id="atd_knack_inventory_items_nightly_snapshot_to_postgrest",
+        task_id="atd_knack_inventory_transactions_to_postgrest",
         image=docker_image,
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
@@ -93,7 +81,7 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id="atd_knack_inventory_items_nightly_snapshot_to_socrata",
+        task_id="atd_knack_inventory_transactions_to_socrata",
         image=docker_image,
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}",
@@ -102,14 +90,4 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t3 = DockerOperator(
-        task_id="atd_knack_inventory_items_nightly_snapshot_socrata_backup",
-        image=docker_image,
-        auto_remove=True,
-        command=f"./atd-knack-services/services/backup_socrata.py -a {app_name} -c {container}",
-        environment=env_vars,
-        tty=True,
-        mount_tmp_dir=False,
-    )
-
-    t1 >> t2 >> t3
+    t1 >> t2
