@@ -112,7 +112,7 @@ with DAG(
         command=f"python finance-reports/mstro_reports_to_socrata.py",
         environment=env_vars,
         tty=True,
-        force_pull=True,
+        force_pull=False,
     )
 
     t1 >> t2
