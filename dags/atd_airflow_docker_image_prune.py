@@ -40,4 +40,10 @@ with DAG(
         task_id="prune_images",
         bash_command="docker image prune -f",
     )
-    t1
+
+    t2 = BashOperator(
+        task_id="prune_containers",
+        bash_command="docker container prune -f",
+    )
+
+    t1 >> t2
