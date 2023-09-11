@@ -55,7 +55,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id="atd_knack_inventory_transactions",
-    description="Updates a socrata dataset of AMD invetory transactions.",
+    description="Updates a socrata dataset of AMD inventory transactions.",
     default_args=DEFAULT_ARGS,
     schedule_interval="33 23 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata"],
