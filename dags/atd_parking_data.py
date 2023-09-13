@@ -85,6 +85,10 @@ REQUIRED_SECRETS = {
         "opitem": "Parking Data ETL",
         "opfield": "fiserv.Expected Email Address",
     },
+    "ENCRYPTION_KEY": {
+        "opitem": "Parking Data ETL",
+        "opfield": "fiserv.Encryption Key",
+    },
     # AWS S3
     "AWS_ACCESS_ID": {
         "opitem": "Parking Data ETL",
