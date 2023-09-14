@@ -85,7 +85,7 @@ REQUIRED_SECRETS = {
         "opitem": "Parking Data ETL",
         "opfield": "fiserv.Expected Email Address",
     },
-    "ENCRYPTION_KEY": {
+    "FSRV_ENCRYPTION": {
         "opitem": "Parking Data ETL",
         "opfield": "fiserv.Encryption Key",
     },
