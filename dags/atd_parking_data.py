@@ -159,7 +159,7 @@ with DAG(
         DockerOperator(
             task_id="smartfolio_transactions",
             image=docker_image,
-            command=f"python txn_history.py -v --report transactions --start {prev_exec}",
+            command=f"python txn_history.py -v --report transactions --env prod --start {prev_exec}",
             api_version="auto",
             auto_remove=True,
             environment=env_vars,
@@ -174,7 +174,7 @@ with DAG(
         DockerOperator(
             task_id="smartfolio_payments",
             image=docker_image,
-            command=f"python txn_history.py -v --report payments --start {prev_exec}",
+            command=f"python txn_history.py -v --report payments --env prod --start {prev_exec}",
             api_version="auto",
             auto_remove=True,
             environment=env_vars,
@@ -189,7 +189,7 @@ with DAG(
         DockerOperator(
             task_id="smartfolio_pard_payments",
             image=docker_image,
-            command=f"python txn_history.py -v --report payments --user pard --start {prev_exec}",
+            command=f"python txn_history.py -v --report payments --user pard --env prod --start {prev_exec}",
             api_version="auto",
             auto_remove=True,
             environment=env_vars,
@@ -204,7 +204,7 @@ with DAG(
         DockerOperator(
             task_id="passport_transactions",
             image=docker_image,
-            command=f"python passport_txns.py -v --start {prev_exec}",
+            command=f"python passport_txns.py -v --env prod --start {prev_exec}",
             api_version="auto",
             auto_remove=True,
             environment=env_vars,
