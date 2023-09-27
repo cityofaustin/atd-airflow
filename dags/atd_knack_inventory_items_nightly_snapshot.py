@@ -16,7 +16,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "retry_delay": duration(minutes=5),
+    "execution_timeout": duration(minutes=5),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -49,6 +49,18 @@ REQUIRED_SECRETS = {
         "opitem": "atd-knack-services PostgREST",
         "opfield": "production.jwt",
     },
+    "AWS_ACCESS_ID": {
+        "opitem": "Socrata Dataset Backups S3 Bucket",
+        "opfield": "production.AWS Access Key",
+    },
+    "AWS_SECRET_ACCESS_KEY": {
+        "opitem": "Socrata Dataset Backups S3 Bucket",
+        "opfield": "production.AWS Secret Access Key",
+    },
+    "BUCKET": {
+        "opitem": "Socrata Dataset Backups S3 Bucket",
+        "opfield": "production.Bucket",
+    },
 }
 
 
@@ -56,8 +68,7 @@ with DAG(
     dag_id="atd_knack_inventory_items_nightly_snapshot",
     description="Appends inventory item counts to running log in Socrata",
     default_args=DEFAULT_ARGS,
-    schedule_interval="13 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=duration(minutes=5),
+    schedule_interval="13 23 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata"],
     catchup=False,
 ) as dag:
@@ -91,4 +102,14 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t1 >> t2
+    t3 = DockerOperator(
+        task_id="atd_knack_inventory_items_nightly_snapshot_socrata_backup",
+        image=docker_image,
+        auto_remove=True,
+        command=f"./atd-knack-services/services/backup_socrata.py -a {app_name} -c {container}",
+        environment=env_vars,
+        tty=True,
+        mount_tmp_dir=False,
+    )
+
+    t1 >> t2 >> t3

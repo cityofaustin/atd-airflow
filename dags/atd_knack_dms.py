@@ -17,7 +17,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "retry_delay": duration(minutes=5),
+    "execution_timeout": duration(minutes=5),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -65,8 +65,7 @@ with DAG(
     dag_id="atd_knack_dms",
     default_args=DEFAULT_ARGS,
     description="Load dms (view_1564) records from Knack to Postgrest to AGOL and Socrata",
-    schedule_interval="10 10 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=duration(minutes=5),
+    schedule_interval="24 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "agol", "data-tracker"],
     catchup=False,
 ) as dag:
@@ -80,6 +79,7 @@ with DAG(
 
     t1 = DockerOperator(
         task_id="atd_knack_dms_to_postgrest",
+        docker_conn_id="docker_default",
         image=docker_image,
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
@@ -92,6 +92,7 @@ with DAG(
     t2 = DockerOperator(
         task_id="atd_knack_dms_to_socrata",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
@@ -102,6 +103,7 @@ with DAG(
     t3 = DockerOperator(
         task_id="atd_knack_dms_to_agol",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,

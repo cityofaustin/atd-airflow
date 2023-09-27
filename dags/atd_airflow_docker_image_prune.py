@@ -25,6 +25,7 @@ default_args = {
     "email_on_retry": False,
     "retries": 0,
     "on_failure_callback": task_fail_slack_alert,
+    "execution_timeout": duration(minutes=5),
 }
 
 
@@ -32,7 +33,6 @@ with DAG(
     dag_id=f"atd_airflow_docker_image_prune",
     default_args=default_args,
     schedule_interval="1 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=duration(minutes=5),
     tags=["repo:atd-airflow"],
     catchup=False,
 ) as dag:
@@ -40,4 +40,10 @@ with DAG(
         task_id="prune_images",
         bash_command="docker image prune -f",
     )
-    t1
+
+    t2 = BashOperator(
+        task_id="prune_containers",
+        bash_command="docker container prune -f",
+    )
+
+    t1 >> t2

@@ -16,7 +16,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "retry_delay": duration(minutes=5),
+    "execution_timeout": duration(minutes=15),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -36,7 +36,6 @@ with DAG(
     description="Execute housekeeping routine to associate VZ Polygons and Crashes together",
     default_args=DEFAULT_ARGS,
     schedule_interval="0 3 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=duration(minutes=15),
     tags=["repo:atd_vz_data", "vision-zero", "polygons", "crashes"],
     catchup=False,
 ) as dag:

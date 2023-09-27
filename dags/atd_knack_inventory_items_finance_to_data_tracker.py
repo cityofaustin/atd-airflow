@@ -17,7 +17,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "retry_delay": duration(minutes=5),
+    "execution_timeout": duration(minutes=5),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -91,7 +91,6 @@ with DAG(
     description="Update inventory items in the Data Tracker from the Finance & Purchassing system",
     default_args=DEFAULT_ARGS,
     schedule_interval="55 1 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=duration(minutes=5),
     tags=["repo:atd-knack-services", "knack", "data-tracker", "finance"],
     catchup=False,
 ) as dag:

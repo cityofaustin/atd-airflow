@@ -1,10 +1,11 @@
+# test locally with: docker compose run --rm airflow-cli dags test atd_knack_secondary_signals
+
 import os
 
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
 from pendulum import datetime, duration
 
-from utils.knack import get_date_filter_arg
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
@@ -30,41 +31,27 @@ REQUIRED_SECRETS = {
         "opitem": "Knack AMD Data Tracker",
         "opfield": f"production.apiKey",
     },
-    "AGOL_USERNAME": {
-        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
-        "opfield": "production.username",
-    },
-    "AGOL_PASSWORD": {
-        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
-        "opfield": "production.password",
-    },
 }
 
 with DAG(
-    dag_id=f"atd_knack_data_tracker_location_updater",
-    description="Assigns signal records to CSR issues in data tracker based on CSR location",
+    dag_id="atd_knack_secondary_signals",
+    description="Update traffic signal records with secondary signal relationships.",
     default_args=DEFAULT_ARGS,
-    schedule_interval="19 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    tags=["repo:atd-knack-services", "knack", "data-tracker", "agol"],
+    schedule_interval="25 2 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    tags=["repo:atd-knack-services", "knack", "data-tracker"],
     catchup=False,
 ) as dag:
-    docker_image = "atddocker/atd-knack-services:production"
-    app_name = "data-tracker"
-    container = "view_1201" 
-
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
-    
-    date_filter_arg = get_date_filter_arg()
 
     t1 = DockerOperator(
-        task_id="update_locations",
-        image= "atddocker/atd-knack-services:production",
+        task_id="update_secondary_signals",
+        image="atddocker/atd-knack-services:production",
         auto_remove=True,
-        command=f"./atd-knack-services/services/knack_location_updater.py -a {app_name} -c {container} {date_filter_arg}",
+        command=f"./atd-knack-services/services/secondary_signals_updater.py -a data-tracker -c view_197",
         environment=env_vars,
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
     )
 
-    date_filter_arg >> t1
+    t1

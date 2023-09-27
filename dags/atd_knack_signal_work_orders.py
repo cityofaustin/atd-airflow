@@ -17,7 +17,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "retry_delay": duration(minutes=5),
+    "execution_timeout": duration(minutes=5),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -58,7 +58,6 @@ with DAG(
     description="Load work orders signs (view_3107) records from Knack to Postgrest to AGOL, Socrata",
     default_args=DEFAULT_ARGS,
     schedule_interval="50 8 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=duration(minutes=5),
     tags=["repo:atd-knack-services", "knack", "socrata", "data-tracker"],
     catchup=False,
 ) as dag:

@@ -18,6 +18,7 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
+    "execution_timeout": duration(minutes=60),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -60,7 +61,6 @@ with DAG(
     dag_id=f"atd_service_bot_github_to_socrata_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
     schedule_interval="0 22 * * *",
-    dagrun_timeout=duration(minutes=60),
     tags=["repo:atd-service-bot", "socrata", "github"],
     catchup=False,
 ) as dag:

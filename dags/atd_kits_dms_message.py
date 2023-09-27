@@ -1,3 +1,5 @@
+# Test locally with: docker compose run --rm airflow-cli dags test atd_kits_dms_message_pub
+
 import os
 
 from airflow.models import DAG
@@ -17,26 +19,26 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "execution_timeout": duration(minutes=5),
+    "retry_delay": duration(minutes=5),
     "on_failure_callback": task_fail_slack_alert,
 }
 
 REQUIRED_SECRETS = {
-    "SOCRATA_API_KEY_ID": {
-        "opitem": "Socrata Key ID, Secret, and Token",
-        "opfield": "socrata.apiKeyId",
+    "KNACK_APP_ID": {
+        "opitem": "Knack AMD Data Tracker",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.appId",
     },
-    "SOCRATA_API_KEY_SECRET": {
-        "opitem": "Socrata Key ID, Secret, and Token",
-        "opfield": "socrata.apiKeySecret",
-    },
-    "SOCRATA_APP_TOKEN": {
-        "opitem": "Socrata Key ID, Secret, and Token",
-        "opfield": "socrata.appToken",
+    "KNACK_API_KEY": {
+        "opitem": "Knack AMD Data Tracker",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.apiKey",
     },
     "KITS_SERVER": {
         "opitem": "KITS Traffic Signal Management System",
         "opfield": "production.server",
+    },
+    "KITS_DATABSE": {
+        "opitem": "KITS Traffic Signal Management System",
+        "opfield": "production.database",
     },
     "KITS_USER": {
         "opitem": "KITS Traffic Signal Management System",
@@ -46,34 +48,31 @@ REQUIRED_SECRETS = {
         "opitem": "KITS Traffic Signal Management System",
         "opfield": "production.password",
     },
-    "KITS_DATABSE": {  # SIC
-        "opitem": "KITS Traffic Signal Management System",
-        "opfield": "production.database",
-    },
 }
 
 
 with DAG(
-    dag_id=f"atd_kits_sig_stat_pub",
-    description="Fetch signal flash statuses KITS and publish to Socata",
+    dag_id="atd_kits_dms_message_pub",
+    description="Extract DMS message from KITS database and upload to Data Tracker (Knack).",
     default_args=DEFAULT_ARGS,
-    schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    tags=["repo:atd-kits", "socrata", "kits"],
+    schedule_interval="21 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    dagrun_timeout=duration(minutes=5),
+    tags=["repo:atd-kits", "knack", "kits", "dms"],
     catchup=False,
 ) as dag:
+    docker_image = "atddocker/atd-kits:production"
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
-        task_id="atd_kits_sig_status_to_socrata",
-        image="atddocker/atd-kits:production",
+        task_id="update_knack_dms_message",
+        image=docker_image,
         auto_remove=True,
-        command="./atd-kits/atd-kits/signal_status_publisher.py",
+        command="python ./atd-kits/atd-kits/dms_message_pub.py",
         environment=env_vars,
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
-        network_mode="bridge",
     )
 
     t1

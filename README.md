@@ -44,6 +44,8 @@ _AIRFLOW__WEBSERVER__BASE_URL=http://localhost:8080
 OP_API_TOKEN=<Get from 1Password entry named "Connect Server: Production Access Token: API Accessible Secrets">
 OP_CONNECT=<Get from 1Password entry named "Endpoint for 1Password Connect Server API">
 OP_VAULT_ID=<Get from 1Password entry named "Vault ID of API Accessible Secrets vault">
+DOCKER_HUB_USERNAME=<Get from 1Password entry named "Docker Hub">
+DOCKER_HUB_TOKEN=<A docker hub access token assigned to specifically to you>
 ```
 
 3. Start the Docker the stack (optionlly use the `-d` flag to run containers in the background):
@@ -86,6 +88,12 @@ $ cd /usr/airflow/atd-airflow
 $ sudo git pull
 ```
 
+The production Airflow deployment uses a second Docker compose file which provides haproxy configuration overrides. To start the production docker compose stack use you must load both files in order:
+
+```shell
+$ docker compose -f docker-compose.yaml -f docker-compose-production.yaml up -d
+```
+
 ## Utilities
 
 Utilities used by multiple DAGs
@@ -96,7 +104,7 @@ Secrets stored in 1Password can be directly integrated into Airflow DAGs. As a b
 
 The 1Password utility is a light wrapper of the [1Password Connect Python SDK](https://github.com/1Password/connect-sdk-python) methods. The utility communicates with our [self-hosted 1Password connect server](https://github.com/cityofaustin/dts-onepassword-connect) using the `OP` environment variables set in your `.env` file.
 
-You can model your code off of existing DAGs which use our 1Password utility. 
+You can model your code off of existing DAGs which use our 1Password utility.
 
 For example, this snippet fetches 1Password secrets from a task so that they can be used by subsequent tasks.
 
@@ -137,16 +145,22 @@ To configure the Slack operator in your local instance, from the Airflow UI go t
 
 - 🐚 get a shell on a worker, for example
 
-```
-docker exec -it airflow-airflow-worker-1 bash
+```shell
+$ docker exec -it airflow-airflow-worker-1 bash
 ```
 
 - ⛔ Stop all containers and execute this to reset your local database.
   - Do not run in production unless you feel really great about your backups.
   - This will reset the history of your dag runs and switch states.
 
+```shell
+$ docker compose down --volumes --remove-orphans
 ```
-docker compose down --volumes --remove-orphans
+
+Start the production docker compose stack with haproxy overrides:
+
+```shell
+$ docker compose -f docker-compose.yaml -f docker-compose-production.yaml up -d
 ```
 
 ## Updating the stack

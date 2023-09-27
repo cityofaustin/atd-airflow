@@ -14,6 +14,7 @@ default_args = {
     "depends_on_past": False,
     "start_date": datetime(2015, 1, 1, tz="America/Chicago"),
     "retries": 2,
+    "execution_timeout": duration(minutes=40),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -53,7 +54,6 @@ with DAG(
     description="Exports Vision Zero crash and people datasets to Socrata from Vision Zero database.",
     default_args=default_args,
     schedule_interval="0 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=duration(minutes=40),
     tags=["repo:atd-vz-data", "socrata"],
     catchup=False,
 ) as dag:
