@@ -59,7 +59,7 @@ with DAG(
     description="Publishes 311 SR activities from Knack to 311 CSR via the CTM ESB",
     default_args=DEFAULT_ARGS,
     schedule_interval="*/7 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    tags=["repo:atd-kits", "socrata", "kits"],
+    tags=["repo:atd-knack-311", "311", "knack", "esb"],
     catchup=False,
 ) as dag:
     env_vars_data_tracker = get_env_vars_task(REQUIRED_SECRETS_DATA_TRACKER)
