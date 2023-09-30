@@ -2,6 +2,7 @@ import os
 
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
+from docker.types import Mount 
 from pendulum import datetime, duration, now
 
 from utils.onepassword import get_env_vars_task
@@ -52,6 +53,7 @@ REQUIRED_SECRETS_SIGNS_MARKIGNS = {
     }
 }
 
+
 with DAG(
     dag_id=f"atd_knack_esb_311",
     description="Publishes 311 SR activities from Knack to 311 CSR via the CTM ESB",
@@ -60,32 +62,41 @@ with DAG(
     tags=["repo:atd-kits", "socrata", "kits"],
     catchup=False,
 ) as dag:
-
     env_vars_data_tracker = get_env_vars_task(REQUIRED_SECRETS_DATA_TRACKER)
     env_vars_signs_markings = get_env_vars_task(REQUIRED_SECRETS_SIGNS_MARKIGNS)
+
+    # the self-signed certificate and key must be stored within the airflow project directory
+    # accoriding to the path specified in the docker compose volumne definition
+    cert_mount =  Mount(
+        source="atd-airflow_knack-certs", 
+        target="/app/atd-knack-311/certs",
+        type="volume"
+    )
 
     t1 = DockerOperator(
         task_id="knack_amd_data_tracker_activities_to_311",
         image=DOCKER_IMAGE,
         auto_remove=True,
-        command="./python send_knack_messages_to_esb.py data-tracker",
+        command="./atd-knack-311/send_knack_messages_to_esb.py data-tracker",
         environment=env_vars_data_tracker,
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
         network_mode="bridge",
+        mounts=[cert_mount]
     )
 
     t2 = DockerOperator(
         task_id="knack_amd_signs_markings_activities_to_311",
         image=DOCKER_IMAGE,
         auto_remove=True,
-        command="./python send_knack_messages_to_esb.py signs-markings",
+        command="./atd-knack-311/send_knack_messages_to_esb.py signs-markings",
         environment=env_vars_signs_markings,
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
         network_mode="bridge",
+        mounts=[cert_mount]
     )
 
     t1 >> t2
