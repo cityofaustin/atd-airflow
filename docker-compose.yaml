@@ -258,6 +258,13 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
-# postgres db data persisted here
 volumes:
+  # postgres db data persisted here
   postgres-db-volume:
+  # volume for Knack SSL certs which will be mounted to DockerOperator tasks for 311 integration
+  knack-certs:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: ${AIRFLOW_PROJ_DIR}/certs/knack
