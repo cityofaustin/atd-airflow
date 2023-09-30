@@ -73,39 +73,11 @@ with DAG(
         type="volume"
     )
 
-    # t1 = DockerOperator(
-    #     task_id="knack_amd_data_tracker_activities_to_311",
-    #     image=DOCKER_IMAGE,
-    #     auto_remove=True,
-    #     command="./atd-knack-311/send_knack_messages_to_esb.py data-tracker",
-    #     environment=env_vars_data_tracker,
-    #     tty=True,
-    #     force_pull=True,
-    #     mount_tmp_dir=False,
-    #     network_mode="bridge",
-    #     mounts=[cert_mount]
-    # )
-
-    # t2 = DockerOperator(
-    #     task_id="knack_amd_signs_markings_activities_to_311",
-    #     image=DOCKER_IMAGE,
-    #     auto_remove=True,
-    #     command="./atd-knack-311/send_knack_messages_to_esb.py signs-markings",
-    #     environment=env_vars_signs_markings,
-    #     tty=True,
-    #     force_pull=True,
-    #     mount_tmp_dir=False,
-    #     network_mode="bridge",
-    #     mounts=[cert_mount]
-    # )
-
-    # t1 >> t2
-
     t1 = DockerOperator(
         task_id="knack_amd_data_tracker_activities_to_311",
         image=DOCKER_IMAGE,
         auto_remove=True,
-        command="sleep 300",
+        command="./atd-knack-311/send_knack_messages_to_esb.py data-tracker",
         environment=env_vars_data_tracker,
         tty=True,
         force_pull=True,
@@ -114,4 +86,17 @@ with DAG(
         mounts=[cert_mount]
     )
 
-    t1
+    t2 = DockerOperator(
+        task_id="knack_amd_signs_markings_activities_to_311",
+        image=DOCKER_IMAGE,
+        auto_remove=True,
+        command="./atd-knack-311/send_knack_messages_to_esb.py signs-markings",
+        environment=env_vars_signs_markings,
+        tty=True,
+        force_pull=True,
+        mount_tmp_dir=False,
+        network_mode="bridge",
+        mounts=[cert_mount]
+    )
+
+    t1 >> t2
