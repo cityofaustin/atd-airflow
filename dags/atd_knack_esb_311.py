@@ -38,7 +38,7 @@ REQUIRED_SECRETS_DATA_TRACKER = {
     }
 }
 
-REQUIRED_SECRETS_SIGNS_MARKIGNS = {
+REQUIRED_SECRETS_SIGNS_MARKINGS = {
     "KNACK_APP_ID": {
         "opitem": "Knack Signs and Markings",
         "opfield": f"production.appId",
@@ -63,7 +63,7 @@ with DAG(
     catchup=False,
 ) as dag:
     env_vars_data_tracker = get_env_vars_task(REQUIRED_SECRETS_DATA_TRACKER)
-    env_vars_signs_markings = get_env_vars_task(REQUIRED_SECRETS_SIGNS_MARKIGNS)
+    env_vars_signs_markings = get_env_vars_task(REQUIRED_SECRETS_SIGNS_MARKINGS)
 
     # the self-signed certificate and key must be stored within the airflow project directory
     # according to the path specified in the docker compose volumne definition
