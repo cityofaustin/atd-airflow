@@ -29,6 +29,7 @@ x-airflow-common: &airflow-common
     - ${AIRFLOW_PROJ_DIR}/plugins:/opt/airflow/plugins
     - ${AIRFLOW_PROJ_DIR}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR}/airflow.cfg:/opt/airflow/airflow.cfg
+    - knack-certs:/opt/airflow/certs/knack
     - /var/run/docker.sock:/var/run/docker.sock
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on: &airflow-common-depends-on
@@ -258,6 +259,13 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
-# postgres db data persisted here
 volumes:
+  # postgres db data persisted here
   postgres-db-volume:
+  # volume for Knack SSL certs which will be mounted to DockerOperator tasks for 311 integration
+  knack-certs:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: ${AIRFLOW_PROJ_DIR}/certs/knack

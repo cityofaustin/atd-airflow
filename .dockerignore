@@ -17,6 +17,7 @@ venv.bak/
 
 # Misc
 *.pem
+*.cert
 .DS_Store
 logs/*
 *.swp
