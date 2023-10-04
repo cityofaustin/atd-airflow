@@ -140,4 +140,15 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t1
+    t2 = DockerOperator(
+        task_id="objects_to_finance_purchasing",
+        image="atddocker/atd-finance-data:production",
+        auto_remove=True,
+        command="python s3_to_knack.py objects finance-purchasing",
+        environment=finance_purchasing_env,
+        tty=True,
+        force_pull=False,
+        mount_tmp_dir=False,
+    )
+
+    t1 >> t2
