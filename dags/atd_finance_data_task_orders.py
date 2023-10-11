@@ -1,4 +1,4 @@
-# test locally with: docker compose run --rm airflow-cli dags test atd_finance_data_subprojects
+# test locally with: docker compose run --rm airflow-cli dags test atd_finance_data_task_orders
 
 import os
 
