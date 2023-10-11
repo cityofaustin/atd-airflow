@@ -151,4 +151,15 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t1 >> t2
+    t3 = DockerOperator(
+        task_id="subprojects_to_socrata",
+        image="atddocker/atd-finance-data:production",
+        auto_remove=True,
+        command="python s3_to_socrata.py --dataset subprojects",
+        environment=finance_purchasing_env,
+        tty=True,
+        force_pull=False,
+        mount_tmp_dir=False,
+    )
+
+    t1 >> t2 >> t3
