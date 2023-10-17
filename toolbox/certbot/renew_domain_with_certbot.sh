@@ -13,12 +13,12 @@ source $ATD_AIRFLOW_HOMEDIR/.env
 docker pull 1password/op:2
 
 # Retrieve and store the AWS Access Keys from 1Password
-AWS_ACCESS_KEY_ID=$(docker run -i --rm --name op \
+AWS_ACCESS_KEY_ID=$(docker run --rm --name op \
 -e OP_CONNECT_HOST=$OP_CONNECT \
 -e OP_CONNECT_TOKEN=$OP_API_TOKEN \
 1password/op:2 op read op://$OP_VAULT_ID/Certbot\ IAM\ Access\ Key\ and\ Secret/accessKeyId)
 
-AWS_SECRET_ACCESS_KEY=$(docker run -i --rm --name op \
+AWS_SECRET_ACCESS_KEY=$(docker run --rm --name op \
 -e OP_CONNECT_HOST=$OP_CONNECT \
 -e OP_CONNECT_TOKEN=$OP_API_TOKEN \
 1password/op:2 op read op://$OP_VAULT_ID/Certbot\ IAM\ Access\ Key\ and\ Secret/accessSecret)
