@@ -25,7 +25,7 @@ default_args = {
 
 docker_image = "atddocker/atd-executive-dashboard:production"
 
-REQUIRED_SECRETS = {
+OTHER_SECRETS = {
     "SO_WEB": {
         "opitem": "Socrata Key ID, Secret, and Token",
         "opfield": "socrata.endpoint",
@@ -66,10 +66,6 @@ REQUIRED_SECRETS = {
         "opitem": "Executive Dashboard",
         "opfield": "s3.AWS Secret Access Key",
     },
-    "CSR_ENDPOINT": {
-        "opitem": "Executive Dashboard",
-        "opfield": "csr.Report Endpoint",
-    },
     "BASE_URL": {
         "opitem": "Microstrategy API",
         "opfield": "shared.Base URL",
@@ -88,26 +84,76 @@ REQUIRED_SECRETS = {
     },
 }
 
+CUR_YEAR_SECRETS = {
+    "CSR_ENDPOINT": {
+        "opitem": "Executive Dashboard",
+        "opfield": "csr.Current FY Endpoint",
+    },
+}
+
+PREV_YEAR_SECRETS = {
+    "CSR_ENDPOINT": {
+        "opitem": "Executive Dashboard",
+        "opfield": "csr.Previous FY Endpoint",
+    },
+}
+
+TWO_YEARS_AGO_SECRETS = {
+    "CSR_ENDPOINT": {
+        "opitem": "Executive Dashboard",
+        "opfield": "csr.Two Years Ago FY Endpoint",
+    },
+}
+
+# Combine env vars to create one for each report
+CUR_YEAR_SECRETS.update(OTHER_SECRETS)
+PREV_YEAR_SECRETS.update(OTHER_SECRETS)
+TWO_YEARS_AGO_SECRETS.update(OTHER_SECRETS)
+
 with DAG(
     dag_id="atd_executive_csr_data",
-    description="Downloads a report of 311 service requests for TPW and publishes it in a Socrata dataset.",
+    description="Downloads reports of 311 service requests for TPW and publishes it in a Socrata dataset.",
     default_args=default_args,
     schedule_interval="36 9 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=timedelta(minutes=20),
     tags=["repo:atd-executive-dashboard", "socrata", "csr"],
     catchup=False,
 ) as dag:
-    env_vars = get_env_vars_task(REQUIRED_SECRETS)
+    cur_year_env = get_env_vars_task(CUR_YEAR_SECRETS)
+    prev_year_env = get_env_vars_task(PREV_YEAR_SECRETS)
+    two_years_env = get_env_vars_task(TWO_YEARS_AGO_SECRETS)
 
     t1 = DockerOperator(
-        task_id="csr_report_to_socrata",
+        task_id="cur_year_csr_report_to_socrata",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
         command=f"python csr/csr_to_socrata.py",
-        environment=env_vars,
+        environment=cur_year_env,
         tty=True,
         force_pull=True,
     )
 
-    t1
+    t2 = DockerOperator(
+        task_id="prev_year_csr_report_to_socrata",
+        image=docker_image,
+        api_version="auto",
+        auto_remove=True,
+        command=f"python csr/csr_to_socrata.py",
+        environment=prev_year_env,
+        tty=True,
+        force_pull=False,
+    )
+
+    t3 = DockerOperator(
+        task_id="two_years_ago_csr_report_to_socrata",
+        image=docker_image,
+        api_version="auto",
+        auto_remove=True,
+        command=f"python csr/csr_to_socrata.py",
+        environment=two_years_env,
+        tty=True,
+        force_pull=False,
+    )
+
+    t1 >> t2 >> t3
