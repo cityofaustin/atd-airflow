@@ -5,5 +5,7 @@
 
 0 2 * * * find /usr/airflow/atd-airflow/logs -type f -mtime +30 -exec rm -v {} \; \
 >> /var/log/airflow-logs-purge.log && \
-find /usr/airflow/atd-airflow/logs -type d -empty -exec rmdir -v {} \; \
+find /usr/airflow/atd-airflow/logs -type d -empty | xargs -I {} rmdir -v {}; \
+>> /var/log/airflow-logs-purge.log  && \
+find /usr/airflow/atd-airflow/logs -type d -empty | xargs -I {} rmdir -v {}; \
 >> /var/log/airflow-logs-purge.log
