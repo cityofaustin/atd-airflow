@@ -59,5 +59,5 @@ with DAG(
     BashOperator(
       task_id="backup_airflow_db",
       env=env_vars,
-      bash_command=f"docker exec -i atd-airflow-postgres-1 pg_dump -U airflow airflow | bzip2 -9 | AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY aws s3 cp - s3://atd-airflow/$current_date_airflow-db-backup.bz2"
+      bash_command=f"docker exec -i atd-airflow-postgres-1 pg_dump -U airflow airflow | bzip2 -9 | AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY aws s3 cp - s3://atd-airflow/$current_date/airflow-db-backup.bz2"
     )
