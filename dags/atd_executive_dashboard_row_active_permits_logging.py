@@ -93,7 +93,7 @@ with DAG(
     dag_id="atd_executive_dashboard_row_active_permits_logging",
     description="Stores the current number of active ROW permits in a Socrata dataset.",
     default_args=DEFAULT_ARGS,
-    schedule_interval="0 8 * * 1" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="0 8 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-executive-dashboard", "amanda", "socrata"],
     catchup=False,
 ) as dag:
