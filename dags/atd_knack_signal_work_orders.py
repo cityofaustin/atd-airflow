@@ -55,7 +55,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id="atd_knack_signal_work_orders",
-    description="Load work orders signs (view_3107) records from Knack to Postgrest to AGOL, Socrata",
+    description="Load signal work orders (view_1829) records from Knack to Postgrest to Socrata",
     default_args=DEFAULT_ARGS,
     schedule_interval="50 8 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "data-tracker"],
