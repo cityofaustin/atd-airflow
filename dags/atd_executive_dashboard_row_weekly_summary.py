@@ -166,4 +166,17 @@ with DAG(
         retry_delay=duration(seconds=60),
     )
 
-    t1 >> t2 >> t3 >> t4 >> t5
+    t6 = DockerOperator(
+        task_id="amanda_review_time",
+        image=docker_image,
+        auto_remove=True,
+        command=f"python AMANDA/amanda_to_s3.py --query review_time",
+        environment=env_vars,
+        tty=True,
+        force_pull=False,
+        mount_tmp_dir=False,
+        retries=3,
+        retry_delay=duration(seconds=60),
+    )
+
+    t1 >> t2 >> t3 >> t4 >> t5 >> t6
