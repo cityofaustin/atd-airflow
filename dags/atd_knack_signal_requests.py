@@ -40,6 +40,14 @@ REQUIRED_SECRETS = {
         "opitem": "atd-knack-services PostgREST",
         "opfield": "production.jwt",
     },
+    "AGOL_USERNAME": {
+        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
+        "opfield": "production.username",
+    },
+    "AGOL_PASSWORD": {
+        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
+        "opfield": "production.password",
+    },
 }
 
 with DAG(
