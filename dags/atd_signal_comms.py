@@ -149,7 +149,7 @@ with DAG(
     )
 
     cameras_socrata = DockerOperator(
-        task_id="socata_pub_cameras",
+        task_id="socrata_pub_cameras",
         image=docker_image,
         auto_remove=True,
         command=f"python atd-signal-comms/socrata_pub.py camera --start {start_date} -v --env {DEPLOYMENT_ENVIRONMENT}",

@@ -55,7 +55,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id=f"atd_knack_corridor_retiming",
-    description="Load corridor retiming data from Knack to Postgrest to Socata",
+    description="Load corridor retiming data from Knack to Postgrest to Socrata",
     default_args=DEFAULT_ARGS,
     schedule_interval="45 11 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "data-tracker"],
