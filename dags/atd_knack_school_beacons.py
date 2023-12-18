@@ -101,7 +101,7 @@ with DAG(
     )
 
     t3 = DockerOperator(
-        task_id="atd_knack_school_beacons_to_agol",
+        task_id="atd_knack_school_beacons_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove=True,
