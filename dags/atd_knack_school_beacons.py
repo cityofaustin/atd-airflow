@@ -46,15 +46,27 @@ REQUIRED_SECRETS = {
         "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
         "opfield": "production.password",
     },
+    "SOCRATA_API_KEY_ID": {
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "socrata.apiKeyId",
+    },
+    "SOCRATA_API_KEY_SECRET": {
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "socrata.apiKeySecret",
+    },
+    "SOCRATA_APP_TOKEN": {
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "socrata.appToken",
+    },
 }
 
 
 with DAG(
     dag_id="atd_knack_school_beacons",
-    description="Load school beacons (view_3086) records from Knack to Postgrest to AGOL",
+    description="Load school beacons (view_3086) records from Knack to Postgrest to AGOL and Socrata",
     default_args=DEFAULT_ARGS,
     schedule_interval="25 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    tags=["repo:atd-knack-services", "knack", "agol", "data-tracker"],
+    tags=["repo:atd-knack-services", "knack", "agol", "data-tracker", "socrata"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/atd-knack-services:production"
@@ -68,6 +80,7 @@ with DAG(
     t1 = DockerOperator(
         task_id="atd_knack_school_beacons_to_postgrest",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
@@ -79,6 +92,7 @@ with DAG(
     t2 = DockerOperator(
         task_id="atd_knack_school_beacons_to_agol",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
@@ -86,4 +100,15 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    date_filter_arg >> t1 >> t2
+    t3 = DockerOperator(
+        task_id="atd_knack_school_beacons_to_socrata",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove=True,
+        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}",
+        environment=env_vars,
+        tty=True,
+        mount_tmp_dir=False,
+    )
+
+    date_filter_arg >> t1 >> t2 >> t3

@@ -55,7 +55,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id=f"atd_kits_sig_stat_pub",
-    description="Fetch signal flash statuses KITS and publish to Socata",
+    description="Fetch signal flash statuses KITS and publish to Socrata",
     default_args=DEFAULT_ARGS,
     schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-kits", "socrata", "kits"],
