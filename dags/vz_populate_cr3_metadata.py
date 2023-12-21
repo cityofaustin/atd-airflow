@@ -1,5 +1,5 @@
 import os
-from pendulum import datetime
+from pendulum import datetime, duration
 from airflow.decorators import dag, task
 from airflow.operators.docker_operator import DockerOperator
 from utils.slack_operator import task_fail_slack_alert
@@ -34,6 +34,14 @@ REQUIRED_SECRETS = {
         "opitem": "Vision Zero graphql-engine Endpoints",
         "opfield": f"{DEPLOYMENT_ENVIRONMENT}.Admin Key",
     },
+    "AWS_ACCESS_KEY_ID": {
+        "opitem": "Vision Zero CRIS Import",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.AWS Access key",
+    },
+    "AWS_SECRET_ACCESS_KEY": {
+        "opitem": "Vision Zero CRIS Import",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.AWS Secret key",
+    },
 }
 
 
@@ -55,7 +63,11 @@ def populate_cr3_metadata():
     def get_env_vars():
         from utils.onepassword import load_dict
 
-        return load_dict(REQUIRED_SECRETS)
+        answers = load_dict(REQUIRED_SECRETS)
+        print(answers)
+        return answers
+
+        # return load_dict(REQUIRED_SECRETS)
 
     env_vars = get_env_vars()
 
@@ -64,7 +76,7 @@ def populate_cr3_metadata():
         environment=env_vars,
         image="atddocker/vz-cr3-metadata-pdfs:production",
         auto_remove=True,
-        #entrypoint=["/entrypoint.sh"],
+        entrypoint=["/app/populate_cr3_file_metadata.py"],
         #command=["ems"],
         tty=True,
         force_pull=True,
