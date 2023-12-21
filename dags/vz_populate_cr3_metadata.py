@@ -62,6 +62,7 @@ def populate_cr3_metadata():
     )
     def get_env_vars():
         from utils.onepassword import load_dict
+
         return load_dict(REQUIRED_SECRETS)
 
     env_vars = get_env_vars()
@@ -72,7 +73,6 @@ def populate_cr3_metadata():
         image="atddocker/vz-cr3-metadata-pdfs:production",
         auto_remove=True,
         entrypoint=["/app/populate_cr3_file_metadata.py"],
-        #command=["ems"],
         tty=True,
         force_pull=True,
     )
