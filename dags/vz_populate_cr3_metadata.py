@@ -62,12 +62,7 @@ def populate_cr3_metadata():
     )
     def get_env_vars():
         from utils.onepassword import load_dict
-
-        answers = load_dict(REQUIRED_SECRETS)
-        print(answers)
-        return answers
-
-        # return load_dict(REQUIRED_SECRETS)
+        return load_dict(REQUIRED_SECRETS)
 
     env_vars = get_env_vars()
 
