@@ -140,6 +140,7 @@ with DAG(
     t1 = DockerOperator(
         task_id="active_permits_logging",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"python active_permits_logging.py",
         environment=env_vars,
@@ -153,6 +154,7 @@ with DAG(
     t2 = DockerOperator(
         task_id="backup_active_permits",
         image=docker_image_2,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"./atd-knack-services/services/backup_socrata.py --dataset {dataset_id}",
         environment=env_vars_2,
