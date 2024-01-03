@@ -29,7 +29,7 @@ REQUIRED_SECRETS = {
     "HASURA_ADMIN_KEY": {
         "opitem": "Vision Zero CRIS Import",
         "opfield": "production.GraphQL Endpoint key",
-    }, 
+    },
     "AWS_ACCESS_KEY_ID": {
         "opitem": "Vision Zero CRIS Import",
         "opfield": "production.AWS Access key",
@@ -37,7 +37,7 @@ REQUIRED_SECRETS = {
     "AWS_SECRET_ACCESS_KEY": {
         "opitem": "Vision Zero CRIS Import",
         "opfield": "production.AWS Secret key",
-    }
+    },
 }
 
 with DAG(
@@ -50,16 +50,18 @@ with DAG(
     tags=["repo:atd-vz-data", "vision-zero"],
     catchup=False,
 ) as dag:
+
     @task(
         task_id="get_env_vars",
         execution_timeout=duration(seconds=30),
     )
     def get_env_vars():
         from utils.onepassword import load_dict
+
         return load_dict(REQUIRED_SECRETS)
 
     env_vars = get_env_vars()
-    
+
     DockerOperator(
         task_id="ocr_narrative_extract",
         image="atddocker/atd-vz-cr3-extract:production",
