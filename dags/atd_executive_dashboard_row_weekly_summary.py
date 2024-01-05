@@ -1,3 +1,5 @@
+# test locally with: docker compose run --rm airflow-cli dags test atd_executive_dashboard_row_weekly_summary
+
 import os
 
 from airflow.models import DAG
@@ -17,7 +19,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "execution_timeout": duration(minutes=5),
+    "execution_timeout": duration(minutes=30),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -179,4 +181,17 @@ with DAG(
         retry_delay=duration(seconds=60),
     )
 
-    t1 >> t2 >> t3 >> t4 >> t5 >> t6
+    t7 = DockerOperator(
+        task_id="ex_permits_issued",
+        image=docker_image,
+        auto_remove=True,
+        command=f"python AMANDA/amanda_to_s3.py --query ex_permits_issued",
+        environment=env_vars,
+        tty=True,
+        force_pull=False,
+        mount_tmp_dir=False,
+        retries=3,
+        retry_delay=duration(seconds=60),
+    )
+
+    t1 >> t2 >> t3 >> t4 >> t5 >> t6 >> t7
