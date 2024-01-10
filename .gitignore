@@ -23,3 +23,5 @@ logs/*
 *sql
 .DS_Store
 db/*
+
+.vscode/*
