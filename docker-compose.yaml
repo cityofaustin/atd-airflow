@@ -266,6 +266,6 @@ volumes:
   knack-certs:
     driver: local
     driver_opts:
-      type: 'none'
-      o: 'bind'
+      type: "none"
+      o: "bind"
       device: ${AIRFLOW_PROJ_DIR}/certs/knack
