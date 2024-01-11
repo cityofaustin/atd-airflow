@@ -63,7 +63,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id="atd_knack_signs_work_order_specifications",
-    description="Publish sign work order specifications to Postgres, AGOL",
+    description="Publish sign work order specifications (view_3106) to Postgres, AGOL",
     default_args=DEFAULT_ARGS,
     schedule_interval="35 1 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "agol", "signs-markings", "socrata"],
