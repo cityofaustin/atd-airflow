@@ -114,6 +114,7 @@ with DAG(
         mount_tmp_dir=False,
         retries=3,
         retry_delay=duration(seconds=60),
+        trigger_rule="all_done",
     )
 
     t2 = DockerOperator(
@@ -127,6 +128,7 @@ with DAG(
         mount_tmp_dir=False,
         retries=3,
         retry_delay=duration(seconds=60),
+        trigger_rule="all_done",
     )
 
     t3 = DockerOperator(
@@ -140,6 +142,7 @@ with DAG(
         mount_tmp_dir=False,
         retries=3,
         retry_delay=duration(seconds=60),
+        trigger_rule="all_done",
     )
 
     t4 = DockerOperator(
@@ -153,6 +156,7 @@ with DAG(
         mount_tmp_dir=False,
         retries=3,
         retry_delay=duration(seconds=60),
+        trigger_rule="all_done",
     )
 
     t5 = DockerOperator(
@@ -166,6 +170,7 @@ with DAG(
         mount_tmp_dir=False,
         retries=3,
         retry_delay=duration(seconds=60),
+        trigger_rule="all_done",
     )
 
     t6 = DockerOperator(
@@ -179,6 +184,7 @@ with DAG(
         mount_tmp_dir=False,
         retries=3,
         retry_delay=duration(seconds=60),
+        trigger_rule="all_done",
     )
 
     t7 = DockerOperator(
@@ -192,6 +198,7 @@ with DAG(
         mount_tmp_dir=False,
         retries=3,
         retry_delay=duration(seconds=60),
+        trigger_rule="all_done",
     )
 
     t1 >> t2 >> t3 >> t4 >> t5 >> t6 >> t7
