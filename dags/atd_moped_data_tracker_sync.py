@@ -26,11 +26,19 @@ DEFAULT_ARGS = {
 REQUIRED_SECRETS = {
     "HASURA_ENDPOINT": {
         "opitem": "Moped Hasura Admin",
-        "opfield": "production.Endpoint",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.Endpoint",
     },
     "HASURA_ADMIN_SECRET": {
         "opitem": "Moped Hasura Admin",
-        "opfield": "production.Admin Secret",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.Admin Secret",
+    },
+    "KNACK_APP_ID": {
+        "opitem": "Knack AMD Data Tracker",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.appId",
+    },
+    "KNACK_API_KEY": {
+        "opitem": "Knack AMD Data Tracker",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.apiKey",
     },
 }
 
