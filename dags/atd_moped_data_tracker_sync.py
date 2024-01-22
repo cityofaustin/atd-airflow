@@ -44,7 +44,7 @@ with DAG(
     tags=["repo:atd-moped", "moped", "agol"],
     catchup=False,
 ) as dag:
-    docker_image = "atddocker/atd-moped-etl-arcgis:production"
+    docker_image = "atddocker/atd-moped-etl-data-tracker-sync:production"
 
     date_filter_arg = get_date_filter_arg()
 
@@ -54,7 +54,7 @@ with DAG(
         task_id="data_tracker_sync",
         image=docker_image,
         auto_remove=True,
-        command="python data_tracker_sync.py",
+        command=f"python data_tracker_sync.py --start {date_filter_arg}",
         environment=env_vars,
         tty=True,
         force_pull=True,
