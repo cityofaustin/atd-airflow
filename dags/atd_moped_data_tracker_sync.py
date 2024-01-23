@@ -32,11 +32,11 @@ REQUIRED_SECRETS = {
         "opitem": "Moped Hasura Admin",
         "opfield": f"{DEPLOYMENT_ENVIRONMENT}.Admin Secret",
     },
-    "KNACK_APP_ID": {
+    "KNACK_DATA_TRACKER_APP_ID": {
         "opitem": "Knack AMD Data Tracker",
         "opfield": f"{DEPLOYMENT_ENVIRONMENT}.appId",
     },
-    "KNACK_API_KEY": {
+    "KNACK_DATA_TRACKER_API_KEY": {
         "opitem": "Knack AMD Data Tracker",
         "opfield": f"{DEPLOYMENT_ENVIRONMENT}.apiKey",
     },
@@ -62,7 +62,7 @@ with DAG(
         task_id="data_tracker_sync",
         image=docker_image,
         auto_remove=True,
-        command=f"python data_tracker_sync.py --start {date_filter_arg}",
+        command=f"python data_tracker_sync.py {date_filter_arg}",
         environment=env_vars,
         tty=True,
         force_pull=True,
