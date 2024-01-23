@@ -45,7 +45,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id="atd_moped_data_tracker_sync",
-    description="sync Moped projects data to Knack Data Tracker projects table",
+    description="sync Moped project data to Knack Data Tracker projects table",
     default_args=DEFAULT_ARGS,
     schedule_interval="0 6 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=30),
@@ -58,14 +58,11 @@ with DAG(
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    # Run the script in test mode if we're developing locally
-    test_flag = "--test" if DEPLOYMENT_ENVIRONMENT == "development" else ""
-
     t1 = DockerOperator(
         task_id="data_tracker_sync",
         image=docker_image,
         auto_remove=True,
-        command=f"python data_tracker_sync.py --start {date_filter_arg} {test_flag}",
+        command=f"python data_tracker_sync.py --start {date_filter_arg}",
         environment=env_vars,
         tty=True,
         force_pull=True,
