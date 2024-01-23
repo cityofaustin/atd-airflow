@@ -49,7 +49,7 @@ with DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval="0 6 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=30),
-    tags=["repo:atd-moped", "moped", "agol"],
+    tags=["repo:atd-moped", "moped", "data-tracker", "knack"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/atd-moped-etl-data-tracker-sync:production"
@@ -58,11 +58,14 @@ with DAG(
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
+    # Run the script in test mode if we're developing locally
+    test_flag = "--test" if DEPLOYMENT_ENVIRONMENT == "development" else ""
+
     t1 = DockerOperator(
         task_id="data_tracker_sync",
         image=docker_image,
         auto_remove=True,
-        command=f"python data_tracker_sync.py --start {date_filter_arg}",
+        command=f"python data_tracker_sync.py --start {date_filter_arg} {test_flag}",
         environment=env_vars,
         tty=True,
         force_pull=True,
