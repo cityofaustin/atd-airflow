@@ -52,30 +52,62 @@ REQUIRED_SECRETS = {
         "opitem": "atd-traffic-incident-reports",
         "opfield": "production.Postgrest Endpoint",
     },
+    # Socrata
+    "SOCRATA_RESOURCE_ID": {
+        "opitem": "atd-traffic-incident-reports",
+        "opfield": "production.Socrata Resource ID"
+    },
+    "SOCRATA_API_KEY_ID": {
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "socrata.apiKeyId",
+    },
+    "SOCRATA_API_KEY_SECRET": {
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "socrata.apiKeySecret",
+    },
+    "SOCRATA_APP_TOKEN": {
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "socrata.appToken",
+    },
+
 }
 
 
 with DAG(
     dag_id="atd_traffic_incident_reports",
-    description="wrapper etl for atd-traffic-incident-reports docker image connects to oracle db and updates postrgrest with incidents",
+    description="wrapper etl for atd-traffic-incident-reports docker image connects to oracle db and updates postrgrest and socrata with incidents",
     default_args=DEFAULT_ARGS,
     schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    tags=["repo:atd-traffic-incident-reports", "postgrest"],
+    tags=["repo:atd-traffic-incident-reports", "postgrest", "socrata"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/atd-traffic-incident-reports:production"
+
+    date_filter_arg = get_date_filter_arg(should_replace_monthly=False)
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
         task_id="traffic_incident_reports_to_postgres",
+        docker_conn_id="docker_default",
         image=docker_image,
         auto_remove=True,
-        command=f"python main.py",
+        command=f"python records_to_postgrest.py",
         environment=env_vars,
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
     )
 
-    t1
+    t2 = DockerOperator(
+        task_id="traffic_incident_reports_to_socrata",
+        docker_conn_id="docker_default",
+        image=docker_image,
+        auto_remove=True,
+        command=f"python records_to_socrata.py -d {date_filter_arg}",
+        environment=env_vars,
+        tty=True,
+        mount_tmp_dir=False,
+    )
+
+    date_filter_arg >> t1 >> t2

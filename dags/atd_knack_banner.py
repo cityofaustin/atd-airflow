@@ -17,7 +17,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "execution_timeout": duration(minutes=10),
+    "retry_delay": duration(minutes=5),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -47,6 +47,7 @@ with DAG(
     description="Update knack HR app based on records in Banner and CTM",
     default_args=DEFAULT_ARGS,
     schedule_interval="45 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    dagrun_timeout=duration(minutes=30),
     tags=["repo:atd-knack-banner", "knack"],
     catchup=False,
 ) as dag:
