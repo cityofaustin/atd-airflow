@@ -92,7 +92,7 @@ with DAG(
         docker_conn_id="docker_default",
         image=docker_image,
         auto_remove=True,
-        command=f"python main.py",
+        command=f"python records_to_postgrest.py",
         environment=env_vars,
         tty=True,
         force_pull=True,
