@@ -104,7 +104,7 @@ with DAG(
         docker_conn_id="docker_default",
         image=docker_image,
         auto_remove=True,
-        command=f"python records_to_socrata.py -d {date_filter_arg}",
+        command=f"python records_to_socrata.py -date {date_filter_arg}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
