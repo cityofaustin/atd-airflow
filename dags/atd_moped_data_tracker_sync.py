@@ -47,7 +47,7 @@ with DAG(
     dag_id="atd_moped_data_tracker_sync",
     description="sync Moped project data to Knack Data Tracker projects table",
     default_args=DEFAULT_ARGS,
-    schedule_interval="0 6 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="0 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=30),
     tags=["repo:atd-moped", "moped", "data-tracker", "knack"],
     catchup=False,
