@@ -73,7 +73,7 @@ with DAG(
     app_name = "data-tracker"
     container = "view_197"
 
-    date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
+    date_filter_arg = get_date_filter_arg(should_replace_monthly=False)
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
