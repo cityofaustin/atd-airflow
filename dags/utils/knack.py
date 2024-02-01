@@ -17,7 +17,7 @@ def get_date_filter_arg(should_replace_monthly=False, **context):
             variable.
 
     Returns:
-        Str or None: and ISO date string or None
+        Str or None: the -d flag and ISO date string or None
     """
     today = now()
     prev_start_date = context.get("prev_start_date_success") or today.isoformat()
