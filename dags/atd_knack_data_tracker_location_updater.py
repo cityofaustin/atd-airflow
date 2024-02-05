@@ -42,7 +42,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id=f"atd_knack_data_tracker_location_updater",
-    description="Assigns signal records to CSR issues in data tracker based on CSR location",
+    description="With data from AGOL, update the Signal Engineer Area field in Knack ",
     default_args=DEFAULT_ARGS,
     schedule_interval="19 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "data-tracker", "agol"],
