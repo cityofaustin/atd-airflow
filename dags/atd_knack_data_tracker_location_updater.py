@@ -42,7 +42,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id=f"atd_knack_data_tracker_location_updater",
-    description="Assigns signal records to CSR issues in data tracker based on CSR location",
+    description="With data from AGOL, update signal location information in Knack ",
     default_args=DEFAULT_ARGS,
     schedule_interval="19 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "data-tracker", "agol"],
@@ -59,6 +59,7 @@ with DAG(
     t1 = DockerOperator(
         task_id="update_locations",
         image= "atddocker/atd-knack-services:production",
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"./atd-knack-services/services/knack_location_updater.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
