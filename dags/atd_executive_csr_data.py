@@ -54,6 +54,10 @@ OTHER_SECRETS = {
         "opitem": "Executive Dashboard",
         "opfield": "datasets.CSR",
     },
+    "FLEX_NOTES_DATASET": {
+        "opitem": "Executive Dashboard",
+        "opfield": "datasets.Flex Notes",
+    },
     "BUCKET_NAME": {
         "opitem": "Executive Dashboard",
         "opfield": "s3.Bucket",
@@ -89,6 +93,10 @@ CUR_YEAR_SECRETS = {
         "opitem": "Executive Dashboard",
         "opfield": "csr.Current FY Endpoint",
     },
+    "FLEX_NOTE_ENDPOINT": {
+        "opitem": "Executive Dashboard",
+        "opfield": "flex_note.Current FY Endpoint",
+    },
 }
 
 PREV_YEAR_SECRETS = {
@@ -96,12 +104,20 @@ PREV_YEAR_SECRETS = {
         "opitem": "Executive Dashboard",
         "opfield": "csr.Previous FY Endpoint",
     },
+    "FLEX_NOTE_ENDPOINT": {
+        "opitem": "Executive Dashboard",
+        "opfield": "flex_note.Previous FY Endpoint",
+    },
 }
 
 TWO_YEARS_AGO_SECRETS = {
     "CSR_ENDPOINT": {
         "opitem": "Executive Dashboard",
         "opfield": "csr.Two Years Ago FY Endpoint",
+    },
+    "FLEX_NOTE_ENDPOINT": {
+        "opitem": "Executive Dashboard",
+        "opfield": "flex_note.Two Years Ago FY Endpoint",
     },
 }
 
@@ -126,6 +142,7 @@ with DAG(
     t1 = DockerOperator(
         task_id="cur_year_csr_report_to_socrata",
         image=docker_image,
+        docker_conn_id="docker_default",
         api_version="auto",
         auto_remove=True,
         command=f"python csr/csr_to_socrata.py",
@@ -135,25 +152,58 @@ with DAG(
     )
 
     t2 = DockerOperator(
+        task_id="cur_year_flex_note_report_to_socrata",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        api_version="auto",
+        auto_remove=True,
+        command=f"python csr/flex_notes_to_socrata.py",
+        environment=cur_year_env,
+        tty=True,
+    )
+
+    t3 = DockerOperator(
         task_id="prev_year_csr_report_to_socrata",
         image=docker_image,
+        docker_conn_id="docker_default",
         api_version="auto",
         auto_remove=True,
         command=f"python csr/csr_to_socrata.py",
         environment=prev_year_env,
         tty=True,
-        force_pull=False,
     )
 
-    t3 = DockerOperator(
+    t4 = DockerOperator(
+        task_id="prev_year_flex_note_report_to_socrata",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        api_version="auto",
+        auto_remove=True,
+        command=f"python csr/flex_notes_to_socrata.py",
+        environment=prev_year_env,
+        tty=True,
+    )
+
+    t5 = DockerOperator(
         task_id="two_years_ago_csr_report_to_socrata",
         image=docker_image,
+        docker_conn_id="docker_default",
         api_version="auto",
         auto_remove=True,
         command=f"python csr/csr_to_socrata.py",
         environment=two_years_env,
         tty=True,
-        force_pull=False,
     )
 
-    t1 >> t2 >> t3
+    t6 = DockerOperator(
+        task_id="two_years_ago_flex_note_report_to_socrata",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        api_version="auto",
+        auto_remove=True,
+        command=f"python csr/flex_notes_to_socrata.py",
+        environment=two_years_env,
+        tty=True,
+    )
+
+    t1 >> t2 >> t3 >> t4 >> t5 >> t6
