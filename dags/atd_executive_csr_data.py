@@ -95,7 +95,7 @@ CUR_YEAR_SECRETS = {
     },
     "FLEX_NOTE_ENDPOINT": {
         "opitem": "Executive Dashboard",
-        "opfield": "flex_note.Current FY Endpoint",
+        "opfield": "flex_notes.Current FY Endpoint",
     },
 }
 
@@ -106,7 +106,7 @@ PREV_YEAR_SECRETS = {
     },
     "FLEX_NOTE_ENDPOINT": {
         "opitem": "Executive Dashboard",
-        "opfield": "flex_note.Previous FY Endpoint",
+        "opfield": "flex_notes.Previous FY Endpoint",
     },
 }
 
@@ -117,7 +117,7 @@ TWO_YEARS_AGO_SECRETS = {
     },
     "FLEX_NOTE_ENDPOINT": {
         "opitem": "Executive Dashboard",
-        "opfield": "flex_note.Two Years Ago FY Endpoint",
+        "opfield": "flex_notes.Two Years Ago FY Endpoint",
     },
 }
 
@@ -131,7 +131,7 @@ with DAG(
     description="Downloads reports of 311 service requests for TPW and publishes it in a Socrata dataset.",
     default_args=default_args,
     schedule_interval="36 9 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=timedelta(minutes=20),
+    dagrun_timeout=timedelta(minutes=60),
     tags=["repo:atd-executive-dashboard", "socrata", "csr"],
     catchup=False,
 ) as dag:
