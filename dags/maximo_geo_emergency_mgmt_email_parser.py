@@ -62,7 +62,6 @@ with DAG(
         image="atddocker/maximo-geo-emergency-mgmt:production",
         api_version="auto",
         auto_remove=True,
-        # command="./cr3_extract_diagram/cr3_extract_diagram_ocr_narrative.py -v -d --update-narrative --update-timestamp --batch 100 --cr3-source atd-vision-zero-editor production/cris-cr3-files --save-diagram-s3 atd-vision-zero-website cr3_crash_diagrams/production",
         environment=env_vars,
         tty=True,
         force_pull=True,
