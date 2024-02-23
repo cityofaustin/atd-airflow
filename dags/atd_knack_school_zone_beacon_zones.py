@@ -55,7 +55,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id="atd_knack_school_zone_beacon_zones",
-    description="Load school beacons (view_4027) records from Knack to Postgrest to Socrata",
+    description="Load school zone beacon zones (view_4027) records from Knack to Postgrest to Socrata",
     default_args=DEFAULT_ARGS,
     schedule_interval="25 5 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "data-tracker", "socrata"],
