@@ -55,7 +55,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id="atd_knack_signs_markings_reimbursements",
-    description="Load work orders signs (view_3107) records from Knack to Postgrest to AGOL, Socrata",
+    description="Load signs (view_3526) and markings (view_3527) reimbursement records from Knack to Postgrest to Socrata",
     default_args=DEFAULT_ARGS,
      # runs once at 10a cst and again at 2pm cst
     schedule_interval="0 10,14 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
@@ -74,6 +74,7 @@ with DAG(
     t1 = DockerOperator(
         task_id="atd_knack_signs_reimbursements_to_postgrest",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container_signs} {date_filter_arg}",
         environment=env_vars,
@@ -85,6 +86,7 @@ with DAG(
     t2 = DockerOperator(
         task_id="atd_knack_markings_reimbursements_to_postgrest",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container_markings} {date_filter_arg}",
         environment=env_vars,
@@ -97,6 +99,7 @@ with DAG(
     t3 = DockerOperator(
         task_id="atd_knack_signs_reimbursements_to_socrata",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f'./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container_signs} {date_filter_arg}',
         environment=env_vars,
@@ -107,6 +110,7 @@ with DAG(
     t4 = DockerOperator(
         task_id="atd_knack_markings_reimbursements_to_socrata",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f'./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container_markings} {date_filter_arg}',
         environment=env_vars,
