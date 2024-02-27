@@ -77,7 +77,7 @@ with DAG(
     dag_id="atd_traffic_incident_reports",
     description="wrapper etl for atd-traffic-incident-reports docker image connects to oracle db and updates postrgrest and socrata with incidents",
     default_args=DEFAULT_ARGS,
-    schedule_interval="*/3 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-traffic-incident-reports", "postgrest", "socrata"],
     catchup=False,
 ) as dag:
