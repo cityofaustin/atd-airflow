@@ -2,11 +2,12 @@
 
 import os
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from airflow.decorators import task
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
+from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
@@ -16,7 +17,7 @@ DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 default_args = {
     "owner": "airflow",
     "depends_on_past": False,
-    "start_date": datetime(2015, 12, 1),
+    "start_date": datetime(2015, 12, 1, tz="America/Chicago"),
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
