@@ -18,7 +18,7 @@ DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 default_args = {
     "owner": "airflow",
     "depends_on_past": False,
-    "start_date": datetime(2015, 12, 1),
+    "start_date": datetime(2015, 12, 1, tz="America/Chicago"),
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
