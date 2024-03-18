@@ -36,6 +36,10 @@ REQUIRED_SECRETS = {
         "opitem": "Github Access Token Service Bot",
         "opfield": ".password",
     },
+    "ZENHUB_ACCESS_TOKEN": {
+        "opitem": "Zenhub Access Token",
+        "opfield": ".password",
+    },
 }
 
 with DAG(
