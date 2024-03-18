@@ -45,17 +45,19 @@ with DAG(
     tags=["repo:atd-service-bot", "knack", "github"],
     catchup=False,
 ) as dag:
+
     @task(
         task_id="get_env_vars",
         execution_timeout=duration(seconds=30),
     )
     def get_env_vars():
         from utils.onepassword import load_dict
+
         env_vars = load_dict(REQUIRED_SECRETS)
         return env_vars
-    
+
     env_vars = get_env_vars()
-    
+
     DockerOperator(
         task_id="github_to_dts_portal",
         image=docker_image,
