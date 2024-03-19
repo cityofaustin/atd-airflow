@@ -65,6 +65,7 @@ with DAG(
     DockerOperator(
         task_id="github_to_dts_portal",
         image=docker_image,
+        docker_conn_id="docker_default",
         api_version="auto",
         auto_remove=True,
         command="./atd-service-bot/gh_index_issues_to_dts_portal.py",
