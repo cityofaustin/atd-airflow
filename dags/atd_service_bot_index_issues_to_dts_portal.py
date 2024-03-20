@@ -36,29 +36,36 @@ REQUIRED_SECRETS = {
         "opitem": "Github Access Token Service Bot",
         "opfield": ".password",
     },
+    "ZENHUB_ACCESS_TOKEN": {
+        "opitem": "Zenhub Access Token",
+        "opfield": ".password",
+    },
 }
 
 with DAG(
     dag_id=f"atd_service_bot_issues_to_dts_portal_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
-    schedule_interval="0 5 * * *",
+    schedule_interval="0 5 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-service-bot", "knack", "github"],
     catchup=False,
 ) as dag:
+
     @task(
         task_id="get_env_vars",
         execution_timeout=duration(seconds=30),
     )
     def get_env_vars():
         from utils.onepassword import load_dict
+
         env_vars = load_dict(REQUIRED_SECRETS)
         return env_vars
-    
+
     env_vars = get_env_vars()
-    
+
     DockerOperator(
         task_id="github_to_dts_portal",
         image=docker_image,
+        docker_conn_id="docker_default",
         api_version="auto",
         auto_remove=True,
         command="./atd-service-bot/gh_index_issues_to_dts_portal.py",
