@@ -68,10 +68,11 @@ with DAG(
         task_id="atd_cost_of_service_fees_to_knack",
         image="atddocker/atd-cost-of-service:production",
         auto_remove=True,
-        command="python knack_load_fees.py",
+        command="python3 knack_load_fees.py",
         network_mode="bridge",
         environment=env_vars,
         tty=True,
+        docker_conn_id="docker_default",
         force_pull=True,
         mount_tmp_dir=False,
     )
