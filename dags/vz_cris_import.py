@@ -20,6 +20,7 @@ def cris_import():
     DockerOperator(
         task_id="run_cris_import",
         environment=dict(os.environ),
+        docker_conn_id="docker_default",
         image="atddocker/vz-cris-import:production",
         auto_remove=True,
         tty=True,
