@@ -38,35 +38,39 @@ REQUIRED_SECRETS = {
         "opitem": "atd-knack-services PostgREST",
         "opfield": "production.jwt",
     },
-    "AGOL_USERNAME": {
-        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
-        "opfield": "production.username",
+    "SOCRATA_API_KEY_ID": {
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "socrata.apiKeyId",
     },
-    "AGOL_PASSWORD": {
-        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
-        "opfield": "production.password",
+    "SOCRATA_API_KEY_SECRET": {
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "socrata.apiKeySecret",
+    },
+    "SOCRATA_APP_TOKEN": {
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "socrata.appToken",
     },
 }
 
 
 with DAG(
-    dag_id="atd_knack_signs_work_order_attachments",
-    description="Publish sign work order attachments to Postgres, AGOL",
+    dag_id="atd_knack_signs_markings_311_csr",
+    description="Publish signs markings 311 CSRs to Postgres, Socrata",
     default_args=DEFAULT_ARGS,
-    schedule_interval="40 1 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    tags=["repo:atd-knack-services", "knack", "agol", "signs-markings"],
+    schedule_interval="20 19 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    tags=["repo:atd-knack-services", "knack", "socrata", "signs-markings"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/atd-knack-services:production"
     app_name = "signs-markings"
-    container = "view_3127"
+    container = "view_3992"
 
     date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
-        task_id="signs_attachment_specs_to_postgrest",
+        task_id="smd_311_csrs_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove=True,
@@ -78,14 +82,15 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id="signs_attachments_specs_to_agol",
+        task_id="smd_311_csrs_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove=True,
-        command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container} {date_filter_arg}",
+        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
     )
+
 
     date_filter_arg >> t1 >> t2
