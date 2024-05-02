@@ -49,7 +49,7 @@ REQUIRED_SECRETS = {
     dag_id="vz-populate-cr3-metadata",
     description="A DAG which populates CR3 metadata in the VZDB",
     schedule_interval=(
-        "0 8-12 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
+        "0 8-17 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
     ),
     catchup=False,
     tags=["repo:atd-vz-data", "vision-zero", "ocr", "cr3"],
