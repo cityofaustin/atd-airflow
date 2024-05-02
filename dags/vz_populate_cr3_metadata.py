@@ -11,7 +11,7 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "execution_timeout": duration(minutes=5),
+    "execution_timeout": duration(minutes=50),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -48,7 +48,9 @@ REQUIRED_SECRETS = {
 @dag(
     dag_id="vz-populate-cr3-metadata",
     description="A DAG which populates CR3 metadata in the VZDB",
-    schedule_interval="0 9 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval=(
+        "0 8-12 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
+    ),
     catchup=False,
     tags=["repo:atd-vz-data", "vision-zero", "ocr", "cr3"],
     default_args=default_args,
@@ -71,7 +73,10 @@ def populate_cr3_metadata():
         image="atddocker/vz-cr3-metadata-pdfs:production",
         auto_remove=True,
         entrypoint=[
-            "/app/populate_cr3_file_metadata.py -t 5 -a -v"
+            "/app/populate_cr3_file_metadata.py",
+            "-t 20",
+            "-a",
+            "-v",
         ],  # five threads, do all pending actions instead of batching them, and be verbose in logging.
         tty=True,
         force_pull=True,
