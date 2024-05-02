@@ -70,7 +70,9 @@ def populate_cr3_metadata():
         environment=env_vars,
         image="atddocker/vz-cr3-metadata-pdfs:production",
         auto_remove=True,
-        entrypoint=["/app/populate_cr3_file_metadata.py -t 5 -a"],
+        entrypoint=[
+            "/app/populate_cr3_file_metadata.py -t 5 -a -v"
+        ],  # five threads, do all pending actions instead of batching them, and be verbose in logging.
         tty=True,
         force_pull=True,
     )
