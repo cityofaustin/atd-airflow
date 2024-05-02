@@ -48,9 +48,7 @@ REQUIRED_SECRETS = {
 @dag(
     dag_id="vz-populate-cr3-metadata",
     description="A DAG which populates CR3 metadata in the VZDB",
-    schedule_interval="*/5 8-10 * * *"
-    if DEPLOYMENT_ENVIRONMENT == "production"
-    else None,
+    schedule_interval="0 9 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     catchup=False,
     tags=["repo:atd-vz-data", "vision-zero", "ocr", "cr3"],
     default_args=default_args,
@@ -72,7 +70,7 @@ def populate_cr3_metadata():
         environment=env_vars,
         image="atddocker/vz-cr3-metadata-pdfs:production",
         auto_remove=True,
-        entrypoint=["/app/populate_cr3_file_metadata.py"],
+        entrypoint=["/app/populate_cr3_file_metadata.py -t 5 -a"],
         tty=True,
         force_pull=True,
     )
