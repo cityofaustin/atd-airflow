@@ -77,7 +77,7 @@ def populate_cr3_metadata():
             "-t 20",
             "-a",
             "-v",
-        ],  # five threads, do all pending actions instead of batching them, and be verbose in logging.
+        ],  # twenty threads, do all pending actions instead of batching them, and be verbose in logging.
         tty=True,
         force_pull=True,
     )
