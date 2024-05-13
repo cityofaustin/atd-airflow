@@ -2,7 +2,6 @@
 # https://airflow.apache.org/docs/apache-airflow/2.6.1/docker-compose.yaml
 # and documented here:
 # https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#running-airflow-in-docker
-version: "3.8"
 x-airflow-common: &airflow-common
   # In order to add custom dependencies or upgrade provider packages you can use your extended image.
   # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml

@@ -1,8 +1,8 @@
-FROM apache/airflow:2.6.1
+FROM apache/airflow:2.9.0
 
 USER root
 RUN apt-get update
-RUN apt-get install -y aptitude magic-wormhole vim black awscli
+RUN apt-get install -y aptitude magic-wormhole vim black awscli gosu
 
 USER ${AIRFLOW_UID}
 COPY requirements.txt /opt/airflow/requirements.txt
