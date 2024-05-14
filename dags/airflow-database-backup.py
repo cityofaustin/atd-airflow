@@ -19,7 +19,7 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "execution_timeout": duration(minutes=30),
+    "execution_timeout": duration(minutes=60),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -31,7 +31,7 @@ REQUIRED_SECRETS = {
     "AWS_SECRET_ACCESS_KEY": {
         "opitem": "AWS atd-airflow IAM user API credentials",
         "opfield": "production.secret key",
-    }, 
+    },
 }
 
 with DAG(
@@ -46,18 +46,19 @@ with DAG(
     @task()
     def get_env_vars():
         from utils.onepassword import load_dict
+
         return load_dict(REQUIRED_SECRETS)
 
     @task()
     def add_todays_date_to_dict(secrets):
-        secrets["current_date"] = vanilla_datetime.today().strftime('%Y-%m-%d')
+        secrets["current_date"] = vanilla_datetime.today().strftime("%Y-%m-%d")
         return secrets
 
     env_vars = get_env_vars()
     env_vars = add_todays_date_to_dict(env_vars)
 
     BashOperator(
-      task_id="backup_airflow_db",
-      env=env_vars,
-      bash_command=f"docker exec -i atd-airflow-postgres-1 pg_dump -U airflow airflow | bzip2 -9 | AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY aws s3 cp - s3://atd-airflow/$current_date/airflow-db-backup.bz2"
+        task_id="backup_airflow_db",
+        env=env_vars,
+        bash_command=f"docker exec -i atd-airflow-postgres-1 pg_dump -U airflow airflow | bzip2 -9 | AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY aws s3 cp - s3://atd-airflow/$current_date/airflow-db-backup.bz2",
     )
