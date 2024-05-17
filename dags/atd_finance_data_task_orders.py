@@ -19,7 +19,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "execution_timeout": duration(minutes=60),  # some queries are very slow
+    "execution_timeout": duration(minutes=180),  # some queries are very slow
     "on_failure_callback": task_fail_slack_alert,
 }
 
