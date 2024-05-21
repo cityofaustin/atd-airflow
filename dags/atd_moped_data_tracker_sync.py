@@ -70,4 +70,4 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t1
+    get_date_filter_arg >> t1
