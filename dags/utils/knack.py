@@ -19,8 +19,11 @@ def get_date_filter_arg(should_replace_monthly=False, **context):
     Returns:
         Str or None: the -d flag and ISO date string or None
     """
+
     today = now()
-    prev_start_date = context.get("prev_start_date_success") or today.isoformat()
+    prev_start_date = context.get("prev_start_date_success") or today
+
     if should_replace_monthly and today.day == 1:
         return ""
-    return f"-d {prev_start_date}"
+
+    return f"-d {prev_start_date.isoformat()}"
