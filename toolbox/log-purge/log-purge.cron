@@ -3,7 +3,7 @@
 # time greater than 30 days, and the second command removes all empty directories. Removed
 # files and directories are logged into /var/log which will get rotated by the system.
 
-0 2 * * * find /usr/airflow/atd-airflow/logs -type f -mtime +30 -exec rm -v {} \; \
+0 2 * * * root find /usr/airflow/atd-airflow/logs -type f -mtime +30 -exec rm -v {} \; \
 >> /var/log/airflow-logs-purge.log && \
 find /usr/airflow/atd-airflow/logs -type d -empty | xargs -I {} rmdir -v {}; \
 >> /var/log/airflow-logs-purge.log  && \
