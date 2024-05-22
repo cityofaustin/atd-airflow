@@ -1,5 +1,5 @@
 from airflow.decorators import task
-from pendulum import now, parse, DateTime
+from pendulum import now
 
 
 @task(
