@@ -21,9 +21,7 @@ def get_date_filter_arg(should_replace_monthly=False, **context):
     """
 
     today = now()
-    prev_start_date = (
-        context.get("prev_start_date_success").isoformat() or today.isoformat()
-    )
+    prev_start_date = context.get("prev_start_date_success") or today
 
     if should_replace_monthly and today.day == 1:
         return ""
