@@ -1,5 +1,5 @@
 from airflow.decorators import task
-from pendulum import now
+from pendulum import now, parse, DateTime
 
 
 @task(
@@ -20,7 +20,19 @@ def get_date_filter_arg(should_replace_monthly=False, **context):
         Str or None: the -d flag and ISO date string or None
     """
     today = now()
-    prev_start_date = context.get("prev_start_date_success") or today.isoformat()
+    prev_start_date = context.get("prev_start_date_success")
+
+    if isinstance(prev_start_date, DateTime):
+        prev_start_date = prev_start_date.isoformat()
+    elif prev_start_date:
+        try:
+            prev_start_date = parse(prev_start_date).isoformat()
+        except ValueError:
+            prev_start_date = today.isoformat()
+    else:
+        prev_start_date = today.isoformat()
+
     if should_replace_monthly and today.day == 1:
         return ""
+
     return f"-d {prev_start_date}"
