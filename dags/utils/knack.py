@@ -28,4 +28,4 @@ def get_date_filter_arg(should_replace_monthly=False, **context):
     if should_replace_monthly and today.day == 1:
         return ""
 
-    return f"-d {prev_start_date}"
+    return f"-d {prev_start_date.isoformat()}"
