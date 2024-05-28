@@ -4,7 +4,7 @@ import os
 
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
-from pendulum import datetime, duration, now
+from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
@@ -22,7 +22,7 @@ DEFAULT_ARGS = {
     "on_failure_callback": task_fail_slack_alert,
 }
 
-REQURED_SECRETS = {
+REQUIRED_SECRETS = {
     "SO_KEY": {
         "opitem": "Socrata Key ID, Secret, and Token",
         "opfield": "socrata.apiKeyId",
@@ -63,7 +63,7 @@ REQURED_SECRETS = {
 
 with DAG(
     dag_id=f"dts_maximo_reporting_workorders",
-    description="Uploads the last 7 days of Maximo workorders to Socrata from the Maximo data warehouse.",
+    description="Uploads the last 7 days of Maximo work orders to Socrata from the Maximo data warehouse.",
     default_args=DEFAULT_ARGS,
     schedule_interval="00 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:dts-maximo-reporting", "socrata", "maximo"],
@@ -71,7 +71,7 @@ with DAG(
 ) as dag:
     docker_image = "atddocker/dts-maximo-reporting:production"
 
-    env_vars = get_env_vars_task(REQURED_SECRETS)
+    env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
         task_id="maximo_workorders_to_socrata",
