@@ -4,7 +4,7 @@
 DOMAIN=$1
 
 echo "Renewing certificate for $DOMAIN"
-export ATD_AIRFLOW_HOMEDIR="/usr/airflow/atd-airflow";
+export ATD_AIRFLOW_HOMEDIR="/srv/atd-airflow";
 
 # Load the same environment variables as the Airflow stack
 source $ATD_AIRFLOW_HOMEDIR/.env
@@ -24,7 +24,7 @@ AWS_SECRET_ACCESS_KEY=$(docker run --rm --name op \
 1password/op:2 op read op://$OP_VAULT_ID/Certbot\ IAM\ Access\ Key\ and\ Secret/accessSecret)
 
 # Now, remove the old concatenated certificates, renew the certificate, and replace with the new concatenated certificates
-CERT_PATH="/usr/airflow/atd-airflow/haproxy/ssl"
+CERT_PATH="/srv/atd-airflow/haproxy/ssl"
 cd $CERT_PATH
 rm $DOMAIN.pem
 
@@ -40,3 +40,5 @@ certbot/dns-route53 certonly -n --dns-route53 -d $DOMAIN
 cat /etc/letsencrypt/live/$DOMAIN/cert.pem > $ATD_AIRFLOW_HOMEDIR/haproxy/ssl/$DOMAIN.pem
 
 cat /etc/letsencrypt/live/$DOMAIN/privkey.pem >> $ATD_AIRFLOW_HOMEDIR/haproxy/ssl/$DOMAIN.pem
+
+chmod a+r $ATD_AIRFLOW_HOMEDIR/haproxy/ssl/$DOMAIN.pem
