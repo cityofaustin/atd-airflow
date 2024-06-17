@@ -151,7 +151,9 @@ with DAG(
     catchup=False,
 ) as dag:
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
-    prev_exec = "{{ (prev_start_date_success - macros.timedelta(days=7)).strftime('%Y-%m-%d') if prev_start_date_success else '2023-08-28'}}"
+
+    # default to the last 7 days of transactions but if we haven't ran it before, collect the last two weeks.
+    prev_exec = "{{ (prev_start_date_success - macros.timedelta(days=7)).strftime('%Y-%m-%d') if prev_start_date_success else (execution_date - macros.timedelta(days=14)).strftime('%Y-%m-%d')}}"
 
     docker_tasks = []
 
@@ -159,6 +161,7 @@ with DAG(
         DockerOperator(
             task_id="smartfolio_transactions",
             image=docker_image,
+            docker_conn_id="docker_default",
             command=f"python txn_history.py -v --report transactions --env prod --start {prev_exec}",
             api_version="auto",
             auto_remove=True,
@@ -174,6 +177,7 @@ with DAG(
         DockerOperator(
             task_id="smartfolio_payments",
             image=docker_image,
+            docker_conn_id="docker_default",
             command=f"python txn_history.py -v --report payments --env prod --start {prev_exec}",
             api_version="auto",
             auto_remove=True,
@@ -189,6 +193,7 @@ with DAG(
         DockerOperator(
             task_id="smartfolio_pard_payments",
             image=docker_image,
+            docker_conn_id="docker_default",
             command=f"python txn_history.py -v --report payments --user pard --env prod --start {prev_exec}",
             api_version="auto",
             auto_remove=True,
@@ -204,6 +209,7 @@ with DAG(
         DockerOperator(
             task_id="passport_transactions",
             image=docker_image,
+            docker_conn_id="docker_default",
             command=f"python passport_txns.py -v --env prod --start {prev_exec}",
             api_version="auto",
             auto_remove=True,
@@ -219,6 +225,7 @@ with DAG(
         DockerOperator(
             task_id="process_fiserv_emails",
             image=docker_image,
+            docker_conn_id="docker_default",
             command=f"python fiserv_email_pub.py",
             api_version="auto",
             auto_remove=True,
@@ -234,6 +241,7 @@ with DAG(
         DockerOperator(
             task_id="process_fiserv_attachments",
             image=docker_image,
+            docker_conn_id="docker_default",
             command=f"python fiserv_DB.py --lastmonth True",
             api_version="auto",
             auto_remove=True,
@@ -249,6 +257,7 @@ with DAG(
         DockerOperator(
             task_id="process_smartfolio_payments",
             image=docker_image,
+            docker_conn_id="docker_default",
             command=f"python payments_s3.py --lastmonth True",
             api_version="auto",
             auto_remove=True,
@@ -264,6 +273,7 @@ with DAG(
         DockerOperator(
             task_id="process_pard_smartfolio_payments",
             image=docker_image,
+            docker_conn_id="docker_default",
             command=f"python payments_s3.py --user pard --lastmonth True",
             api_version="auto",
             auto_remove=True,
@@ -279,6 +289,7 @@ with DAG(
         DockerOperator(
             task_id="process_passport_transactions",
             image=docker_image,
+            docker_conn_id="docker_default",
             command=f"python passport_DB.py --lastmonth True",
             api_version="auto",
             auto_remove=True,
@@ -294,6 +305,7 @@ with DAG(
         DockerOperator(
             task_id="process_smartfolio_transactions",
             image=docker_image,
+            docker_conn_id="docker_default",
             command=f"python smartfolio_s3.py --lastmonth True",
             api_version="auto",
             auto_remove=True,
@@ -309,6 +321,7 @@ with DAG(
         DockerOperator(
             task_id="match_fiserv_and_smartfolio_payments",
             image=docker_image,
+            docker_conn_id="docker_default",
             command=f"python match_field_processing.py",
             api_version="auto",
             auto_remove=True,
@@ -324,6 +337,7 @@ with DAG(
         DockerOperator(
             task_id="payments_to_socrata",
             image=docker_image,
+            docker_conn_id="docker_default",
             command=f"python parking_socrata.py --dataset payments",
             api_version="auto",
             auto_remove=True,
@@ -339,6 +353,7 @@ with DAG(
         DockerOperator(
             task_id="fiserv_to_socrata",
             image=docker_image,
+            docker_conn_id="docker_default",
             command=f"python parking_socrata.py --dataset fiserv",
             api_version="auto",
             auto_remove=True,
@@ -354,6 +369,7 @@ with DAG(
         DockerOperator(
             task_id="transactions_to_socrata",
             image=docker_image,
+            docker_conn_id="docker_default",
             command=f"python parking_socrata.py --dataset transactions",
             api_version="auto",
             auto_remove=True,
