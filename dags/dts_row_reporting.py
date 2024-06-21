@@ -183,6 +183,20 @@ with DAG(
     )
 
     t4 = DockerOperator(
+        task_id="amanda_license_agreements_timeline",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove=True,
+        command=f"python amanda/amanda_to_s3.py --query license_agreements_timeline",
+        environment=env_vars,
+        tty=True,
+        mount_tmp_dir=False,
+        retries=3,
+        retry_delay=duration(seconds=60),
+        trigger_rule="all_done",
+    )
+
+    t5 = DockerOperator(
         task_id="smartsheet_to_s3",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -196,7 +210,7 @@ with DAG(
         trigger_rule="all_done",
     )
 
-    t5 = DockerOperator(
+    t6 = DockerOperator(
         task_id="row_data_summary",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -210,7 +224,7 @@ with DAG(
         trigger_rule="all_done",
     )
 
-    t6 = DockerOperator(
+    t7 = DockerOperator(
         task_id="amanda_review_time",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -224,7 +238,7 @@ with DAG(
         trigger_rule="all_done",
     )
 
-    t7 = DockerOperator(
+    t8 = DockerOperator(
         task_id="ex_permits_issued",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -238,7 +252,7 @@ with DAG(
         trigger_rule="all_done",
     )
 
-    t8 = DockerOperator(
+    t9 = DockerOperator(
         task_id="active_permits_logging",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -252,7 +266,7 @@ with DAG(
         trigger_rule="all_done",
     )
 
-    t9 = DockerOperator(
+    t10 = DockerOperator(
         task_id="backup_active_permits",
         image=knack_services_image,
         docker_conn_id="docker_default",
@@ -265,4 +279,16 @@ with DAG(
         trigger_rule="all_done",
     )
 
-    t1 >> t2 >> t3 >> t4 >> t5 >> t6 >> t7 >> t8 >> t9
+    t11 = DockerOperator(
+        task_id="license_agreements_socrata",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove=True,
+        command=f"python metrics/s3_to_socrata.py --dataset license_agreements_timeline",
+        environment=env_vars,
+        tty=True,
+        mount_tmp_dir=False,
+        trigger_rule="all_done",
+    )
+
+    t1 >> t2 >> t3 >> t4 >> t5 >> t6 >> t7 >> t8 >> t9 >> t10 >> t11
