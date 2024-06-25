@@ -8,6 +8,7 @@ from pendulum import datetime, duration, now
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
+from utils.knack import get_date_filter_arg
 
 DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
@@ -53,13 +54,15 @@ with DAG(
 ) as dag:
     docker_image = "atddocker/atd-moped-etl-arcgis:production"
 
+    date_filter_arg = get_date_filter_arg()
+
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
         task_id="moped_components_to_agol",
         image=docker_image,
         auto_remove=True,
-        command="python components_to_agol.py",
+        command=f"python components_to_agol.py {date_filter_arg}",
         environment=env_vars,
         tty=True,
         force_pull=True,
