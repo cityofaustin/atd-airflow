@@ -47,7 +47,7 @@ with DAG(
     dag_id="atd_moped_components_to_agol",
     description="publish component record data to ArcGIS Online (AGOL)",
     default_args=DEFAULT_ARGS,
-    schedule_interval="30 22 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=30),
     tags=["repo:atd-moped", "moped", "agol"],
     catchup=False,
