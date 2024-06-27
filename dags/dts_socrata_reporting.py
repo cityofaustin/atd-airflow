@@ -1,4 +1,4 @@
-# test locally with: docker compose run --rm airflow-cli dags test atd_executive_socrata_metadata
+# test locally with: docker compose run --rm airflow-cli dags test dts_socrata_reporting
 
 import os
 
@@ -24,7 +24,7 @@ default_args = {
     "on_failure_callback": task_fail_slack_alert,
 }
 
-docker_image = "atddocker/atd-executive-dashboard:production"
+docker_image = "atddocker/dts-socrata-reporting:production"
 
 REQUIRED_SECRETS = {
     "SO_WEB": {
@@ -47,7 +47,7 @@ REQUIRED_SECRETS = {
 
 
 with DAG(
-    dag_id="atd_executive_socrata_metadata",
+    dag_id="dts_socrata_reporting",
     description="Gathers metadata from all TPW assets on Socrata and stores it in a dataset.",
     default_args=default_args,
     schedule_interval="00 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
@@ -63,7 +63,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove=True,
-        command="python socrata-metadata/socrata_metadata_pub.py",
+        command="python etl/socrata_metadata_pub.py",
         environment=env_vars,
         tty=True,
         force_pull=True,

@@ -1,4 +1,4 @@
-# test locally with: docker compose run --rm airflow-cli dags test atd_executive_dashboard_expenses_revenue
+# test locally with: docker compose run --rm airflow-cli dags test dts_finances_report_publishing
 
 import os
 
@@ -23,8 +23,6 @@ default_args = {
     "retries": 0,
     "on_failure_callback": task_fail_slack_alert,
 }
-
-docker_image = "atddocker/atd-executive-dashboard:production"
 
 REQUIRED_SECRETS = {
     "SO_WEB": {
@@ -82,24 +80,27 @@ REQUIRED_SECRETS = {
 }
 
 with DAG(
-    dag_id="atd_executive_dashboard_expenses_revenue",
+    dag_id="dts_finances_report_publishing",
     description="Downloads two Microstrategy Reports for Expenses and Revenue. \
     Places the results as a CSV in a S3 bucket. \
     Then publishes the data to a Socrata dataset",
     default_args=default_args,
     schedule_interval="00 11 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=timedelta(minutes=120),
-    tags=["repo:atd-executive-dashboard", "socrata", "microstrategy"],
+    tags=["repo:dts-finance-reporting", "socrata", "microstrategy"],
     catchup=False,
 ) as dag:
+    docker_image = "atddocker/dts-finance-reporting:production"
+    
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
+
 
     t1 = DockerOperator(
         task_id="download_microstrategy_reports",
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"python finance-reports/rev_exp_report_to_s3.py",
+        command=f"python etl/rev_exp_report_to_s3.py",
         environment=env_vars,
         tty=True,
         force_pull=True,
@@ -110,7 +111,7 @@ with DAG(
         image=docker_image,
         api_version="auto",
         auto_remove=True,
-        command=f"python finance-reports/mstro_reports_to_socrata.py",
+        command=f"python etl/mstro_reports_to_socrata.py",
         environment=env_vars,
         tty=True,
         force_pull=False,
