@@ -1,4 +1,4 @@
-# test locally with: docker compose run --rm airflow-cli dags test atd_executive_csr_data
+# test locally with: docker compose run --rm airflow-cli dags test dts_csr_report_publishing
 
 import os
 
@@ -23,8 +23,6 @@ default_args = {
     "retries": 0,
     "on_failure_callback": task_fail_slack_alert,
 }
-
-docker_image = "atddocker/atd-executive-dashboard:production"
 
 OTHER_SECRETS = {
     "SO_WEB": {
@@ -128,14 +126,16 @@ PREV_YEAR_SECRETS.update(OTHER_SECRETS)
 TWO_YEARS_AGO_SECRETS.update(OTHER_SECRETS)
 
 with DAG(
-    dag_id="atd_executive_csr_data",
+    dag_id="dts_csr_report_publishing",
     description="Downloads reports of 311 service requests for TPW and publishes it in a Socrata dataset.",
     default_args=default_args,
     schedule_interval="36 9 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=timedelta(minutes=60),
-    tags=["repo:atd-executive-dashboard", "socrata", "csr"],
+    tags=["repo:dts-311-reporting", "socrata", "csr"],
     catchup=False,
 ) as dag:
+    docker_image = "atddocker/dts-311-reporting:production"
+
     cur_year_env = get_env_vars_task(CUR_YEAR_SECRETS)
     prev_year_env = get_env_vars_task(PREV_YEAR_SECRETS)
     two_years_env = get_env_vars_task(TWO_YEARS_AGO_SECRETS)
@@ -146,7 +146,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove=True,
-        command=f"python csr/csr_to_socrata.py",
+        command=f"python etl/csr_to_socrata.py",
         environment=cur_year_env,
         tty=True,
         force_pull=True,
@@ -158,7 +158,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove=True,
-        command=f"python csr/flex_notes_to_socrata.py",
+        command=f"python etl/flex_notes_to_socrata.py",
         environment=cur_year_env,
         tty=True,
     )
@@ -169,7 +169,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove=True,
-        command=f"python csr/csr_to_socrata.py",
+        command=f"python etl/csr_to_socrata.py",
         environment=prev_year_env,
         tty=True,
     )
@@ -180,7 +180,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove=True,
-        command=f"python csr/flex_notes_to_socrata.py",
+        command=f"python etl/flex_notes_to_socrata.py",
         environment=prev_year_env,
         tty=True,
     )
@@ -191,7 +191,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove=True,
-        command=f"python csr/csr_to_socrata.py",
+        command=f"python etl/csr_to_socrata.py",
         environment=two_years_env,
         tty=True,
     )
@@ -202,7 +202,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove=True,
-        command=f"python csr/flex_notes_to_socrata.py",
+        command=f"python etl/flex_notes_to_socrata.py",
         environment=two_years_env,
         tty=True,
     )

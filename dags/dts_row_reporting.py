@@ -1,4 +1,4 @@
-# test locally with: docker compose run --rm airflow-cli dags test atd_executive_dashboard_row_weekly_summary
+# test locally with: docker compose run --rm airflow-cli dags test dts_row_reporting
 
 import os
 
@@ -123,14 +123,14 @@ def get_dataset_id(env_vars):
 
 
 with DAG(
-    dag_id="atd_executive_dashboard_row_weekly_summary",
+    dag_id="dts_row_reporting",
     description="Downloads ROW data from AMANDA and Smartsheet and publishes the weekly summary results in a Socrata Dataset.",
     default_args=DEFAULT_ARGS,
     schedule_interval="0 2 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    tags=["repo:atd-executive-dashboard", "amanda", "socrata", "smartsheet"],
+    tags=["repo:dts-right-of-way-reporting", "amanda", "socrata", "smartsheet"],
     catchup=False,
 ) as dag:
-    docker_image = "atddocker/atd-executive-dashboard:production"
+    docker_image = "atddocker/dts-right-of-way-reporting:production"
     knack_services_image = "atddocker/atd-knack-services:production"
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
@@ -144,7 +144,7 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove=True,
-        command=f"python AMANDA/amanda_to_s3.py --query applications_received",
+        command=f"python amanda/amanda_to_s3.py --query applications_received",
         environment=env_vars,
         tty=True,
         force_pull=True,
@@ -159,7 +159,7 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove=True,
-        command=f"python AMANDA/amanda_to_s3.py --query active_permits",
+        command=f"python amanda/amanda_to_s3.py --query active_permits",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
@@ -173,7 +173,7 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove=True,
-        command=f"python AMANDA/amanda_to_s3.py --query issued_permits",
+        command=f"python amanda/amanda_to_s3.py --query issued_permits",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
@@ -183,6 +183,20 @@ with DAG(
     )
 
     t4 = DockerOperator(
+        task_id="amanda_license_agreements_timeline",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove=True,
+        command=f"python amanda/amanda_to_s3.py --query license_agreements_timeline",
+        environment=env_vars,
+        tty=True,
+        mount_tmp_dir=False,
+        retries=3,
+        retry_delay=duration(seconds=60),
+        trigger_rule="all_done",
+    )
+
+    t5 = DockerOperator(
         task_id="smartsheet_to_s3",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -196,26 +210,12 @@ with DAG(
         trigger_rule="all_done",
     )
 
-    t5 = DockerOperator(
+    t6 = DockerOperator(
         task_id="row_data_summary",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove=True,
-        command=f"python row_data_summary.py",
-        environment=env_vars,
-        tty=True,
-        mount_tmp_dir=False,
-        retries=3,
-        retry_delay=duration(seconds=60),
-        trigger_rule="all_done",
-    )
-
-    t6 = DockerOperator(
-        task_id="amanda_review_time",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove=True,
-        command=f"python AMANDA/amanda_to_s3.py --query review_time",
+        command=f"python metrics/row_data_summary.py",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
@@ -225,11 +225,11 @@ with DAG(
     )
 
     t7 = DockerOperator(
-        task_id="ex_permits_issued",
+        task_id="amanda_review_time",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove=True,
-        command=f"python AMANDA/amanda_to_s3.py --query ex_permits_issued",
+        command=f"python amanda/amanda_to_s3.py --query review_time",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
@@ -239,11 +239,11 @@ with DAG(
     )
 
     t8 = DockerOperator(
-        task_id="active_permits_logging",
+        task_id="ex_permits_issued",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove=True,
-        command=f"python active_permits_logging.py",
+        command=f"python amanda/amanda_to_s3.py --query ex_permits_issued",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
@@ -253,6 +253,20 @@ with DAG(
     )
 
     t9 = DockerOperator(
+        task_id="active_permits_logging",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove=True,
+        command=f"python metrics/active_permits_logging.py",
+        environment=env_vars,
+        tty=True,
+        mount_tmp_dir=False,
+        retries=3,
+        retry_delay=duration(seconds=60),
+        trigger_rule="all_done",
+    )
+
+    t10 = DockerOperator(
         task_id="backup_active_permits",
         image=knack_services_image,
         docker_conn_id="docker_default",
@@ -265,4 +279,16 @@ with DAG(
         trigger_rule="all_done",
     )
 
-    t1 >> t2 >> t3 >> t4 >> t5 >> t6 >> t7 >> t8 >> t9
+    t11 = DockerOperator(
+        task_id="license_agreements_socrata",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove=True,
+        command=f"python metrics/s3_to_socrata.py --dataset license_agreements_timeline",
+        environment=env_vars,
+        tty=True,
+        mount_tmp_dir=False,
+        trigger_rule="all_done",
+    )
+
+    t1 >> t2 >> t3 >> t4 >> t5 >> t6 >> t7 >> t8 >> t9 >> t10 >> t11
