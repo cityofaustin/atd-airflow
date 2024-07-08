@@ -48,7 +48,7 @@ with DAG(
     description="publish component record data to ArcGIS Online (AGOL)",
     default_args=DEFAULT_ARGS,
     schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=duration(minutes=30),
+    dagrun_timeout=duration(minutes=5),
     tags=["repo:atd-moped", "moped", "agol"],
     catchup=False,
 ) as dag:
