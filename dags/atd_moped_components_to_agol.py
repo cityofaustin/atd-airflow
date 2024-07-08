@@ -8,6 +8,7 @@ from pendulum import datetime, duration, now
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
+from utils.knack import get_date_filter_arg
 
 DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
@@ -46,12 +47,14 @@ with DAG(
     dag_id="atd_moped_components_to_agol",
     description="publish component record data to ArcGIS Online (AGOL)",
     default_args=DEFAULT_ARGS,
-    schedule_interval="30 22 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=duration(minutes=30),
+    schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    dagrun_timeout=duration(minutes=5),
     tags=["repo:atd-moped", "moped", "agol"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/atd-moped-etl-arcgis:production"
+
+    date_filter_arg = get_date_filter_arg()
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
@@ -59,7 +62,7 @@ with DAG(
         task_id="moped_components_to_agol",
         image=docker_image,
         auto_remove=True,
-        command="python components_to_agol.py",
+        command=f"python components_to_agol.py {date_filter_arg}",
         environment=env_vars,
         tty=True,
         force_pull=True,
