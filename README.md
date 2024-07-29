@@ -41,9 +41,9 @@ AIRFLOW_PROJ_DIR=<The absolute path of your Airflow repository checkout>
 # this fernet key is for testing purposes only
 _AIRFLOW__CORE__FERNET_KEY=PTkIRwL-c46jgnaohlkkXfVikC-roKa95ipXfqST7JM=
 _AIRFLOW__WEBSERVER__BASE_URL=http://localhost:8080
-OP_API_TOKEN=<Get from 1Password entry named "Connect Server: Production Access Token: API Accessible Secrets">
-OP_CONNECT=<Get from 1Password entry named "Endpoint for 1Password Connect Server API">
-OP_VAULT_ID=<Get from 1Password entry named "Vault ID of API Accessible Secrets vault">
+OP_API_TOKEN=<Get from 1Password entry named "TPW DTS API Accessible Secrets 1Password Connect Server Access Token">
+OP_CONNECT=<Get from 1Password entry named "TPW DTS API Accessible Secrets 1Password Connect Server Access Token">
+OP_VAULT_ID=<Get from 1Password entry named "TPW DTS API Accessible Secrets 1Password Connect Server Access Token">
 DOCKER_HUB_USERNAME=<Get from 1Password entry named "Docker Hub">
 DOCKER_HUB_TOKEN=<A docker hub access token assigned to specifically to you>
 ```
@@ -78,14 +78,24 @@ If a DAG corresponds with another repo, be sure to add a [tag](https://airflow.a
 
 ### Moving to production
 
-Never commit directly to the `production` branch. Commit your changes to a development branch, push the branch to Github, and open a pull request against `production`. Once your PR is reviwed and approved, merge the branch to `production`.
+Never commit directly to the `production` branch. Commit your changes to a development branch, push the branch to Github, and open a pull request against `production`. Once your PR is reviewed and approved, merge the branch to `production`.
 
 Once merged, you will need to connect to our production Airflow host on the COA network, then pull down your changes from Github. Airflow will automatically load any DAG changes within five minutes. Activate your DAG through the Airflow web interface at `https://airflow.austinmobility.io/`.
 
 ```shell
-# atd-data03
-$ cd /usr/airflow/atd-airflow
-$ sudo git pull
+# dts-int-data-p01
+
+# become the superuser
+su -;
+
+# enter into the production airflow directory
+cd /srv/atd-airflow;
+
+# pull the changes
+git pull;
+
+# return to user-land
+exit;
 ```
 
 The production Airflow deployment uses a second Docker compose file which provides haproxy configuration overrides. To start the production docker compose stack use you must load both files in order:
