@@ -1,3 +1,5 @@
+# test locally with: docker compose run --rm airflow-cli dags test atd_knack_dms
+
 import os
 
 from airflow.models import DAG
@@ -73,8 +75,6 @@ with DAG(
     app_name = "data-tracker"
     container = "view_1564"
 
-    date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
-
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
@@ -82,7 +82,7 @@ with DAG(
         docker_conn_id="docker_default",
         image=docker_image,
         auto_remove=True,
-        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
+        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container}",
         environment=env_vars,
         tty=True,
         force_pull=True,
@@ -94,7 +94,7 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove=True,
-        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}",
+        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
@@ -105,10 +105,10 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove=True,
-        command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container} {date_filter_arg}",
+        command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
     )
 
-    date_filter_arg >> t1 >> t2 >> t3
+    t1 >> t2 >> t3
