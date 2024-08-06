@@ -63,7 +63,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id="atd_knack_flashing_beacons",
-    description="Load school beacons (view_3086) records from Knack to Postgrest to AGOL",
+    description="Load flashing beacons (view_1563) records from Knack to Postgrest to AGOL",
     default_args=DEFAULT_ARGS,
     schedule_interval="15 10 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "agol", "data-tracker"],
