@@ -63,7 +63,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id="atd_knack_flashing_beacons",
-    description="Load school beacons (view_3086) records from Knack to Postgrest to AGOL",
+    description="Load flashing beacons (view_1563) records from Knack to Postgrest to AGOL",
     default_args=DEFAULT_ARGS,
     schedule_interval="15 10 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "agol", "data-tracker"],
@@ -80,6 +80,7 @@ with DAG(
     t1 = DockerOperator(
         task_id="atd_knack_flashing_beacons_to_postgrest",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
@@ -91,6 +92,7 @@ with DAG(
     t2 = DockerOperator(
         task_id="atd_knack_flashing_beacons_to_socrata",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
@@ -101,6 +103,7 @@ with DAG(
     t3 = DockerOperator(
         task_id="atd_knack_flashing_beacons_to_agol",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
