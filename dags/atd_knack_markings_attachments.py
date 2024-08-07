@@ -1,3 +1,5 @@
+# test locally: docker compose run --rm airflow-cli dags test atd_knack_markings_attachments
+
 import os
 
 from airflow.models import DAG
@@ -17,7 +19,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "execution_timeout": duration(minutes=30),
+    "execution_timeout": duration(minutes=60),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -59,7 +61,7 @@ with DAG(
 ) as dag:
     docker_image = "atddocker/atd-knack-services:production"
     app_name = "signs-markings"
-    container = "view_3103"
+    container = "view_3096"
 
     date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
 
@@ -68,6 +70,7 @@ with DAG(
     t1 = DockerOperator(
         task_id="atd_knack_markings_attachments_to_postgrest",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
@@ -80,11 +83,11 @@ with DAG(
     t2 = DockerOperator(
         task_id="atd_knack_markings_attachments_to_agol",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 
