@@ -57,6 +57,10 @@ OTHER_SECRETS = {
         "opitem": "Executive Dashboard",
         "opfield": "datasets.Flex Notes",
     },
+    "ACTIVITIES_DATASET": {
+        "opitem": "Executive Dashboard",
+        "opfield": "datasets.Activities",
+    },
     "BUCKET_NAME": {
         "opitem": "Executive Dashboard",
         "opfield": "s3.Bucket",
@@ -96,6 +100,10 @@ CUR_YEAR_SECRETS = {
         "opitem": "Executive Dashboard",
         "opfield": "flex_notes.Current FY Endpoint",
     },
+    "ACTIVITIES_ENDPOINT": {
+        "opitem": "Executive Dashboard",
+        "opfield": "activities.Current FY Endpoint",
+    },
 }
 
 PREV_YEAR_SECRETS = {
@@ -107,6 +115,10 @@ PREV_YEAR_SECRETS = {
         "opitem": "Executive Dashboard",
         "opfield": "flex_notes.Previous FY Endpoint",
     },
+    "ACTIVITIES_ENDPOINT": {
+        "opitem": "Executive Dashboard",
+        "opfield": "activities.Previous FY Endpoint",
+    },
 }
 
 TWO_YEARS_AGO_SECRETS = {
@@ -117,6 +129,10 @@ TWO_YEARS_AGO_SECRETS = {
     "FLEX_NOTE_ENDPOINT": {
         "opitem": "Executive Dashboard",
         "opfield": "flex_notes.Two Years Ago FY Endpoint",
+    },
+    "ACTIVITIES_ENDPOINT": {
+        "opitem": "Executive Dashboard",
+        "opfield": "activities.Two Years Ago FY Endpoint",
     },
 }
 
@@ -164,6 +180,17 @@ with DAG(
     )
 
     t3 = DockerOperator(
+        task_id="cur_year_activities_report_to_socrata",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        api_version="auto",
+        auto_remove=True,
+        command=f"python etl/activities_to_socrata.py",
+        environment=cur_year_env,
+        tty=True,
+    )
+
+    t4 = DockerOperator(
         task_id="prev_year_csr_report_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -174,7 +201,7 @@ with DAG(
         tty=True,
     )
 
-    t4 = DockerOperator(
+    t5 = DockerOperator(
         task_id="prev_year_flex_note_report_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -185,7 +212,18 @@ with DAG(
         tty=True,
     )
 
-    t5 = DockerOperator(
+    t6 = DockerOperator(
+        task_id="prev_year_activities_report_to_socrata",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        api_version="auto",
+        auto_remove=True,
+        command=f"python etl/activities_to_socrata.py",
+        environment=prev_year_env,
+        tty=True,
+    )
+
+    t7 = DockerOperator(
         task_id="two_years_ago_csr_report_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -196,7 +234,7 @@ with DAG(
         tty=True,
     )
 
-    t6 = DockerOperator(
+    t8 = DockerOperator(
         task_id="two_years_ago_flex_note_report_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -207,4 +245,15 @@ with DAG(
         tty=True,
     )
 
-    t1 >> t2 >> t3 >> t4 >> t5 >> t6
+    t9 = DockerOperator(
+        task_id="two_years_ago_activities_report_to_socrata",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        api_version="auto",
+        auto_remove=True,
+        command=f"python etl/activities_to_socrata.py",
+        environment=two_years_env,
+        tty=True,
+    )
+
+    t1 >> t2 >> t3 >> t4 >> t5 >> t6 >> t7 >> t8 >> t9
