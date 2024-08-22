@@ -4,7 +4,10 @@ import os
 
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
-from pendulum import datetime, duration, now
+from airflow.operators.bash_operator import BashOperator
+from airflow.decorators import task
+from airflow.models import Param
+from pendulum import datetime, duration, now, parse
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
@@ -43,6 +46,19 @@ REQUIRED_SECRETS = {
 }
 
 
+@task(
+    task_id="get_args",
+)
+def get_args(full_replace_param, **context):
+    full_replace = full_replace_param == "True"
+
+    if full_replace:
+        return "-f"
+    else:
+        prev_start_date = context.get("prev_start_date_success") or parse("1970-01-01")
+        return f"-d {prev_start_date.isoformat()}"
+
+
 with DAG(
     dag_id="atd_moped_components_to_agol",
     description="publish component record data to ArcGIS Online (AGOL)",
@@ -51,22 +67,42 @@ with DAG(
     dagrun_timeout=duration(minutes=5),
     tags=["repo:atd-moped", "moped", "agol"],
     catchup=False,
+    params={"full_replace": Param(False, type="boolean")},
 ) as dag:
-    docker_image = "atddocker/atd-moped-etl-arcgis:production"
+    # docker_image = "atddocker/atd-moped-etl-arcgis:production"
+    docker_image = "ubuntu:latest"
 
-    date_filter_arg = get_date_filter_arg()
+    # date_filter_arg = get_date_filter_arg()
+    args = get_args("{{ params.full_replace }}")
+    # args = get_args(params=dag.params)
 
-    env_vars = get_env_vars_task(REQUIRED_SECRETS)
+    # env_vars = get_env_vars_task(REQUIRED_SECRETS)
+
+    # t1 = DockerOperator(
+    #     task_id="moped_components_to_agol",
+    #     image=docker_image,
+    #     auto_remove=True,
+    #     command=f"python components_to_agol.py {date_filter_arg}",
+    #     environment=env_vars,
+    #     tty=True,
+    #     force_pull=True,
+    #     mount_tmp_dir=False,
+    # )
 
     t1 = DockerOperator(
         task_id="moped_components_to_agol",
         image=docker_image,
         auto_remove=True,
-        command=f"python components_to_agol.py {date_filter_arg}",
-        environment=env_vars,
+        command=f"echo {args}",
+        # environment=env_vars,
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
     )
 
-    date_filter_arg >> t1
+    # t1 = BashOperator(
+    #     task_id="test_param",
+    #     bash_command='echo "{{params.full_replace}}"',
+    # )
+
+    args >> t1
