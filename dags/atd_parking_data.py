@@ -152,8 +152,8 @@ with DAG(
 ) as dag:
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    # default to the last 7 days of transactions but if we haven't ran it before, collect the last two weeks.
-    prev_exec = "{{ (prev_start_date_success - macros.timedelta(days=7)).strftime('%Y-%m-%d') if prev_start_date_success else (execution_date - macros.timedelta(days=14)).strftime('%Y-%m-%d')}}"
+    # default to the last 14 days of transactions
+    prev_exec = "{{ (prev_start_date_success - macros.timedelta(days=14)).strftime('%Y-%m-%d') if prev_start_date_success else (execution_date - macros.timedelta(days=14)).strftime('%Y-%m-%d')}}"
 
     docker_tasks = []
 
@@ -179,22 +179,6 @@ with DAG(
             image=docker_image,
             docker_conn_id="docker_default",
             command=f"python txn_history.py -v --report payments --env prod --start {prev_exec}",
-            api_version="auto",
-            auto_remove=True,
-            environment=env_vars,
-            tty=True,
-            force_pull=False,
-            retries=3,
-            retry_delay=duration(seconds=60),
-        )
-    )
-
-    docker_tasks.append(
-        DockerOperator(
-            task_id="smartfolio_pard_payments",
-            image=docker_image,
-            docker_conn_id="docker_default",
-            command=f"python txn_history.py -v --report payments --user pard --env prod --start {prev_exec}",
             api_version="auto",
             auto_remove=True,
             environment=env_vars,
@@ -259,22 +243,6 @@ with DAG(
             image=docker_image,
             docker_conn_id="docker_default",
             command=f"python payments_s3.py --lastmonth True",
-            api_version="auto",
-            auto_remove=True,
-            environment=env_vars,
-            tty=True,
-            force_pull=False,
-            retries=3,
-            retry_delay=duration(seconds=60),
-        )
-    )
-
-    docker_tasks.append(
-        DockerOperator(
-            task_id="process_pard_smartfolio_payments",
-            image=docker_image,
-            docker_conn_id="docker_default",
-            command=f"python payments_s3.py --user pard --lastmonth True",
             api_version="auto",
             auto_remove=True,
             environment=env_vars,
