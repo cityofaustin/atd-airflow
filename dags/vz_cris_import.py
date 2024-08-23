@@ -4,7 +4,7 @@ The target DB and S3 bucket subdirectory are controlled by the Airflow `ENVIRONM
 env var, which determines which 1pass secrets to apply to the docker runtime env.
 
 Check the 1Pass entry to understand exactly what will happen when you trigger
-this tag in a given context, but the expected behavior is that you may set the 
+this DAG in a given context, but the expected behavior is that you may set the 
 Airflow `ENVIRONMENT` to `production`, `staging`, or `dev`, with the following
 results:
 - production: use <bucket-name>/prod/inbox and production hasura cluster
