@@ -46,6 +46,8 @@ REQUIRED_SECRETS = {
 }
 
 
+# TODO: Make this is string param so that we can just pass any arguments to the script as an override
+# TODO: Handle null or empty string when no param is passed
 @task(
     task_id="get_args",
 )
@@ -63,11 +65,13 @@ with DAG(
     dag_id="atd_moped_components_to_agol",
     description="publish component record data to ArcGIS Online (AGOL)",
     default_args=DEFAULT_ARGS,
-    schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    # schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="*/1 * * * *",
     dagrun_timeout=duration(minutes=5),
     tags=["repo:atd-moped", "moped", "agol"],
     catchup=False,
     params={"full_replace": Param(False, type="boolean")},
+    max_active_runs=1,
 ) as dag:
     # docker_image = "atddocker/atd-moped-etl-arcgis:production"
     docker_image = "ubuntu:latest"
@@ -93,7 +97,7 @@ with DAG(
         task_id="moped_components_to_agol",
         image=docker_image,
         auto_remove=True,
-        command=f"echo {args}",
+        command=f"sleep 2m",
         # environment=env_vars,
         tty=True,
         force_pull=True,
