@@ -70,7 +70,7 @@ DEFAULT_ARGS = {
     "depends_on_past": False,
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 1,
+    "retries": 0,
     "execution_timeout": duration(minutes=60),
     "on_failure_callback": task_fail_slack_alert,
 }
