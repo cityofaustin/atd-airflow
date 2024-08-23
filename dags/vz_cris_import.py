@@ -1,3 +1,16 @@
+"""Process CRIS extract zips—including CSVs and PDFs.
+
+The target DB and S3 bucket subdirectory are controlled by the Airflow `ENVIRONMENT`
+env var, which determines which 1pass secrets to apply to the docker runtime env.
+
+Check the 1Pass entry to understand exactly what will happen when you trigger
+this tag in a given context, but the expected behavior is that you may set the 
+Airflow `ENVIRONMENT` to `production`, `staging`, or `dev`, with the following
+results:
+- production: use <bucket-name>/prod/inbox and production hasura cluster
+- staging: use <bucket-name>/staging/inbox and staging hasura cluster
+- dev: use <bucket-name>/dev/inbox and localhost hasura cluster
+"""
 import os
 from pendulum import datetime, duration
 
@@ -8,20 +21,29 @@ from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
 
-DEPLOYMENT_ENVIRONMENT = "prod" if os.getenv("ENVIRONMENT") == "production" else "dev"
+DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT")
+secrets_env_prefix = None
+
+if DEPLOYMENT_ENVIRONMENT == "production":
+    secrets_env_prefix = "prod"
+elif DEPLOYMENT_ENVIRONMENT == "staging":
+    secrets_env_prefix = "staging"
+else:
+    secrets_env_prefix = "dev"
+
 
 REQUIRED_SECRETS = {
     "ENV": {
         "opitem": "Vision Zero CRIS Import - v2",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.env",
+        "opfield": f"{secrets_env_prefix}.env",
     },
     "AWS_ACCESS_KEY_ID": {
         "opitem": "Vision Zero CRIS Import - v2",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.AWS_ACCESS_KEY_ID",
+        "opfield": f"common.AWS_ACCESS_KEY_ID",
     },
     "AWS_SECRET_ACCESS_KEY": {
         "opitem": "Vision Zero CRIS Import - v2",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.AWS_SECRET_ACCESS_KEY",
+        "opfield": f"common.AWS_SECRET_ACCESS_KEY",
     },
     "BUCKET_NAME": {
         "opitem": "Vision Zero CRIS Import - v2",
@@ -33,15 +55,15 @@ REQUIRED_SECRETS = {
     },
     "HASURA_GRAPHQL_ENDPOINT": {
         "opitem": "Vision Zero CRIS Import - v2",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.HASURA_GRAPHQL_ENDPOINT",
+        "opfield": f"{secrets_env_prefix}.HASURA_GRAPHQL_ENDPOINT",
     },
     "HASURA_GRAPHQL_ADMIN_SECRET": {
         "opitem": "Vision Zero CRIS Import - v2",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.HASURA_GRAPHQL_ADMIN_SECRET",
+        "opfield": f"{secrets_env_prefix}.HASURA_GRAPHQL_ADMIN_SECRET",
     },
 }
 
-docker_image = f"atddocker/vz-cris-import:{'production' if DEPLOYMENT_ENVIRONMENT == 'prod' else 'latest'}"
+docker_image = f"atddocker/vz-cris-import:{'production' if DEPLOYMENT_ENVIRONMENT == 'production' else 'latest'}"
 
 
 DEFAULT_ARGS = {
