@@ -81,7 +81,7 @@ with DAG(
     dag_id="vz-cris-import",
     description="Import TxDOT CRIS CSVs and PDFs into the Vision Zero database",
     default_args=DEFAULT_ARGS,
-    schedule="0 5 * * *" if DEPLOYMENT_ENVIRONMENT == "prod" else None,
+    schedule="0 5 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     start_date=datetime(2024, 8, 1, tz="America/Chicago"),
     tags=["vision-zero", "cris", "repo:atd-vz-data"],
 ) as dag:
