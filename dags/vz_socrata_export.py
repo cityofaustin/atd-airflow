@@ -85,7 +85,7 @@ with DAG(
     dag_id="vz-socrata-export",
     description="Exports Vision Zero crash and people datasets to Socrata from Vision Zero database.",
     default_args=DEFAULT_ARGS,
-    schedule_interval="0 4 * * *" if DEPLOYMENT_ENVIRONMENT == "prod" else None,
+    schedule_interval="0 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     start_date=datetime(2024, 8, 1, tz="America/Chicago"),
     tags=["vision-zero", "cris", "repo:atd-vz-data", "socrata"],
 ) as dag:
