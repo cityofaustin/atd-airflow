@@ -63,6 +63,7 @@ def get_args(params, **context):
         Str: the -d flag and ISO date string or full replace arg.
     """
     full_replace = bool(params["full_replace"])
+
     if full_replace == False:
         prev_start_date = context.get("prev_start_date_success") or parse("1970-01-01")
         return f"-d {prev_start_date.isoformat()}"
@@ -73,6 +74,7 @@ def get_args(params, **context):
 @task.branch(task_id="branch")
 def branch(params):
     """Task to determine whether to fully replace dataset or not based on web server input.
+    See https://airflow.apache.org/docs/apache-airflow/2.9.0/core-concepts/dags.html#branching
     See https://airflow.apache.org/docs/apache-airflow/2.9.0/core-concepts/params.html.
 
     Args:
@@ -118,7 +120,7 @@ with DAG(
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
-        execution_timeout=duration(minutes=15),
+        execution_timeout=duration(minutes=30),
     )
 
     incremental = DockerOperator(
