@@ -48,10 +48,10 @@ REQUIRED_SECRETS = {
 @task(
     task_id="get_args",
 )
-def get_args(arg_override, **context):
+def get_args(params, **context):
     """Task to get a date filter based on previous success date. If there
-    is no prev success date, today's date is returned. If arg_override is provided,
-    it will be returned instead of the date filter.
+    is no prev success date, 1970-01-01 is returned. If arg_override is provided,
+    it will be returned instead of the date filter arg.
 
     Args:
         arg_override (string): if provided, the arg string will be used instead of the date filter
@@ -62,39 +62,81 @@ def get_args(arg_override, **context):
     Returns:
         Str: the -d flag and ISO date string or script argument override string.
     """
-    if arg_override == "":
+    full_replace = bool(params["full_replace"])
+    if full_replace == False:
         prev_start_date = context.get("prev_start_date_success") or parse("1970-01-01")
         return f"-d {prev_start_date.isoformat()}"
     else:
-        return arg_override
+        return "-f"
+
+
+@task.branch(task_id="branch")
+def branch(params):
+    full_replace = bool(params["full_replace"])
+
+    if full_replace:
+        return "moped_components_to_agol_full"
+    else:
+        return "moped_components_to_agol_incremental"
 
 
 with DAG(
     dag_id="atd_moped_components_to_agol",
     description="publish component record data to ArcGIS Online (AGOL)",
     default_args=DEFAULT_ARGS,
-    schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=duration(minutes=5),
+    # schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="*/1 * * * *",
     tags=["repo:atd-moped", "moped", "agol"],
     catchup=False,
-    params={"arg_override": Param(default="", type="string")},
+    params={"full_replace": Param(default=False, type="boolean")},
     max_active_runs=1,  # Block schedule while DAG with params is triggered
 ) as dag:
-    docker_image = "atddocker/atd-moped-etl-arcgis:production"
+    # docker_image = "atddocker/atd-moped-etl-arcgis:production"
+    docker_image = "ubuntu:latest"
 
-    args = get_args("{{ params.arg_override }}")
+    args = get_args()
 
-    env_vars = get_env_vars_task(REQUIRED_SECRETS)
+    # env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperator(
-        task_id="moped_components_to_agol",
+    # t1 = DockerOperator(
+    #     task_id="moped_components_to_agol",
+    #     image=docker_image,
+    #     auto_remove=True,
+    #     command=f"python components_to_agol.py {args}",
+    #     environment=env_vars,
+    #     tty=True,
+    #     force_pull=True,
+    #     mount_tmp_dir=False,
+    # execution_timeout=(
+    #     duration(minutes=3)
+    #     if '{{ params.arg_override == "" }}'
+    #     else duration(seconds=1)
+    # ),
+    # )
+    branch = branch()
+
+    full = DockerOperator(
+        task_id="moped_components_to_agol_full",
         image=docker_image,
         auto_remove=True,
-        command=f"python components_to_agol.py {args}",
-        environment=env_vars,
+        command=f"sleep 2m",
+        # environment=env_vars,
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
+        execution_timeout=duration(seconds=1),
     )
 
-    args >> t1
+    incremental = DockerOperator(
+        task_id="moped_components_to_agol_incremental",
+        image=docker_image,
+        auto_remove=True,
+        command=f"sleep 2m",
+        # environment=env_vars,
+        tty=True,
+        force_pull=True,
+        mount_tmp_dir=False,
+        execution_timeout=duration(minutes=2),
+    )
+
+    args >> branch >> [full, incremental]
