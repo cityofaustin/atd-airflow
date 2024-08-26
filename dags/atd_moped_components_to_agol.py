@@ -52,15 +52,15 @@ def get_args(params, **context):
     """Task to get a date filter based on previous success date. If there
     is no prev success date, 1970-01-01 is returned. If arg_override is provided,
     it will be returned instead of the date filter arg.
+    See https://airflow.apache.org/docs/apache-airflow/2.9.0/core-concepts/params.html.
 
     Args:
-        arg_override (string): if provided, the arg string will be used instead of the date filter
-        in the Python script invocation.
+        params (dict): Airflow params dictionary that contains user input value or default.
         context (dict): Airflow task context, which contains the prev_start_date_success
             variable.
 
     Returns:
-        Str: the -d flag and ISO date string or script argument override string.
+        Str: the -d flag and ISO date string or full replace arg.
     """
     full_replace = bool(params["full_replace"])
     if full_replace == False:
@@ -72,6 +72,17 @@ def get_args(params, **context):
 
 @task.branch(task_id="branch")
 def branch(params):
+    """Task to determine whether to fully replace dataset or not based on web server input.
+    See https://airflow.apache.org/docs/apache-airflow/2.9.0/core-concepts/params.html.
+
+    Args:
+        params (dict): Airflow params dictionary that contains user input value or default.
+        context (dict): Airflow task context, which contains the prev_start_date_success
+            variable.
+
+    Returns:
+        Str: the task id of the task branch to follow.
+    """
     full_replace = bool(params["full_replace"])
 
     if full_replace:
@@ -84,59 +95,42 @@ with DAG(
     dag_id="atd_moped_components_to_agol",
     description="publish component record data to ArcGIS Online (AGOL)",
     default_args=DEFAULT_ARGS,
-    # schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    schedule_interval="*/1 * * * *",
+    schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-moped", "moped", "agol"],
     catchup=False,
     params={"full_replace": Param(default=False, type="boolean")},
     max_active_runs=1,  # Block schedule while DAG with params is triggered
 ) as dag:
-    # docker_image = "atddocker/atd-moped-etl-arcgis:production"
-    docker_image = "ubuntu:latest"
+    docker_image = "atddocker/atd-moped-etl-arcgis:production"
 
     args = get_args()
 
-    # env_vars = get_env_vars_task(REQUIRED_SECRETS)
+    env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    # t1 = DockerOperator(
-    #     task_id="moped_components_to_agol",
-    #     image=docker_image,
-    #     auto_remove=True,
-    #     command=f"python components_to_agol.py {args}",
-    #     environment=env_vars,
-    #     tty=True,
-    #     force_pull=True,
-    #     mount_tmp_dir=False,
-    # execution_timeout=(
-    #     duration(minutes=3)
-    #     if '{{ params.arg_override == "" }}'
-    #     else duration(seconds=1)
-    # ),
-    # )
     branch = branch()
 
     full = DockerOperator(
         task_id="moped_components_to_agol_full",
         image=docker_image,
         auto_remove=True,
-        command=f"sleep 2m",
-        # environment=env_vars,
+        command=f"python components_to_agol.py {args}",
+        environment=env_vars,
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
-        execution_timeout=duration(seconds=1),
+        execution_timeout=duration(minutes=15),
     )
 
     incremental = DockerOperator(
         task_id="moped_components_to_agol_incremental",
         image=docker_image,
         auto_remove=True,
-        command=f"sleep 2m",
-        # environment=env_vars,
+        command=f"python components_to_agol.py {args}",
+        environment=env_vars,
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
-        execution_timeout=duration(minutes=2),
+        execution_timeout=duration(minutes=5),
     )
 
     args >> branch >> [full, incremental]
