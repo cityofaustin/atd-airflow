@@ -66,6 +66,7 @@ with DAG(
     t1 = DockerOperator(
         task_id="atd_kits_sig_status_to_socrata",
         image="atddocker/atd-kits:production",
+        docker_conn_id="docker_default",
         auto_remove=True,
         command="./atd-kits/atd-kits/signal_status_publisher.py",
         environment=env_vars,
