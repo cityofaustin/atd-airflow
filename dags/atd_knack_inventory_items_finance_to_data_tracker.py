@@ -108,6 +108,7 @@ with DAG(
     t1 = DockerOperator(
         task_id="atd_knack_finance_inventory_items_to_postgrest",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name_src} -c {container_src} {date_filter_arg}",
         environment=env_vars_t1,
@@ -119,6 +120,7 @@ with DAG(
     t2 = DockerOperator(
         task_id="atd_knack_data_tracker_inventory_items_to_postgrest",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name_dest} -c {container_dest} {date_filter_arg}",
         environment=env_vars_t2,
@@ -129,6 +131,7 @@ with DAG(
     t3 = DockerOperator(
         task_id="atd_knack_update_data_tracker_inventory_items_from_finance_inventory",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_knack.py -a {app_name_src} -c {container_src} {date_filter_arg} -dest {app_name_dest}",
         environment=env_vars_t3,

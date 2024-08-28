@@ -81,6 +81,7 @@ with DAG(
     t1 = DockerOperator(
         task_id="atd_knack_markings_work_orders_jobs_to_postgrest",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
@@ -93,6 +94,7 @@ with DAG(
     t2 = DockerOperator(
         task_id="atd_knack_markings_work_orders_jobs_to_agol",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
@@ -104,6 +106,7 @@ with DAG(
     t3 = DockerOperator(
         task_id="atd_knack_markings_jobs_agol_build_markings_segment_geometries",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f'./atd-knack-services/services/agol_build_markings_segment_geometries.py -l markings_jobs  {date_filter_arg}',
         environment=env_vars,
@@ -114,6 +117,7 @@ with DAG(
     t4 = DockerOperator(
         task_id="atd_knack_markings_work_orders_jobs_to_socrata",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f'./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}',
         environment=env_vars,

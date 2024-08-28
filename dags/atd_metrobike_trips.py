@@ -61,6 +61,7 @@ with DAG(
     t1 = DockerOperator(
         task_id="atd_metrobike_trips_socrata",
         image="atddocker/atd-metrobike:production",
+        docker_conn_id="docker_default",
         auto_remove=True,
         command="python publish_trips.py",
         environment=env_vars,

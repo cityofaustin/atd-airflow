@@ -107,6 +107,7 @@ with DAG(
     t1 = DockerOperator(
         task_id="microstrategy_report_2020_bond_expenses",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command='python atd-bond-reporting/microstrategy_to_s3.py -r "2020 Bond Expenses Obligated"',
         environment=env_vars,
@@ -120,6 +121,7 @@ with DAG(
     t2 = DockerOperator(
         task_id="microstrategy_report_all_bonds_expenses",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command='python atd-bond-reporting/microstrategy_to_s3.py -r "All bonds Expenses Obligated"',
         environment=env_vars,
@@ -133,6 +135,7 @@ with DAG(
     t3 = DockerOperator(
         task_id="microstrategy_report_fdu_expenses_quarterly",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command='python atd-bond-reporting/microstrategy_to_s3.py -r "FDU Expenses by Quarter"',
         environment=env_vars,
@@ -146,6 +149,7 @@ with DAG(
     t4 = DockerOperator(
         task_id="microstrategy_report_2020_bond_metadata",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command='python atd-bond-reporting/microstrategy_to_s3.py -r "2020 Division Group and Unit"',
         environment=env_vars,
@@ -159,6 +163,7 @@ with DAG(
     t5 = DockerOperator(
         task_id="bond_data_to_postgres",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command="python atd-bond-reporting/bond_data.py",
         environment=env_vars,
@@ -172,6 +177,7 @@ with DAG(
     t6 = DockerOperator(
         task_id="bond_data_processing",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command="python atd-bond-reporting/bond_calculations.py",
         environment=env_vars,
@@ -185,6 +191,7 @@ with DAG(
     t7 = DockerOperator(
         task_id="bond_quarterly_data_processing",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command="python atd-bond-reporting/quarterly_reporting.py",
         environment=env_vars,

@@ -91,6 +91,7 @@ with DAG(
     cameras_s3 = DockerOperator(
         task_id="run_comm_check_cameras",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"python atd-signal-comms/run_comm_check.py camera --env {DEPLOYMENT_ENVIRONMENT}",
         environment=env_vars,
@@ -103,6 +104,7 @@ with DAG(
     detectors_s3 = DockerOperator(
         task_id="run_comm_check_detectors",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"python atd-signal-comms/run_comm_check.py detector --env {DEPLOYMENT_ENVIRONMENT}",
         environment=env_vars,
@@ -115,6 +117,7 @@ with DAG(
     dms_s3 = DockerOperator(
         task_id="run_comm_check_dms",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"python atd-signal-comms/run_comm_check.py digital_message_sign --env {DEPLOYMENT_ENVIRONMENT}",
         environment=env_vars,
@@ -127,6 +130,7 @@ with DAG(
     battery_backup_s3 = DockerOperator(
         task_id="run_comm_check_battery_backup",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"python atd-signal-comms/run_comm_check.py cabinet_battery_backup --env {DEPLOYMENT_ENVIRONMENT}",
         environment=env_vars,
@@ -139,6 +143,7 @@ with DAG(
     signal_monitors_s3 = DockerOperator(
         task_id="run_comm_check_signal_monitors",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"python atd-signal-comms/run_comm_check.py signal_monitor --env {DEPLOYMENT_ENVIRONMENT}",
         environment=env_vars,
@@ -151,6 +156,7 @@ with DAG(
     cameras_socrata = DockerOperator(
         task_id="socrata_pub_cameras",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"python atd-signal-comms/socrata_pub.py camera --start {start_date} -v --env {DEPLOYMENT_ENVIRONMENT}",
         environment=env_vars,
@@ -163,6 +169,7 @@ with DAG(
     detectors_socrata = DockerOperator(
         task_id="socrata_pub_detectors",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"python atd-signal-comms/socrata_pub.py detector --start {start_date} -v --env {DEPLOYMENT_ENVIRONMENT}",
         environment=env_vars,
@@ -175,6 +182,7 @@ with DAG(
     dms_socrata = DockerOperator(
         task_id="socrata_pub_dms",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"python atd-signal-comms/socrata_pub.py digital_message_sign --start {start_date} -v --env {DEPLOYMENT_ENVIRONMENT}",
         environment=env_vars,
@@ -187,6 +195,7 @@ with DAG(
     battery_backup_socrata = DockerOperator(
         task_id="socrata_pub_battery_backup",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"python atd-signal-comms/socrata_pub.py cabinet_battery_backup --start {start_date} -v --env {DEPLOYMENT_ENVIRONMENT}",
         environment=env_vars,
@@ -199,6 +208,7 @@ with DAG(
     signal_monitors_socrata = DockerOperator(
         task_id="socrata_pub_signal_monitors",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"python atd-signal-comms/socrata_pub.py signal_monitor --start {start_date} -v --env {DEPLOYMENT_ENVIRONMENT}",
         environment=env_vars,
