@@ -1,3 +1,5 @@
+# test locally with: docker compose run --rm airflow-cli dags test atd_bond_reporting
+
 import os
 
 from airflow.models import DAG
