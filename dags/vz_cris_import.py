@@ -11,6 +11,7 @@ results:
 - staging: use <bucket-name>/staging/inbox and staging hasura cluster
 - dev: use <bucket-name>/dev/inbox and localhost hasura cluster
 """
+
 import os
 from pendulum import datetime, duration
 
@@ -33,32 +34,32 @@ else:
 
 
 REQUIRED_SECRETS = {
-    "ENV": {
-        "opitem": "Vision Zero CRIS Import - v2",
-        "opfield": f"{secrets_env_prefix}.env",
+    "BUCKET_ENV": {
+        "opitem": "Vision Zero CRIS Import",
+        "opfield": f"{secrets_env_prefix}.BUCKET_ENV",
     },
     "AWS_ACCESS_KEY_ID": {
-        "opitem": "Vision Zero CRIS Import - v2",
+        "opitem": "Vision Zero CRIS Import",
         "opfield": f"common.AWS_ACCESS_KEY_ID",
     },
     "AWS_SECRET_ACCESS_KEY": {
-        "opitem": "Vision Zero CRIS Import - v2",
+        "opitem": "Vision Zero CRIS Import",
         "opfield": f"common.AWS_SECRET_ACCESS_KEY",
     },
     "BUCKET_NAME": {
-        "opitem": "Vision Zero CRIS Import - v2",
+        "opitem": "Vision Zero CRIS Import",
         "opfield": f"common.BUCKET_NAME",
     },
     "EXTRACT_PASSWORD": {
-        "opitem": "Vision Zero CRIS Import - v2",
+        "opitem": "Vision Zero CRIS Import",
         "opfield": f"common.EXTRACT_PASSWORD",
     },
     "HASURA_GRAPHQL_ENDPOINT": {
-        "opitem": "Vision Zero CRIS Import - v2",
+        "opitem": "Vision Zero CRIS Import",
         "opfield": f"{secrets_env_prefix}.HASURA_GRAPHQL_ENDPOINT",
     },
     "HASURA_GRAPHQL_ADMIN_SECRET": {
-        "opitem": "Vision Zero CRIS Import - v2",
+        "opitem": "Vision Zero CRIS Import",
         "opfield": f"{secrets_env_prefix}.HASURA_GRAPHQL_ADMIN_SECRET",
     },
 }
@@ -98,4 +99,15 @@ with DAG(
         force_pull=True,
     )
 
-    cris_import
+    ocr_crash_narratives = DockerOperator(
+        task_id="ocr_crash_narratives",
+        docker_conn_id="docker_default",
+        image=docker_image,
+        command=f"./cr3_ocr_narrative.py --workers 2",
+        environment=env_vars,
+        auto_remove=True,
+        tty=True,
+        force_pull=True,
+    )
+
+    cris_import >> ocr_crash_narratives
