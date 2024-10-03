@@ -33,7 +33,7 @@ else:
 
 
 REQUIRED_SECRETS = {
-    "ENV": {
+    "BUCKET_ENV": {
         "opitem": "Vision Zero CRIS Import - v2",
         "opfield": f"{secrets_env_prefix}.env",
     },
