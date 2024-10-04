@@ -65,6 +65,7 @@ with DAG(
 
     t1 = DockerOperator(
         task_id="update_knack_dms_message",
+        docker_conn_id="docker_default",
         image=docker_image,
         auto_remove=True,
         command="python ./atd-kits/atd-kits/dms_message_pub.py",

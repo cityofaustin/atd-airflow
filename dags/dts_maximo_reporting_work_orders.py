@@ -65,7 +65,7 @@ with DAG(
     dag_id=f"dts_maximo_reporting_workorders",
     description="Uploads the last 7 days of Maximo work orders to Socrata from the Maximo data warehouse.",
     default_args=DEFAULT_ARGS,
-    schedule_interval="00 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="00 6 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:dts-maximo-reporting", "socrata", "maximo"],
     catchup=False,
 ) as dag:

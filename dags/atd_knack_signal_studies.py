@@ -77,6 +77,7 @@ with DAG(
     t1 = DockerOperator(
         task_id="atd_knack_signal_studies_to_postgrest",
         image=docker_image,
+        docker_conn_id="docker_default",
         api_version="auto",
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container}",
@@ -89,6 +90,7 @@ with DAG(
     t2 = DockerOperator(
         task_id="atd_knack_signal_studies_to_socrata",
         image=docker_image,
+        docker_conn_id="docker_default",
         api_version="auto",
         auto_remove=True,
         command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container}",

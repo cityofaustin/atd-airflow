@@ -55,6 +55,7 @@ with DAG(
     t1 = DockerOperator(
         task_id="update_street_segments",
         image="atddocker/atd-knack-services:production",
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"./atd-knack-services/services/knack_street_seg_updater.py -a data-tracker -c view_1198 {date_filter_arg}",
         environment=env_vars,

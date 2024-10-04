@@ -132,6 +132,7 @@ with DAG(
     t1 = DockerOperator(
         task_id="subprojects_to_s3",
         image="atddocker/atd-finance-data:production",
+        docker_conn_id="docker_default",
         auto_remove=True,
         command="python3 upload_to_s3.py subprojects",
         environment=data_tracker_env,
@@ -143,6 +144,7 @@ with DAG(
     t2 = DockerOperator(
         task_id="subprojects_to_data_tracker",
         image="atddocker/atd-finance-data:production",
+        docker_conn_id="docker_default",
         auto_remove=True,
         command="python3 s3_to_knack.py subprojects finance-purchasing",
         environment=finance_purchasing_env,
@@ -154,6 +156,7 @@ with DAG(
     t3 = DockerOperator(
         task_id="subprojects_to_socrata",
         image="atddocker/atd-finance-data:production",
+        docker_conn_id="docker_default",
         auto_remove=True,
         command="python3 s3_to_socrata.py --dataset subprojects",
         environment=finance_purchasing_env,

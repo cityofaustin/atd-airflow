@@ -58,6 +58,7 @@ with DAG(
     update_employees = DockerOperator(
         task_id="update_employees",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"./atd-knack-banner/update_employees.py",
         environment=env_vars,

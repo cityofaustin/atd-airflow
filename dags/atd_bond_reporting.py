@@ -1,3 +1,5 @@
+# test locally with: docker compose run --rm airflow-cli dags test atd_bond_reporting
+
 import os
 
 from airflow.models import DAG
@@ -107,6 +109,7 @@ with DAG(
     t1 = DockerOperator(
         task_id="microstrategy_report_2020_bond_expenses",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command='python atd-bond-reporting/microstrategy_to_s3.py -r "2020 Bond Expenses Obligated"',
         environment=env_vars,
@@ -120,6 +123,7 @@ with DAG(
     t2 = DockerOperator(
         task_id="microstrategy_report_all_bonds_expenses",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command='python atd-bond-reporting/microstrategy_to_s3.py -r "All bonds Expenses Obligated"',
         environment=env_vars,
@@ -131,34 +135,9 @@ with DAG(
     )
 
     t3 = DockerOperator(
-        task_id="microstrategy_report_fdu_expenses_quarterly",
-        image=docker_image,
-        auto_remove=True,
-        command='python atd-bond-reporting/microstrategy_to_s3.py -r "FDU Expenses by Quarter"',
-        environment=env_vars,
-        tty=True,
-        force_pull=False,
-        mount_tmp_dir=False,
-        retries=3,
-        retry_delay=duration(seconds=60),
-    )
-
-    t4 = DockerOperator(
-        task_id="microstrategy_report_2020_bond_metadata",
-        image=docker_image,
-        auto_remove=True,
-        command='python atd-bond-reporting/microstrategy_to_s3.py -r "2020 Division Group and Unit"',
-        environment=env_vars,
-        tty=True,
-        force_pull=False,
-        mount_tmp_dir=False,
-        retries=3,
-        retry_delay=duration(seconds=60),
-    )
-
-    t5 = DockerOperator(
         task_id="bond_data_to_postgres",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command="python atd-bond-reporting/bond_data.py",
         environment=env_vars,
@@ -169,9 +148,10 @@ with DAG(
         retry_delay=duration(seconds=60),
     )
 
-    t6 = DockerOperator(
+    t4 = DockerOperator(
         task_id="bond_data_processing",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command="python atd-bond-reporting/bond_calculations.py",
         environment=env_vars,
@@ -182,17 +162,5 @@ with DAG(
         retry_delay=duration(seconds=60),
     )
 
-    t7 = DockerOperator(
-        task_id="bond_quarterly_data_processing",
-        image=docker_image,
-        auto_remove=True,
-        command="python atd-bond-reporting/quarterly_reporting.py",
-        environment=env_vars,
-        tty=True,
-        force_pull=False,
-        mount_tmp_dir=False,
-        retries=3,
-        retry_delay=duration(seconds=60),
-    )
 
-    t1 >> t2 >> t3 >> t4 >> t5 >> t6 >> t7
+    t1 >> t2 >> t3 >> t4

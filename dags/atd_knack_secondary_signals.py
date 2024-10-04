@@ -46,6 +46,7 @@ with DAG(
     t1 = DockerOperator(
         task_id="update_secondary_signals",
         image="atddocker/atd-knack-services:production",
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"./atd-knack-services/services/secondary_signals_updater.py -a data-tracker -c view_197",
         environment=env_vars,

@@ -291,4 +291,33 @@ with DAG(
         trigger_rule="all_done",
     )
 
-    t1 >> t2 >> t3 >> t4 >> t5 >> t6 >> t7 >> t8 >> t9 >> t10 >> t11
+    t12 = DockerOperator(
+        task_id="lde_site_plan_revisions_s3",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove=True,
+        command=f"python amanda/amanda_to_s3.py --query lde_site_plan_revisions",
+        environment=env_vars,
+        tty=True,
+        mount_tmp_dir=False,
+        retries=3,
+        retry_delay=duration(seconds=60),
+        trigger_rule="all_done",
+    )
+
+    t13 = DockerOperator(
+        task_id="lde_site_plan_revisions_socrata",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove=True,
+        command=f"python metrics/s3_to_socrata.py --dataset lde_site_plan_revisions",
+        environment=env_vars,
+        tty=True,
+        mount_tmp_dir=False,
+        retries=3,
+        retry_delay=duration(seconds=60),
+        trigger_rule="all_done",
+    )
+
+
+    t1 >> t2 >> t3 >> t4 >> t5 >> t6 >> t7 >> t8 >> t9 >> t10 >> t11 >> t12 >> t13

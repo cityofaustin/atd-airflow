@@ -64,6 +64,7 @@ with DAG(
     t1 = DockerOperator(
         task_id="trail_counter_data_publish",
         image=docker_image,
+        docker_conn_id="docker_default",
         api_version="auto",
         auto_remove=True,
         command=f"python counter_data.py --start {start}",

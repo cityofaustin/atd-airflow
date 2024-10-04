@@ -60,6 +60,7 @@ with DAG(
     t1 = DockerOperator(
         task_id="service_request_asset_assign",
         image= "atddocker/atd-knack-services:production",
+        docker_conn_id="docker_default",
         auto_remove=True,
         command=f"./atd-knack-services/services/sr_asset_assign.py -a data-tracker -c view_2362 -s signals",
         environment=env_vars,

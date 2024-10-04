@@ -46,6 +46,7 @@ def etl_afd_import():
         task_id="run_ems_import",
         environment=dict(os.environ),
         image="atddocker/vz-afd-ems-import:production",
+        docker_conn_id="docker_default",
         auto_remove=True,
         entrypoint=["/entrypoint.sh"],
         command=["afd"],

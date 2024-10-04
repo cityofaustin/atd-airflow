@@ -76,6 +76,7 @@ with DAG(
     t1 = DockerOperator(
         task_id="knack_amd_data_tracker_activities_to_311",
         image=DOCKER_IMAGE,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command="./atd-knack-311/send_knack_messages_to_esb.py data-tracker",
         environment=env_vars_data_tracker,
@@ -89,6 +90,7 @@ with DAG(
     t2 = DockerOperator(
         task_id="knack_amd_signs_markings_activities_to_311",
         image=DOCKER_IMAGE,
+        docker_conn_id="docker_default",
         auto_remove=True,
         command="./atd-knack-311/send_knack_messages_to_esb.py signs-markings",
         environment=env_vars_signs_markings,
