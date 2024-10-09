@@ -83,14 +83,14 @@ with DAG(
     dag_id="dts_work_zone_data_feed",
     description="Publishing AMANDA work zone data to Socrata.",
     default_args=DEFAULT_ARGS,
-    schedule_interval="30 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="0 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:dts-work-zone-data-feed", "amanda", "socrata", "work zone", "wzdx"],
     catchup=False,
 ) as dag:
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
-        task_id="amanda_applications_received",
+        task_id="work_zone_data_publishing",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove=True,
