@@ -4,7 +4,9 @@ import os
 
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
-from pendulum import datetime, duration, now
+from airflow.decorators import task
+from airflow.models import Param
+from pendulum import datetime, duration, now, parse
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
@@ -43,31 +45,95 @@ REQUIRED_SECRETS = {
 }
 
 
+@task(
+    task_id="get_args",
+)
+def get_args(params, **context):
+    """Task to get a date filter based on previous success date. If there
+    is no prev success date, 1970-01-01 is returned. If arg_override is provided,
+    it will be returned instead of the date filter arg.
+    See https://airflow.apache.org/docs/apache-airflow/2.9.0/core-concepts/params.html.
+
+    Args:
+        params (dict): Airflow params dictionary that contains user input value or default.
+        context (dict): Airflow task context, which contains the prev_start_date_success
+            variable.
+
+    Returns:
+        Str: the -d flag and ISO date string or full replace arg.
+    """
+    full_replace = bool(params["full_replace"])
+
+    if full_replace == False:
+        prev_start_date = context.get("prev_start_date_success") or parse("1970-01-01")
+        return f"-d {prev_start_date.isoformat()}"
+    else:
+        return "-f"
+
+
+@task.branch(task_id="branch")
+def branch(params):
+    """Task to determine whether to fully replace dataset or not based on web server input.
+    See https://airflow.apache.org/docs/apache-airflow/2.9.0/core-concepts/dags.html#branching
+    See https://airflow.apache.org/docs/apache-airflow/2.9.0/core-concepts/params.html.
+
+    Args:
+        params (dict): Airflow params dictionary that contains user input value or default.
+        context (dict): Airflow task context, which contains the prev_start_date_success
+            variable.
+
+    Returns:
+        Str: the task id of the task branch to follow.
+    """
+    full_replace = bool(params["full_replace"])
+
+    if full_replace:
+        return "moped_components_to_agol_full"
+    else:
+        return "moped_components_to_agol_incremental"
+
+
 with DAG(
     dag_id="atd_moped_components_to_agol",
     description="publish component record data to ArcGIS Online (AGOL)",
     default_args=DEFAULT_ARGS,
     schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=duration(minutes=5),
     tags=["repo:atd-moped", "moped", "agol"],
     catchup=False,
+    params={"full_replace": Param(default=False, type="boolean")},
+    max_active_runs=1,  # Block schedule while DAG with params is triggered
 ) as dag:
     docker_image = "atddocker/atd-moped-etl-arcgis:production"
 
-    date_filter_arg = get_date_filter_arg()
+    args = get_args()
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperator(
-        task_id="moped_components_to_agol",
+    branch = branch()
+
+    full = DockerOperator(
+        task_id="moped_components_to_agol_full",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove=True,
-        command=f"python components_to_agol.py {date_filter_arg}",
+        command=f"python components_to_agol.py {args}",
         environment=env_vars,
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
+        execution_timeout=duration(minutes=30),
     )
 
-    date_filter_arg >> t1
+    incremental = DockerOperator(
+        task_id="moped_components_to_agol_incremental",
+        image=docker_image,
+        auto_remove=True,
+        command=f"python components_to_agol.py {args}",
+        environment=env_vars,
+        tty=True,
+        force_pull=True,
+        mount_tmp_dir=False,
+        execution_timeout=duration(minutes=5),
+    )
+
+    args >> branch >> [full, incremental]
