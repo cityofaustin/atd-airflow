@@ -6,11 +6,10 @@ from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
 from airflow.decorators import task
 from airflow.models import Param
-from pendulum import datetime, duration, now, parse
+from pendulum import datetime, duration, parse
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
-from utils.knack import get_date_filter_arg
 
 DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
