@@ -39,13 +39,9 @@ else:
 
 
 REQUIRED_SECRETS_SOCRATA = {
-    "SOCRATA_DATASET_CRASHES": {
+    "SOCRATA_DATASET_CRASH_COMPONENTS": {
         "opitem": "Vision Zero Socrata Export",
-        "opfield": f"{secrets_env_prefix}.SOCRATA_DATASET_CRASHES",
-    },
-    "SOCRATA_DATASET_PEOPLE": {
-        "opitem": "Vision Zero Socrata Export",
-        "opfield": f"{secrets_env_prefix}.SOCRATA_DATASET_PEOPLE",
+        "opfield": f"{secrets_env_prefix}.SOCRATA_DATASET_CRASH_COMPONENTS",
     },
     "SOCRATA_KEY_ID": {
         "opitem": "Socrata Key ID, Secret, and Token",
