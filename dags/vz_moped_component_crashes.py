@@ -1,7 +1,7 @@
 """Process the Moped-component crashes spatial join, populate the component-crash
 lookup table in the VZ database, and then publish that entire table to Socrata.
 
-This is the ETL that managed the Moped x VZ impact analysis data.
+This is the ETL that manages the Moped x VZ impact analysis data.
 
 The VZD source and the target datasets are controlled by the Airflow `ENVIRONMENT`
 env var, which determines which 1pass secrets to apply to the docker runtime env.
@@ -109,7 +109,7 @@ with DAG(
     dag_id="vz-moped-component-crashes",
     description="Populate the Moped - crash lookup table and publish the table to Socrata",
     default_args=DEFAULT_ARGS,
-    schedule_interval="0 0 1 * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="0 0 2 * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     start_date=datetime(2024, 8, 1, tz="America/Chicago"),
     tags=["vision-zero", "moped", "repo:atd-vz-data", "socrata"],
 ) as dag:
