@@ -1,4 +1,4 @@
-# Docker compose based on official Airflow example, avaialble here:
+# Docker compose based on official Airflow example, available here:
 # https://airflow.apache.org/docs/apache-airflow/2.6.1/docker-compose.yaml
 # and documented here:
 # https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#running-airflow-in-docker
