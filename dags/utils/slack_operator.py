@@ -56,7 +56,7 @@ def task_fail_slack_alert(context):
     exec_date = get_central_time_exec_data(context)
     log_url = task_instance.log_url
     try_number = task_instance.try_number
-    max_tries = task.retries  # Accessed from the task
+    max_tries = task.retries
     operator = task.__class__.__name__  # Gets the operator class name
     duration = getattr(task_instance, "duration", "Not available")
 
