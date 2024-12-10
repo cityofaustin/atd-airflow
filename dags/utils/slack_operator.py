@@ -93,16 +93,20 @@ def task_fail_slack_alert(context):
         max_tries == 0
     ):  # if no retry number is allowed, this returns 0, so make it "1" to include the implied, non-repeating try
         max_tries = 1
+
+    importance = getattr(dag, "importance", None)
+
     slack_msg = f"""
 :red_circle: *Task Failure Alert*
+{importance}
 
 *DAG*: `{dag_id}`
 *Task*: `{task_id}`
 *Execution Time*: `{exec_date}`
 *Schedule*: `{schedule_description}`
 *Try Number*: `{try_number} of {max_tries}`
-*Operator*: `{operator}`
 *Duration*: `{duration} seconds`
+*Operator*: `{operator}`
 *Exception Type*: `{exception_type}`
 *Exception Message*: `{exception_message}`
 <{log_url}|*Log URL*>

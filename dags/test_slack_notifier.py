@@ -32,6 +32,7 @@ with DAG(
     tags=["slack"],
     catchup=False,
 ) as dag:
+    dag.importance = "Critical DAG, must fix ASAP. Call Bob A. and Alice B. for help."
     t1 = PythonOperator(
         task_id="task_fail",
         python_callable=task_fail,
