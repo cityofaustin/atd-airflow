@@ -21,7 +21,7 @@ def task_fail_slack_alert_critical(context):
     slack_msg = """
             <!channel> :red_circle: Critical Failure
             *Task*: {task}  
-            *Dag*: {dag} 
+            *DAG*: {dag} 
             *Execution Time*: {exec_date}  
             *Log Url*: {log_url} 
             """.format(
@@ -99,7 +99,7 @@ def task_fail_slack_alert(context):
     slack_msg = f"""
 :red_circle: *Task Failure Alert*
 
-*Dag*: `{dag_id}`
+*DAG*: `{dag_id}`
 *Task*: `{task_id}`
 *Execution Time*: `{exec_date}`
 *Schedule*: `{schedule_description}`
@@ -124,7 +124,7 @@ def task_success_slack_alert(context):
     slack_msg = """
             :white_check_mark: Task Successfully Completed.
             *Task*: {task}
-            *Dag*: {dag}
+            *DAG*: {dag}
             *Execution Time*: {exec_date}
             *Log Url*: {log_url}
             """.format(
