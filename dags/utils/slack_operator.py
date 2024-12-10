@@ -109,7 +109,7 @@ def task_fail_slack_alert(context):
 *Operator*: `{operator}`
 *Exception Type*: `{exception_type}`
 *Exception Message*: `{exception_message}`
-<{log_url}|*Log URL*>
+<{log_url}|*View Task Log*>
 """
 
     failed_alert = SlackWebhookOperator(
