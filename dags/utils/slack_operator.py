@@ -94,9 +94,10 @@ def task_fail_slack_alert(context):
         max_tries = 1
 
     importance = getattr(dag, "importance", None)
+    icon = getattr(dag, "icon", ":red_circle:")
 
     slack_msg = f"""
-:red_circle: *Task Failure Alert*
+{icon} *Task failure*
 {importance}
 
 *DAG*: `{dag_id}`
