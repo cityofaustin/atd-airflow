@@ -197,7 +197,7 @@ Follow these steps to update the Airflow docker step. Reasons for doing this inc
 - In the [docker-compose.yaml](./docker-compose.yaml), replace `image: atddocker/atd-airflow:production` with `build: .`
 - Build the Docker images locally:
 ```shell
-$ docker compose build
+$ docker compose build --no-cache
 ``` 
 - Bring up the services and check the logging for errors and see that everything runs as expected:
 ```shell
