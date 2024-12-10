@@ -21,8 +21,12 @@ default_args = {
 }
 
 
+class SuccessfulFailureException(Exception):
+    pass
+
+
 def task_fail():
-    raise Exception("Task failure test successfully triggered")
+    raise SuccessfulFailureException("Task failure test successfully triggered")
 
 
 with DAG(
