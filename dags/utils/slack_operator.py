@@ -55,14 +55,11 @@ def task_fail_slack_alert(context):
     task_id = task_instance.task_id
     exec_date = get_central_time_exec_data(context)
     log_url = task_instance.log_url
-    host = task_instance.hostname
     try_number = task_instance.try_number
     max_tries = task.retries  # Accessed from the task
     operator = task.__class__.__name__  # Gets the operator class name
-    owner = task.owner
     duration = getattr(task_instance, "duration", "Not available")
-    start_date = getattr(task_instance, "start_date", "Not available")
-    end_date = getattr(task_instance, "end_date", "Not available")
+
     schedule_interval = dag.schedule_interval if dag else None
 
     # Convert schedule_interval to human-readable format
