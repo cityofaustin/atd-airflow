@@ -67,7 +67,7 @@ def task_fail_slack_alert(context):
 def task_success_slack_alert(context):
     slack_webhook_token = BaseHook.get_connection(SLACK_CONN_ID).password
     slack_msg = """
-            :white_check_mark: Task Sucessfully Completed.
+            :white_check_mark: Task Successfully Completed.
             *Task*: {task}
             *Dag*: {dag}
             *Execution Time*: {exec_date}
