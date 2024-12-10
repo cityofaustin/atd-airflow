@@ -89,9 +89,8 @@ def task_fail_slack_alert(context):
     else:
         schedule_description = str(schedule_interval)
 
-    if (
-        max_tries == 0
-    ):  # if no retry number is allowed, this returns 0, so make it "1" to include the implied, non-repeating try
+    # if no retry number is allowed, this returns 0, so make it "1" to include the implied, non-repeating try
+    if max_tries == 0:
         max_tries = 1
 
     importance = getattr(dag, "importance", None)
