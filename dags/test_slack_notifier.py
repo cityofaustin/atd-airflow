@@ -21,6 +21,8 @@ default_args = {
 }
 
 
+# exception types are generally defined by the library or DAG that can throw them.
+# this is purely a demonstration of how a specific exception can be caught and reported.
 class SuccessfulFailureException(Exception):
     pass
 
