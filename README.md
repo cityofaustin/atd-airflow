@@ -57,7 +57,7 @@ DOCKER_HUB_TOKEN=<A docker hub access token assigned to specifically to you>
 3. Start the Docker the stack (optionlly use the `-d` flag to run containers in the background):
 
 ```bash
-$ docker compose up -d
+docker compose up -d
 ```
 
 4. Log in to the dashboard at ` http://localhost:8080` using the username and password set in your `.env` file.
@@ -107,7 +107,7 @@ exit;
 The production Airflow deployment uses a second Docker compose file which provides haproxy configuration overrides. To start the production docker compose stack use you must load both files in order:
 
 ```shell
-$ docker compose -f docker-compose.yaml -f docker-compose-production.yaml up -d
+docker compose -f docker-compose.yaml -f docker-compose-production.yaml up -d
 ```
 
 ## Utilities
@@ -162,7 +162,7 @@ To configure the Slack operator in your local instance, from the Airflow UI go t
 - 🐚 get a shell on a worker, for example
 
 ```shell
-$ docker exec -it airflow-airflow-worker-1 bash
+docker exec -it airflow-airflow-worker-1 bash
 ```
 
 - ⛔ Stop all containers and execute this to reset your local database.
@@ -170,13 +170,13 @@ $ docker exec -it airflow-airflow-worker-1 bash
   - This will reset the history of your dag runs and switch states.
 
 ```shell
-$ docker compose down --volumes --remove-orphans
+docker compose down --volumes --remove-orphans
 ```
 
 Start the production docker compose stack with haproxy overrides:
 
 ```shell
-$ docker compose -f docker-compose.yaml -f docker-compose-production.yaml up -d
+docker compose -f docker-compose.yaml -f docker-compose-production.yaml up -d
 ```
 
 ## Updating the stack
@@ -197,16 +197,16 @@ Follow these steps to update the Airflow docker step. Reasons for doing this inc
 - In the [docker-compose.yaml](./docker-compose.yaml), replace `image: atddocker/atd-airflow:production` with `build: .`
 - Build the Docker images locally:
 ```shell
-$ docker compose build --no-cache
+docker compose build --no-cache
 ``` 
 - Bring up the services and check the logging for errors and see that everything runs as expected:
 ```shell
-$ docker compose up
+docker compose up
 ``` 
 - Check if you can reach the Airflow dashboard at `http://localhost:8080`
 - Bring down the services:
 ```shell
-$ docker compose down
+docker compose down
 ```
 - In the [docker-compose.yaml](./docker-compose.yaml), switch `build: .` back to `image: atddocker/atd-airflow:production`
 - Push your branch and create a PR for review
