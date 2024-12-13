@@ -1,3 +1,4 @@
+import os
 import datetime
 
 from cron_descriptor import get_description
@@ -7,6 +8,8 @@ from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
 # This is the Conn Id that we set when creating the connection in the Airflow dashboard
 # in Admin > Connections.
 SLACK_CONN_ID = "slack"
+
+DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 
 def get_central_time_exec_data(context):
@@ -96,8 +99,14 @@ def task_fail_slack_alert(context):
     importance = getattr(dag, "importance", None)
     icon = getattr(dag, "icon", ":red_circle:")
 
+    # Add deployment environment indication if not production
+    env_indicator = ""
+    if DEPLOYMENT_ENVIRONMENT != "production":
+        env_indicator = f" *{DEPLOYMENT_ENVIRONMENT.capitalize()} Environment*"
+
     slack_msg = f"""
-{icon} *Task failure*
+{icon}{env_indicator} *Task failure* 
+
 {importance}
 
 *DAG*: `{dag_id}`
