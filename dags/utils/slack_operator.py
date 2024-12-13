@@ -13,7 +13,22 @@ DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 
 def format_schedule(schedule_interval):
-    # Convert schedule_interval to human-readable format
+    """
+    Convert a schedule interval to a human-readable format.
+
+    This function handles different types of schedule intervals:
+    - None: Returns "None" as the description.
+    - str: Assumes the string is a cron expression and tries to convert it to a human-readable format.
+           If conversion fails, it returns the cron expression as is.
+    - datetime.timedelta: Converts the timedelta to a human-readable string, breaking it down into days, hours, minutes, and seconds.
+    - Other types: Converts the interval to a string representation.
+
+    Args:
+        schedule_interval: The schedule interval to format. It can be None, a string (cron expression), or a datetime.timedelta.
+
+    Returns:
+        str: A human-readable description of the schedule interval.
+    """
     if schedule_interval is None:
         schedule_description = "None"
     elif isinstance(schedule_interval, str):
