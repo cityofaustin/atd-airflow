@@ -115,7 +115,7 @@ def task_fail_slack_alert(context):
     if max_tries == 0:
         max_tries = 1
 
-    importance = getattr(dag, "importance", None)
+    byline = getattr(dag, "byline", None)
     icon = getattr(dag, "icon", ":red_circle:")
 
     # Add deployment environment indication if not production
@@ -126,7 +126,7 @@ def task_fail_slack_alert(context):
     slack_msg = f"""
         {icon}{env_indicator} *Task failure* 
 
-        {importance}
+        {byline}
 
         *DAG*: `{dag_id}`
         *Task*: `{task_id}`
