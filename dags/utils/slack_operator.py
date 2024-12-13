@@ -104,7 +104,7 @@ def task_fail_slack_alert(context):
 *Task*: `{task_id}`
 *Execution Time*: `{exec_date}`
 *Schedule*: `{schedule_description}`
-*Try Number*: `{try_number} of {max_tries}`
+*Attempt*: `{try_number} of {max_tries}`
 *Duration*: `{duration} seconds`
 *Operator*: `{operator}`
 *Exception Type*: `{exception_type}`
