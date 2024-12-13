@@ -105,20 +105,20 @@ def task_fail_slack_alert(context):
         env_indicator = f" *{DEPLOYMENT_ENVIRONMENT.capitalize()} Environment*"
 
     slack_msg = f"""
-{icon}{env_indicator} *Task failure* 
+        {icon}{env_indicator} *Task failure* 
 
-{importance}
+        {importance}
 
-*DAG*: `{dag_id}`
-*Task*: `{task_id}`
-*Execution Time*: `{exec_date}`
-*Schedule*: `{schedule_description}`
-*Attempt*: `{try_number} of {max_tries}`
-*Duration*: `{duration} seconds`
-*Operator*: `{operator}`
-*Exception Type*: `{exception_type}`
-*Exception Message*: `{exception_message}`
-<{log_url}|*View Task Log*>
+        *DAG*: `{dag_id}`
+        *Task*: `{task_id}`
+        *Execution Time*: `{exec_date}`
+        *Schedule*: `{schedule_description}`
+        *Attempt*: `{try_number} of {max_tries}`
+        *Duration*: `{duration} seconds`
+        *Operator*: `{operator}`
+        *Exception Type*: `{exception_type}`
+        *Exception Message*: `{exception_message}`
+        <{log_url}|*View Task Log*>
 """
 
     failed_alert = SlackWebhookOperator(
