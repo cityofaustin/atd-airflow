@@ -1,5 +1,6 @@
 import os
 import datetime
+from pendulum import timezone
 
 from cron_descriptor import get_description
 from airflow.hooks.base import BaseHook
