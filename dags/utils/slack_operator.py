@@ -12,8 +12,37 @@ SLACK_CONN_ID = "slack"
 DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 
+def format_schedule(schedule_interval):
+    # Convert schedule_interval to human-readable format
+    if schedule_interval is None:
+        schedule_description = "None"
+    elif isinstance(schedule_interval, str):
+        try:
+            schedule_description = get_description(schedule_interval)
+        except Exception:
+            schedule_description = f"Cron expression: {schedule_interval}"
+    elif isinstance(schedule_interval, datetime.timedelta):
+        # Format timedelta to human-readable string
+        total_seconds = int(schedule_interval.total_seconds())
+        periods = [
+            ("day", 86400),  # 60 * 60 * 24
+            ("hour", 3600),  # 60 * 60
+            ("minute", 60),
+            ("second", 1),
+        ]
+        parts = []
+        for period_name, period_seconds in periods:
+            if total_seconds >= period_seconds:
+                period_value, total_seconds = divmod(total_seconds, period_seconds)
+                part = f"{period_value} {period_name}{'s' if period_value > 1 else ''}"
+                parts.append(part)
+        schedule_description = "Every " + ", ".join(parts)
+    else:
+        schedule_description = str(schedule_interval)
+    return schedule_description
+
+
 def get_central_time_exec_data(context):
-    from pendulum import timezone
 
     local_tz = timezone("America/Chicago")
     execution_date_timestamp = context.get("data_interval_start")
@@ -65,32 +94,7 @@ def task_fail_slack_alert(context):
 
     schedule_interval = dag.schedule_interval if dag else None
 
-    # Convert schedule_interval to human-readable format
-    if schedule_interval is None:
-        schedule_description = "None"
-    elif isinstance(schedule_interval, str):
-        try:
-            schedule_description = get_description(schedule_interval)
-        except Exception:
-            schedule_description = f"Cron expression: {schedule_interval}"
-    elif isinstance(schedule_interval, datetime.timedelta):
-        # Format timedelta to human-readable string
-        total_seconds = int(schedule_interval.total_seconds())
-        periods = [
-            ("day", 86400),  # 60 * 60 * 24
-            ("hour", 3600),  # 60 * 60
-            ("minute", 60),
-            ("second", 1),
-        ]
-        parts = []
-        for period_name, period_seconds in periods:
-            if total_seconds >= period_seconds:
-                period_value, total_seconds = divmod(total_seconds, period_seconds)
-                part = f"{period_value} {period_name}{'s' if period_value > 1 else ''}"
-                parts.append(part)
-        schedule_description = "Every " + ", ".join(parts)
-    else:
-        schedule_description = str(schedule_interval)
+    schedule_description = format_schedule(schedule_interval)
 
     # if no retry number is allowed, this returns 0, so make it "1" to include the implied, non-repeating try
     if max_tries == 0:
