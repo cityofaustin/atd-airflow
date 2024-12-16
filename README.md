@@ -157,6 +157,8 @@ The Slack operator utility makes use of the integration between the Airflow and 
 
 To configure the Slack operator in your local instance, from the Airflow UI go to **Admin** > **Connections** and choose **Slack API** as the **connection type**. You can find the remaining settings in 1Password under the **Airflow - Slack Bot** item.
 
+The stack offers the ability to define a `byline` in the Slack message. This, if defined, this message will be shown prominently in the slack error notification. You may notify individuals or channels using the slack Advanced Formatting addressing scheme documented [here](https://api.slack.com/reference/surfaces/formatting#advanced).
+
 ## Useful Commands
 
 - 🐚 get a shell on a worker, for example
@@ -196,22 +198,29 @@ Follow these steps to update the Airflow docker step. Reasons for doing this inc
 - Create a local branch with the [Dockerfile](./Dockerfile) modified to the version you intend to test
 - In the [docker-compose.yaml](./docker-compose.yaml), replace `image: atddocker/atd-airflow:production` with `build: .`
 - Build the Docker images locally:
+
 ```shell
 docker compose build --no-cache
-``` 
+```
+
 - Bring up the services and check the logging for errors and see that everything runs as expected:
+
 ```shell
 docker compose up
-``` 
+```
+
 - Check if you can reach the Airflow dashboard at `http://localhost:8080`
 - Bring down the services:
+
 ```shell
 docker compose down
 ```
+
 - In the [docker-compose.yaml](./docker-compose.yaml), switch `build: .` back to `image: atddocker/atd-airflow:production`
 - Push your branch and create a PR for review
 
 #### Update the production stack after merge
+
 - After review and merge, snap a backup of the production Airflow postgreSQL database
   - You shouldn't need it, but it can't hurt.
   - The following command requires that the stack being updated is running.
