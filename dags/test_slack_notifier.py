@@ -38,6 +38,7 @@ with DAG(
     tags=["slack"],
     catchup=False,
 ) as dag:
+    # @UMS32US1E is @frank, please see the README for more information on notifying users / channels.
     dag.byline = "Critical DAG, must fix ASAP. Call Bob A. and Alice B. for help. Also, <@UMS32US1E>"
     dag.icon = "🧪"
     t1 = PythonOperator(
