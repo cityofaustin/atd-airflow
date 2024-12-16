@@ -157,7 +157,10 @@ The Slack operator utility makes use of the integration between the Airflow and 
 
 To configure the Slack operator in your local instance, from the Airflow UI go to **Admin** > **Connections** and choose **Slack API** as the **connection type**. You can find the remaining settings in 1Password under the **Airflow - Slack Bot** item.
 
+
 The stack offers the ability to define a `byline` in the Slack message. This, if defined, this message will be shown prominently in the slack error notification. You may notify individuals or channels using the slack Advanced Formatting addressing scheme documented [here](https://api.slack.com/reference/surfaces/formatting#advanced).
+
+**To test the Slack operator locally**, see the DAG named `test_slack_notifier`.
 
 ## Useful Commands
 
@@ -210,6 +213,7 @@ docker compose up
 ```
 
 - Check if you can reach the Airflow dashboard at `http://localhost:8080`
+- If any updates affect the Slack notifier, see the [instructions to test it](#slack-operator-utility)
 - Bring down the services:
 
 ```shell
