@@ -1,9 +1,1 @@
-httpx>=0.25.0
 onepasswordconnectsdk==1.*
-
-# the following two libraries have a major version bump; we need to update our usage, at least for the slack provider
-
-# docker==7.*
-# apache-airflow-providers-slack==8.*
-docker==6.*
-apache-airflow-providers-slack==7.3.*
