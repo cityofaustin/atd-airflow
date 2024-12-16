@@ -1,5 +1,1 @@
-httpx>=0.25.0
 onepasswordconnectsdk==1.*
-docker==7.*
-apache-airflow-providers-slack==8.*
-cron-descriptor==1.*
