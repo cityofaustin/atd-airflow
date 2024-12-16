@@ -1,6 +1,5 @@
 import os
 import datetime
-from pendulum import timezone
 
 from cron_descriptor import get_description
 from airflow.hooks.base import BaseHook
@@ -59,6 +58,7 @@ def format_schedule(schedule_interval):
 
 
 def get_central_time_exec_data(context):
+    from pendulum import timezone
 
     local_tz = timezone("America/Chicago")
     execution_date_timestamp = context.get("data_interval_start")
