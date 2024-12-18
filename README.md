@@ -14,17 +14,23 @@ The stack is composed of:
 
 ## Table of Contents
 
-- [Getting Started](#getting-started)
-  - [Developing a new DAG](#developing-a-new-dag)
-  - [Tags](#tags)
-  - [Moving to production](#moving-to-production)
-- [Utilities](#utilities)
-  - [1Password utility](#1password-utility)
-  - [Slack operator utility](#slack-operator-utility)
-- [Useful Commands](#useful-commands)
-- [Updating the stack](#updating-the-stack)
-- [HAProxy and SSL](#haproxy-and-ssl)
-  - [HAProxy operation](#haproxy-operation)
+- [DTS Airflow](#dts-airflow)
+  - [Table of Contents](#table-of-contents)
+  - [Getting Started](#getting-started)
+    - [Developing a new DAG](#developing-a-new-dag)
+    - [Tags](#tags)
+    - [Moving to production](#moving-to-production)
+  - [Utilities](#utilities)
+    - [1Password utility](#1password-utility)
+    - [Slack operator utility](#slack-operator-utility)
+  - [Useful Commands](#useful-commands)
+  - [Updating the stack](#updating-the-stack)
+    - [Update Process](#update-process)
+      - [Testing a new Airflow version](#testing-a-new-airflow-version)
+      - [Update the production stack after merge](#update-the-production-stack-after-merge)
+  - [HAProxy and SSL](#haproxy-and-ssl)
+    - [HAProxy operation](#haproxy-operation)
+  - [Ideas](#ideas)
 
 ## Getting Started
 
@@ -51,7 +57,7 @@ DOCKER_HUB_TOKEN=<A docker hub access token assigned to specifically to you>
 3. Start the Docker the stack (optionlly use the `-d` flag to run containers in the background):
 
 ```bash
-$ docker compose up -d
+docker compose up -d
 ```
 
 4. Log in to the dashboard at ` http://localhost:8080` using the username and password set in your `.env` file.
@@ -101,7 +107,7 @@ exit;
 The production Airflow deployment uses a second Docker compose file which provides haproxy configuration overrides. To start the production docker compose stack use you must load both files in order:
 
 ```shell
-$ docker compose -f docker-compose.yaml -f docker-compose-production.yaml up -d
+docker compose -f docker-compose.yaml -f docker-compose-production.yaml up -d
 ```
 
 ## Utilities
@@ -151,12 +157,14 @@ The Slack operator utility makes use of the integration between the Airflow and 
 
 To configure the Slack operator in your local instance, from the Airflow UI go to **Admin** > **Connections** and choose **Slack API** as the **connection type**. You can find the remaining settings in 1Password under the **Airflow - Slack Bot** item.
 
+**To test the Slack operator locally**, see the DAG named `test_slack_notifier`.
+
 ## Useful Commands
 
 - 🐚 get a shell on a worker, for example
 
 ```shell
-$ docker exec -it airflow-airflow-worker-1 bash
+docker exec -it airflow-airflow-worker-1 bash
 ```
 
 - ⛔ Stop all containers and execute this to reset your local database.
@@ -164,13 +172,13 @@ $ docker exec -it airflow-airflow-worker-1 bash
   - This will reset the history of your dag runs and switch states.
 
 ```shell
-$ docker compose down --volumes --remove-orphans
+docker compose down --volumes --remove-orphans
 ```
 
 Start the production docker compose stack with haproxy overrides:
 
 ```shell
-$ docker compose -f docker-compose.yaml -f docker-compose-production.yaml up -d
+docker compose -f docker-compose.yaml -f docker-compose-production.yaml up -d
 ```
 
 ## Updating the stack
@@ -181,26 +189,40 @@ Follow these steps to update the Airflow docker step. Reasons for doing this inc
 - Modifying the `Dockerfile` to upgrade the Airflow version
 - Modifying the haproxy configuration
 
-#### Update Process
+### Update Process
+
+#### Testing a new Airflow version
 
 - Read the "Significant Changes" sections of the Airflow release notes between the versions in question: https://github.com/apache/airflow/releases/
   - Apache Airflow is a very active project, and these release notes are pretty dense. Keeping a regular update cadence will be helpful to keep up the task of updating airflow from becoming an "information overload" job.
-- Snap a backup of the Airflow postgreSQL database
+- Create a local branch with the [Dockerfile](./Dockerfile) modified to the version you intend to test
+- In the [docker-compose.yaml](./docker-compose.yaml), replace `image: atddocker/atd-airflow:production` with `build: .`
+- Build the Docker images locally:
+```shell
+docker compose build --no-cache
+``` 
+- Bring up the services and check the logging for errors and see that everything runs as expected:
+```shell
+docker compose up
+``` 
+- Check if you can reach the Airflow dashboard at `http://localhost:8080`
+- If any updates affect the Slack notifier, see the [instructions to test it](#slack-operator-utility)
+- Bring down the services:
+```shell
+docker compose down
+```
+- In the [docker-compose.yaml](./docker-compose.yaml), switch `build: .` back to `image: atddocker/atd-airflow:production`
+- Push your branch and create a PR for review
+
+#### Update the production stack after merge
+- After review and merge, snap a backup of the production Airflow postgreSQL database
   - You shouldn't need it, but it can't hurt.
   - The following command requires that the stack being updated is running.
   - The string `postgres` in the following command is denoting the `docker compose` service name and not the `postgres` system database which is present on all postgres database servers. The target database is set via the environment variable `PGDATABASE`.
   - `docker compose exec -t -e PGUSER=airflow -e PGPASSWORD=airflow -e PGDATABASE=airflow postgres pg_dump > DB_backup.sql`
 - Stop the Airflow stack
   - `docker compose stop`
-- Compare the `docker-compose.yaml` file in a way that is easily sharable with the team if needed
-  - Start a new, blank gist at https://gist.github.com/
-  - Copy the source code of the older version, for example: https://raw.githubusercontent.com/apache/airflow/2.5.3/docs/apache-airflow/howto/docker-compose/docker-compose.yaml
-  - Paste that into your gist and save it. Make it public if you want to demonstrate the diff to anyone.
-  - Copy the source code of the newer, target version and replace the contents of the file in your gist. An example URL would be: https://raw.githubusercontent.com/apache/airflow/2.6.1/docs/apache-airflow/howto/docker-compose/docker-compose.yaml.
-  - Look at the revisions of this gist and find the most recent one. This diff represents the changes from the older to the newer versions of the upstream `docker-compose.yaml` file. For example (2.5.3 to 2.6.1): https://gist.github.com/frankhereford/c844d0674e9ad13ece8e2354c657854e/revisions.
-  - Consider each change, and generally, you'll want to apply these changes to the `docker-compose.yaml` file.
-- Update the `FROM` line in the `Dockerfile` found in the top of the repo to the target version.
-- Update the comments in the docker-compose file that reference the version number. (2X)
+- Pull the updates using the instructions in the [Moving to production section](#moving-to-production)
 - Build the core docker images
   - `docker compose build`
 - Build the `airflow-cli` image, which the Airflow team keeps in its own profile
