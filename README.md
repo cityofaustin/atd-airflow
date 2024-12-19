@@ -261,4 +261,4 @@ In production, however, we do have different host names assigned for each resour
 
 - Make it disable all DAGs on start locally so it fails to safe
 - Create remote worker image example
-  - Use `docker compose` new `profile` support
+- Use `docker compose` new `profile` support
