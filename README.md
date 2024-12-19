@@ -106,7 +106,7 @@ git pull;
 
 ```
 
-#### If there has been a change to the Airflow Docker image like when updating the Airflow verson:
+#### If there has been a change to the Airflow Docker image like when updating the Airflow version:
 
 The production Airflow deployment uses a second Docker compose file which provides haproxy configuration overrides. To start the production docker compose stack use you must load both files in order:
 
