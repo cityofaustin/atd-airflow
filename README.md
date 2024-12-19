@@ -21,7 +21,7 @@ The stack is composed of:
     - [Tags](#tags)
     - [Moving to production](#moving-to-production)
       - [If there has been a change to the code in the repo:](#if-there-has-been-a-change-to-the-code-in-the-repo)
-      - [If there has been a change to the Airflow Docker image like when updating the Airflow version:](#if-there-has-been-a-change-to-the-airflow-docker-image-like-when-updating-the-airflow-verson)
+      - [If there has been a change to the Airflow Docker image like when updating the Airflow version:](#if-there-has-been-a-change-to-the-airflow-docker-image-like-when-updating-the-airflow-version)
   - [Utilities](#utilities)
     - [1Password utility](#1password-utility)
     - [Slack operator utility](#slack-operator-utility)
@@ -103,7 +103,8 @@ cd /srv/atd-airflow;
 # pull the changes
 git pull;
 
-
+# return to user-land
+exit;
 ```
 
 #### If there has been a change to the Airflow Docker image like when updating the Airflow version:
@@ -119,14 +120,20 @@ su -;
 # enter into the production airflow directory
 cd /srv/atd-airflow;
 
+# pull the repository changes
+git pull;
+
 # pull the fresh production image
-docker pull atddocker/atd-airflow:production
+docker compose pull;
 
 # stop the Docker stack
-docker compose stop
+docker compose stop;
 
 # start the Docker stack
-docker compose -f docker-compose.yaml -f docker-compose-production.yaml up -d
+docker compose -f docker-compose.yaml -f docker-compose-production.yaml up -d;
+
+# you can watch the logs as the stack starts (ctrl + c to exit logging without affecting the stack)
+docker compose logs -f;
 
 # return to user-land
 exit;
