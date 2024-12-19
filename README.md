@@ -61,7 +61,7 @@ DOCKER_HUB_TOKEN=<A docker hub access token assigned to specifically to you>
 docker compose up -d
 ```
 
-4. Log in to the dashboard at ` http://localhost:8080` using the username and password set in your `.env` file.
+4. Log in to the dashboard at `http://localhost:8080` using the username and password set in your `.env` file.
 
 5. The Flower workers' status page available at `http://localhost:8081`
 
