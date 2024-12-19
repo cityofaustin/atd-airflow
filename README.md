@@ -55,7 +55,7 @@ DOCKER_HUB_USERNAME=<Get from 1Password entry named "Docker Hub">
 DOCKER_HUB_TOKEN=<A docker hub access token assigned to specifically to you>
 ```
 
-3. Start the Docker the stack (optionlly use the `-d` flag to run containers in the background):
+3. Start the Docker the stack (optionally use the `-d` flag to run containers in the background):
 
 ```bash
 docker compose up -d
