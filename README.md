@@ -20,6 +20,8 @@ The stack is composed of:
     - [Developing a new DAG](#developing-a-new-dag)
     - [Tags](#tags)
     - [Moving to production](#moving-to-production)
+      - [If there has been a change to the code in the repo:](#if-there-has-been-a-change-to-the-code-in-the-repo)
+      - [If there has been a change to the Airflow Docker image like when updating the Airflow verson:](#if-there-has-been-a-change-to-the-airflow-docker-image-like-when-updating-the-airflow-verson)
   - [Utilities](#utilities)
     - [1Password utility](#1password-utility)
     - [Slack operator utility](#slack-operator-utility)
@@ -27,7 +29,6 @@ The stack is composed of:
   - [Updating the stack](#updating-the-stack)
     - [Update Process](#update-process)
       - [Testing a new Airflow version](#testing-a-new-airflow-version)
-      - [Update the production stack after merge](#update-the-production-stack-after-merge)
   - [HAProxy and SSL](#haproxy-and-ssl)
     - [HAProxy operation](#haproxy-operation)
   - [Ideas](#ideas)
@@ -88,6 +89,8 @@ Never commit directly to the `production` branch. Commit your changes to a devel
 
 Once merged, you will need to connect to our production Airflow host on the COA network, then pull down your changes from Github. Airflow will automatically load any DAG changes within five minutes. Activate your DAG through the Airflow web interface at `https://airflow.austinmobility.io/`.
 
+#### If there has been a change to the code in the repo:
+
 ```shell
 # dts-int-data-p01
 
@@ -100,15 +103,36 @@ cd /srv/atd-airflow;
 # pull the changes
 git pull;
 
-# return to user-land
-exit;
+
 ```
+
+#### If there has been a change to the Airflow Docker image like when updating the Airflow verson:
 
 The production Airflow deployment uses a second Docker compose file which provides haproxy configuration overrides. To start the production docker compose stack use you must load both files in order:
 
 ```shell
+# dts-int-data-p01
+
+# become the superuser
+su -;
+
+# enter into the production airflow directory
+cd /srv/atd-airflow;
+
+# pull the fresh production image
+docker pull atddocker/atd-airflow:production
+
+# stop the Docker stack
+docker compose stop
+
+# start the Docker stack
 docker compose -f docker-compose.yaml -f docker-compose-production.yaml up -d
+
+# return to user-land
+exit;
 ```
+
+Once the stack comes back up, you can monitor the scheduled Airflow DAGs.
 
 ## Utilities
 
@@ -213,22 +237,7 @@ docker compose down
 ```
 - In the [docker-compose.yaml](./docker-compose.yaml), switch `build: .` back to `image: atddocker/atd-airflow:production`
 - Push your branch and create a PR for review
-
-#### Update the production stack after merge
-- After review and merge, snap a backup of the production Airflow postgreSQL database
-  - You shouldn't need it, but it can't hurt.
-  - The following command requires that the stack being updated is running.
-  - The string `postgres` in the following command is denoting the `docker compose` service name and not the `postgres` system database which is present on all postgres database servers. The target database is set via the environment variable `PGDATABASE`.
-  - `docker compose exec -t -e PGUSER=airflow -e PGPASSWORD=airflow -e PGDATABASE=airflow postgres pg_dump > DB_backup.sql`
-- Stop the Airflow stack
-  - `docker compose stop`
-- Pull the updates using the instructions in the [Moving to production section](#moving-to-production)
-- Build the core docker images
-  - `docker compose build`
-- Build the `airflow-cli` image, which the Airflow team keeps in its own profile
-  - `docker compose build airflow-cli`
-- Restart the Airflow stack
-  - `docker compose up -d`
+- After approval, merge and update the stack using the instructions in the [Moving to production section](#moving-to-production)
 
 ## HAProxy and SSL
 
