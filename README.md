@@ -21,7 +21,7 @@ The stack is composed of:
     - [Tags](#tags)
     - [Moving to production](#moving-to-production)
       - [If there has been a change to the code in the repo:](#if-there-has-been-a-change-to-the-code-in-the-repo)
-      - [If there has been a change to the Airflow Docker image like when updating the Airflow verson:](#if-there-has-been-a-change-to-the-airflow-docker-image-like-when-updating-the-airflow-verson)
+      - [If there has been a change to the Airflow Docker image like when updating the Airflow version:](#if-there-has-been-a-change-to-the-airflow-docker-image-like-when-updating-the-airflow-verson)
   - [Utilities](#utilities)
     - [1Password utility](#1password-utility)
     - [Slack operator utility](#slack-operator-utility)
