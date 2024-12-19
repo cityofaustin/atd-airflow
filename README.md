@@ -222,19 +222,25 @@ Follow these steps to update the Airflow docker step. Reasons for doing this inc
 - Create a local branch with the [Dockerfile](./Dockerfile) modified to the version you intend to test
 - In the [docker-compose.yaml](./docker-compose.yaml), replace `image: atddocker/atd-airflow:production` with `build: .`
 - Build the Docker images locally:
+
 ```shell
 docker compose build --no-cache
-``` 
+```
+
 - Bring up the services and check the logging for errors and see that everything runs as expected:
+
 ```shell
 docker compose up
-``` 
+```
+
 - Check if you can reach the Airflow dashboard at `http://localhost:8080`
 - If any updates affect the Slack notifier, see the [instructions to test it](#slack-operator-utility)
 - Bring down the services:
+
 ```shell
 docker compose down
 ```
+
 - In the [docker-compose.yaml](./docker-compose.yaml), switch `build: .` back to `image: atddocker/atd-airflow:production`
 - Push your branch and create a PR for review
 - After approval, merge and update the stack using the instructions in the [Moving to production section](#moving-to-production)
