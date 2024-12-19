@@ -4,7 +4,7 @@ This repository hosts Data & Technology Service's [Airflow](https://airflow.apac
 
 The production Airflow instance is available at `https://airflow.austinmobility.io/`. It requires COA network access.
 
-Our Airflow instance is hosted on `atd-data03` at `/usr/airflow/atd-airflow`. Local development is available, and instructions are below.
+Our Airflow instance is hosted on `dts-int-data-p01` and can be found in `/srv/atd-airflow`. Local development is available, and instructions are below.
 
 The stack is composed of:
 
