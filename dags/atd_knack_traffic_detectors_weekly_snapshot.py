@@ -70,7 +70,7 @@ with DAG(
     dag_id="atd_knack_traffic_detectors_weekly_snapshot",
     description="Appends traffic detector assets to a running log in Socrata",
     default_args=DEFAULT_ARGS,
-    schedule_interval="0 1 * * SUN" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="0 1 * * MON" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata"],
     catchup=False,
 ) as dag:
