@@ -4,7 +4,7 @@ This repository hosts Data & Technology Service's [Airflow](https://airflow.apac
 
 The production Airflow instance is available at `https://airflow.austinmobility.io/`. It requires COA network access.
 
-Our Airflow instance is hosted on `atd-data03` at `/usr/airflow/atd-airflow`. Local development is available, and instructions are below.
+Our Airflow instance is hosted on `dts-int-data-p01` and can be found in `/srv/atd-airflow`. Local development is available, and instructions are below.
 
 The stack is composed of:
 
@@ -20,6 +20,8 @@ The stack is composed of:
     - [Developing a new DAG](#developing-a-new-dag)
     - [Tags](#tags)
     - [Moving to production](#moving-to-production)
+      - [If there has been a change to the code in the repo:](#if-there-has-been-a-change-to-the-code-in-the-repo)
+      - [If there has been a change to the Airflow Docker image like when updating the Airflow version:](#if-there-has-been-a-change-to-the-airflow-docker-image-like-when-updating-the-airflow-version)
   - [Utilities](#utilities)
     - [1Password utility](#1password-utility)
     - [Slack operator utility](#slack-operator-utility)
@@ -27,7 +29,6 @@ The stack is composed of:
   - [Updating the stack](#updating-the-stack)
     - [Update Process](#update-process)
       - [Testing a new Airflow version](#testing-a-new-airflow-version)
-      - [Update the production stack after merge](#update-the-production-stack-after-merge)
   - [HAProxy and SSL](#haproxy-and-ssl)
     - [HAProxy operation](#haproxy-operation)
   - [Ideas](#ideas)
@@ -54,13 +55,13 @@ DOCKER_HUB_USERNAME=<Get from 1Password entry named "Docker Hub">
 DOCKER_HUB_TOKEN=<A docker hub access token assigned to specifically to you>
 ```
 
-3. Start the Docker the stack (optionlly use the `-d` flag to run containers in the background):
+3. Start the Docker the stack (optionally use the `-d` flag to run containers in the background):
 
 ```bash
 docker compose up -d
 ```
 
-4. Log in to the dashboard at ` http://localhost:8080` using the username and password set in your `.env` file.
+4. Log in to the dashboard at `http://localhost:8080` using the username and password set in your `.env` file.
 
 5. The Flower workers' status page available at `http://localhost:8081`
 
@@ -88,6 +89,8 @@ Never commit directly to the `production` branch. Commit your changes to a devel
 
 Once merged, you will need to connect to our production Airflow host on the COA network, then pull down your changes from Github. Airflow will automatically load any DAG changes within five minutes. Activate your DAG through the Airflow web interface at `https://airflow.austinmobility.io/`.
 
+#### If there has been a change to the code in the repo:
+
 ```shell
 # dts-int-data-p01
 
@@ -104,11 +107,39 @@ git pull;
 exit;
 ```
 
+#### If there has been a change to the Airflow Docker image like when updating the Airflow version:
+
 The production Airflow deployment uses a second Docker compose file which provides haproxy configuration overrides. To start the production docker compose stack use you must load both files in order:
 
 ```shell
-docker compose -f docker-compose.yaml -f docker-compose-production.yaml up -d
+# dts-int-data-p01
+
+# become the superuser
+su -;
+
+# enter into the production airflow directory
+cd /srv/atd-airflow;
+
+# pull the repository changes
+git pull;
+
+# pull the fresh production image
+docker compose pull;
+
+# stop the Docker stack
+docker compose stop;
+
+# start the Docker stack
+docker compose -f docker-compose.yaml -f docker-compose-production.yaml up -d;
+
+# you can watch the logs as the stack starts (ctrl + c to exit logging without affecting the stack)
+docker compose logs -f;
+
+# return to user-land
+exit;
 ```
+
+Once the stack comes back up, you can monitor the scheduled Airflow DAGs.
 
 ## Utilities
 
@@ -198,37 +229,28 @@ Follow these steps to update the Airflow docker step. Reasons for doing this inc
 - Create a local branch with the [Dockerfile](./Dockerfile) modified to the version you intend to test
 - In the [docker-compose.yaml](./docker-compose.yaml), replace `image: atddocker/atd-airflow:production` with `build: .`
 - Build the Docker images locally:
+
 ```shell
 docker compose build --no-cache
-``` 
+```
+
 - Bring up the services and check the logging for errors and see that everything runs as expected:
+
 ```shell
 docker compose up
-``` 
+```
+
 - Check if you can reach the Airflow dashboard at `http://localhost:8080`
 - If any updates affect the Slack notifier, see the [instructions to test it](#slack-operator-utility)
 - Bring down the services:
+
 ```shell
 docker compose down
 ```
+
 - In the [docker-compose.yaml](./docker-compose.yaml), switch `build: .` back to `image: atddocker/atd-airflow:production`
 - Push your branch and create a PR for review
-
-#### Update the production stack after merge
-- After review and merge, snap a backup of the production Airflow postgreSQL database
-  - You shouldn't need it, but it can't hurt.
-  - The following command requires that the stack being updated is running.
-  - The string `postgres` in the following command is denoting the `docker compose` service name and not the `postgres` system database which is present on all postgres database servers. The target database is set via the environment variable `PGDATABASE`.
-  - `docker compose exec -t -e PGUSER=airflow -e PGPASSWORD=airflow -e PGDATABASE=airflow postgres pg_dump > DB_backup.sql`
-- Stop the Airflow stack
-  - `docker compose stop`
-- Pull the updates using the instructions in the [Moving to production section](#moving-to-production)
-- Build the core docker images
-  - `docker compose build`
-- Build the `airflow-cli` image, which the Airflow team keeps in its own profile
-  - `docker compose build airflow-cli`
-- Restart the Airflow stack
-  - `docker compose up -d`
+- After approval, merge and update the stack using the instructions in the [Moving to production section](#moving-to-production)
 
 ## HAProxy and SSL
 
@@ -252,4 +274,4 @@ In production, however, we do have different host names assigned for each resour
 
 - Make it disable all DAGs on start locally so it fails to safe
 - Create remote worker image example
-  - Use `docker compose` new `profile` support
+- Use `docker compose` new `profile` support
