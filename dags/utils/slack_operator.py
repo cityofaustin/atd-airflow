@@ -84,15 +84,21 @@ def task_fail_slack_alert_critical(context):
 
 
 def task_fail_slack_alert(context):
+    dag = context.get("dag")
+    schedule_interval = dag.schedule_interval if dag else None
+    schedule_description = format_schedule(schedule_interval)
+
     slack_msg = """
             :red_circle: Task Failed. 
             *Task*: {task}  
             *DAG*: {dag} 
+            *Schedule*: {schedule_description}
             *Execution Time*: {exec_date}  
             *Log Url*: {log_url} 
             """.format(
         task=context.get("task_instance").task_id,
         dag=context.get("task_instance").dag_id,
+        schedule_description=schedule_description,
         exec_date=get_central_time_exec_data(context),
         log_url=context.get("task_instance").log_url,
     )
