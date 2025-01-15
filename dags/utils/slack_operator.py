@@ -26,6 +26,7 @@ def format_schedule(schedule_interval):
     """
 
     from cron_descriptor import get_description
+    import datetime
 
     if schedule_interval is None:
         schedule_description = "None"
