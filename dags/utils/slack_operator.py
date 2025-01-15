@@ -1,7 +1,6 @@
 from airflow.hooks.base_hook import BaseHook
 from airflow.contrib.operators.slack_webhook_operator import SlackWebhookOperator
 
-from cron_descriptor import get_description
 
 # This is the Conn Id that we set when creating the connection in the Airflow dashboard
 # in Admin > Connections.
@@ -25,6 +24,9 @@ def format_schedule(schedule_interval):
     Returns:
         str: A human-readable description of the schedule interval.
     """
+
+    from cron_descriptor import get_description
+
     if schedule_interval is None:
         schedule_description = "None"
     elif isinstance(schedule_interval, str):
