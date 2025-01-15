@@ -97,7 +97,7 @@ def task_fail_slack_alert(context):
             *DAG*: {dag} 
             *Schedule*: {schedule_description}
             *Execution Time*: {exec_date}  
-            *Log Url*: {log_url} 
+            *Log URL*: {log_url} 
             """.format(
         task=context.get("task_instance").task_id,
         dag=context.get("task_instance").dag_id,
