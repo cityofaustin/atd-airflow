@@ -2,10 +2,9 @@
 
 import os
 
-from airflow.decorators import task
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
-from pendulum import datetime, duration, now
+from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
@@ -107,7 +106,7 @@ with DAG(
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
-        task_id="amanada_row_inspector_permit_list",
+        task_id="amanda_row_inspector_permit_list",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove=True,
