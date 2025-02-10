@@ -53,7 +53,6 @@ with DAG(
     dag_id="vz-location-crashes-refresh",
     description="Refreshes the materialized view: location_crashes_view ",
     default_args=DEFAULT_ARGS,
-    # do not run on sunday and monday mornings to give VZ team time to QA records imported over weekend
     schedule_interval="0 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     start_date=datetime(2024, 8, 1, tz="America/Chicago"),
     tags=["vision-zero", "repo:vision-zero"],
