@@ -10,6 +10,8 @@ from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
 # in Admin > Connections.
 SLACK_CONN_ID = "slack"
 
+DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+
 
 def format_schedule(schedule_interval):
     """
