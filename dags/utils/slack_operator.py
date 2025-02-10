@@ -93,29 +93,55 @@ def task_fail_slack_alert_critical(context):
 
 
 def task_fail_slack_alert(context):
+
+    task_instance = context.get("task_instance")
+    task = context.get("task")
+    exception = context.get("exception")
+    exception_type = type(exception).__name__ if exception else "Unknown"
+    exception_message = (
+        str(exception) if exception else "No exception message available"
+    )
+
+    # Extract additional information
     dag = context.get("dag")
+    dag_id = task_instance.dag_id
+    task_id = task_instance.task_id
+    exec_date = get_central_time_exec_data(context)
+    log_url = task_instance.log_url
+    duration = getattr(task_instance, "duration", "Not available")
+
     schedule_interval = dag.schedule_interval if dag else None
+
     schedule_description = format_schedule(schedule_interval)
 
-    slack_msg = """
-            :red_circle: Task Failed. 
-            *Task*: {task}  
-            *DAG*: {dag} 
-            *Schedule*: {schedule_description}
-            *Execution Time*: {exec_date}  
-            *Log URL*: {log_url} 
-            """.format(
-        task=context.get("task_instance").task_id,
-        dag=context.get("task_instance").dag_id,
-        schedule_description=schedule_description,
-        exec_date=get_central_time_exec_data(context),
-        log_url=context.get("task_instance").log_url,
-    )
+    byline = getattr(dag, "byline", None)
+    icon = getattr(dag, "icon", ":red_circle:")
+
+    # Add deployment environment indication if not production
+    env_indicator = ""
+    if DEPLOYMENT_ENVIRONMENT != "production":
+        env_indicator = f" *{DEPLOYMENT_ENVIRONMENT.capitalize()} Environment*"
+
+    slack_msg = f"""
+        {icon}{env_indicator} *Task failure* 
+
+        {byline}
+
+        *DAG*: `{dag_id}`
+        *Task*: `{task_id}`
+        *Execution Time*: `{exec_date}`
+        *Schedule*: `{schedule_description}`
+        *Duration*: `{duration} seconds`
+        *Exception Type*: `{exception_type}`
+        *Exception Message*: `{exception_message}`
+        <{log_url}|*View Task Log*>
+"""
+
     failed_alert = SlackWebhookOperator(
         task_id="slack_failure",
         slack_webhook_conn_id=SLACK_CONN_ID,
         message=slack_msg,
-        username="airflow",
+        username="Airflow Alert",
     )
     return failed_alert.execute(context=context)
 
