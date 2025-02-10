@@ -1,5 +1,9 @@
-from airflow.hooks.base_hook import BaseHook
-from airflow.contrib.operators.slack_webhook_operator import SlackWebhookOperator
+import os
+import datetime
+
+from cron_descriptor import get_description
+from airflow.hooks.base import BaseHook
+from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
 
 
 # This is the Conn Id that we set when creating the connection in the Airflow dashboard
