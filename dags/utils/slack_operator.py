@@ -132,7 +132,7 @@ def task_fail_slack_alert(context):
 
     schedule_description = format_schedule(schedule_interval)
 
-    byline = getattr(dag, "byline", None)
+    byline = getattr(dag, "byline", "")
     icon = getattr(dag, "icon", ":red_circle:")
 
     # Add deployment environment indication if not production
