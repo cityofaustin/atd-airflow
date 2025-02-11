@@ -13,20 +13,20 @@ SLACK_CONN_ID = "slack"
 DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 slack_member_ids = {
-    "Frank": "@UMS32US1E",
-    "Amenity": "@U0PQDEMRD",
-    "Charlie": "@U02L4JR52HX",
-    "Chia": "@UNMD5M36G",
-    "Christina": "@UU5TQ0ER0",
-    "David": "@UU5TQ0ER0",
-    "Diana": "@U0R8RC3MJ",
-    "John": "@U09P5B7B9",
-    "Karo": "@U034K23B45D",
-    "Mateo": "@U6FADKWFJ",
-    "Mike": "@UK32Y2PMZ",
-    "Rose": "@U03JZ42NXEK",
-    "Tilly": "@UJTGDE5A7",
-    "Andrew": "@U01R4CKT3HT",
+    "Frank": "<@UMS32US1E>",
+    "Amenity": "<@U0PQDEMRD>",
+    "Charlie": "<@U02L4JR52HX>",
+    "Chia": "<@UNMD5M36G>",
+    "Christina": "<@UU5TQ0ER0>",
+    "David": "<@UU5TQ0ER0>",
+    "Diana": "<@U0R8RC3MJ>",
+    "John": "<@U09P5B7B9>",
+    "Karo": "<@U034K23B45D>",
+    "Mateo": "<@U6FADKWFJ>",
+    "Mike": "<@UK32Y2PMZ>",
+    "Rose": "<@U03JZ42NXEK>",
+    "Tilly": "<@UJTGDE5A7>",
+    "Andrew": "<@U01R4CKT3HT>",
 }
 
 
