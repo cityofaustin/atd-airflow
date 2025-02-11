@@ -53,6 +53,7 @@ def format_schedule(schedule_interval):
 
     if schedule_interval is None:
         schedule_description = "None"
+        return schedule_description
     elif isinstance(schedule_interval, str):
         try:
             schedule_description = get_description(schedule_interval)
