@@ -4,7 +4,7 @@ from pendulum import datetime, duration
 from airflow.models import DAG
 from airflow.operators.python_operator import PythonOperator
 
-from utils.slack_operator import task_fail_slack_alert
+from utils.slack_operator import task_fail_slack_alert, slack_member_ids
 
 DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
@@ -32,6 +32,14 @@ with DAG(
     tags=["slack"],
     catchup=False,
 ) as dag:
+    # The usual suspects' slack IDs can be found in the slack_member_ids dictionary,
+    # and one-off mentions can be done using the syntax <@UMS32US1E> where the ID can be
+    # found in a member's profile, under the hamburger menu > Copy member ID.
+    dag.byline = (
+        f"Example optional byline, which supports mentions: {slack_member_ids['Frank']}"
+    )
+    dag.icon = ":test_tube:"
+
     t1 = PythonOperator(
         task_id="task_fail",
         python_callable=task_fail,

@@ -188,6 +188,26 @@ The Slack operator utility makes use of the integration between the Airflow and 
 
 To configure the Slack operator in your local instance, from the Airflow UI go to **Admin** > **Connections** and choose **Slack API** as the **connection type**. You can find the remaining settings in 1Password under the **Airflow - Slack Bot** item.
 
+#### Byline support
+
+The stack offers the ability to define a `byline` in the Slack message. This, if defined, this message will be shown prominently in the slack error notification. You may notify individuals or channels using the slack Advanced Formatting addressing scheme documented [here](https://api.slack.com/reference/surfaces/formatting#advanced). Very briefly, you can look for a user's member ID in their profile under the hamburger menu, and you can right click on a channel name above in the main frame of the client to get at a channel ID.
+
+#### Custom icon/emoji support
+
+Additionally, you may specify a slack emoji to replace the default `:red_circle:` emoji. This is done by specifying the `icon` property of the `dag` object. For example:
+
+```python
+with DAG(
+    dag_id=f"test_slack_notifier_{DEPLOYMENT_ENVIRONMENT}",
+    <snip>
+) as dag:
+    # @UMS32US1E is @frank, you can "Copy Member ID" from a member's profile, in the hamburger menu
+    dag.byline = "Example optional byline, which supports mentions: <@UMS32US1E>"
+    dag.icon = ":test_tube:"
+
+    <snip>
+```
+
 **To test the Slack operator locally**, see the DAG named `test_slack_notifier`.
 
 ## Useful Commands
