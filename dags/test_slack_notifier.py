@@ -32,7 +32,9 @@ with DAG(
     tags=["slack"],
     catchup=False,
 ) as dag:
-    # @UMS32US1E is @frank, you can "Copy Member ID" from a member's profile, in the hamburger menu
+    # The usual suspects' slack IDs can be found in the slack_member_ids dictionary,
+    # and one-off mentions can be done using the syntax <@UMS32US1E> where the ID can be
+    # found in a member's profile, under the hamburger menu > Copy member ID.
     dag.byline = f"Example optional byline, which supports mentions: {slack_member_ids['Charlie']}"
     dag.icon = ":test_tube:"
 
