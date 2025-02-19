@@ -1,5 +1,4 @@
 import os
-import datetime
 
 from cron_descriptor import get_description
 from airflow.hooks.base import BaseHook
