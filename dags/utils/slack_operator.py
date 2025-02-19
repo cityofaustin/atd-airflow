@@ -109,6 +109,28 @@ def task_fail_slack_alert_critical(context):
     return failed_alert.execute(context=context)
 
 
+def extract_exception_from_log(log_text):
+    import re
+
+    # Find the last occurrence of 'Traceback (most recent call last):'
+    traceback_start = log_text.rfind("Traceback (most recent call last):")
+    if traceback_start == -1:
+        return None, None  # No traceback found
+
+    # Extract the traceback portion
+    traceback_text = log_text[traceback_start:]
+
+    # Find the last line (which usually contains the exception type and message)
+    last_line = traceback_text.strip().split("\n")[-1]
+
+    # Extract exception type and message
+    match = re.match(r"([\w.]+): (.*)", last_line)
+    if match:
+        return match.group(1), match.group(2)
+
+    return None, None
+
+
 def task_fail_slack_alert(context):
 
     task_instance = context.get("task_instance")
