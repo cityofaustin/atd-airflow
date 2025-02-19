@@ -141,6 +141,13 @@ def task_fail_slack_alert(context):
         str(exception) if exception else "No exception message available"
     )
 
+    if exception and hasattr(exception, "logs") and exception.logs:
+        logs = exception.logs
+        parsed_exception_type, parsed_exception_message = extract_exception_from_log("\n".join(logs))
+        if (parsed_exception_message and parsed_exception_type):
+            exception_type = parsed_exception_type
+            exception_message = parsed_exception_message
+
     # Extract additional information
     dag = context.get("dag")
     dag_id = task_instance.dag_id
