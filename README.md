@@ -245,7 +245,7 @@ Follow these steps to update the Airflow docker step. Reasons for doing this inc
 #### Testing a new Airflow version
 
 - Read the "Significant Changes" sections of the Airflow release notes between the versions in question: https://github.com/apache/airflow/releases/
-  - Apache Airflow is a very active project, and these release notes are pretty dense. Keeping a regular update cadence will be helpful to keep up the task of updating airflow from becoming an "information overload" job.
+  - Apache Airflow is a very active project and these release notes are pretty dense. Keeping a regular update cadence will be helpful to keep the task of updating airflow from becoming an "information overload" job.
 - Create a local branch with the [Dockerfile](./Dockerfile) modified to the version you intend to test
 - In the [docker-compose.yaml](./docker-compose.yaml), replace `image: atddocker/atd-airflow:production` with `build: .`
 - Build the Docker images locally:
