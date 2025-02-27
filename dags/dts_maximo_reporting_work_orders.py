@@ -77,7 +77,7 @@ with DAG(
         task_id="maximo_workorders_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
-        auto_remove=True,
+        auto_remove="force",
         command=f"python etl/work_orders_to_socrata.py",
         environment=env_vars,
         tty=True,

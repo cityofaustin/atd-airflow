@@ -67,7 +67,7 @@ with DAG(
     t1 = DockerOperator(
         task_id="atd_cost_of_service_fees_to_knack",
         image="atddocker/atd-cost-of-service:production",
-        auto_remove=True,
+        auto_remove="force",
         command="python3 knack_load_fees.py",
         network_mode="bridge",
         environment=env_vars,

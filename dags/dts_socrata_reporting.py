@@ -62,7 +62,7 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         api_version="auto",
-        auto_remove=True,
+        auto_remove="force",
         command="python etl/socrata_metadata_pub.py",
         environment=env_vars,
         tty=True,

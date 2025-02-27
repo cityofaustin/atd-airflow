@@ -62,7 +62,7 @@ with DAG(
         task_id="road_conditions_socrata",
         image="atddocker/atd-road-conditions:production",
         docker_conn_id="docker_default",
-        auto_remove=True,
+        auto_remove="force",
         command=f"./atd-road-conditions/socrata.py {date_filter_arg}",
         environment=env_vars,
         tty=True,

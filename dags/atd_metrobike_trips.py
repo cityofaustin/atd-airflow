@@ -62,7 +62,7 @@ with DAG(
         task_id="atd_metrobike_trips_socrata",
         image="atddocker/atd-metrobike:production",
         docker_conn_id="docker_default",
-        auto_remove=True,
+        auto_remove="force",
         command="python publish_trips.py",
         environment=env_vars,
         tty=True,

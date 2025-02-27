@@ -174,7 +174,7 @@ with DAG(
     task_1 = DockerOperator(
       task_id="my_docker_task",
       image="some-image-name",
-      auto_remove=True,
+      auto_remove="force",
       command="hello_world.py",
       environment=env_vars,
       tty=True,

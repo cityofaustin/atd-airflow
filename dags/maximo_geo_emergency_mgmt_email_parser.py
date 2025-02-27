@@ -62,7 +62,7 @@ with DAG(
         image="atddocker/maximo-geo-emergency-mgmt:production",
         api_version="auto",
         docker_conn_id="docker_default",
-        auto_remove=True,
+        auto_remove="force",
         environment=env_vars,
         tty=True,
         force_pull=True,
