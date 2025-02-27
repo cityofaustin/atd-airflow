@@ -106,7 +106,7 @@ with DAG(
         command=f"./cr3_ocr_narrative.py --workers 2",
         environment=env_vars,
         auto_remove=True,
-        tty=True
+        tty=True,
     )
 
     cris_import >> ocr_crash_narratives
