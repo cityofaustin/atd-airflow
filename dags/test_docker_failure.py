@@ -35,7 +35,7 @@ with DAG(
         image="atddocker/atd-airflow:production",
         command="python -c \"raise Exception('This is a test exception')\"",
         docker_conn_id="docker_default",
-        auto_remove=True,
+        auto_remove="force",
         tty=True,
         mount_tmp_dir=False,
     )
