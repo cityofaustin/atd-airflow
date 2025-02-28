@@ -27,7 +27,7 @@ with DAG(
     tags=["repo:atd-airflow", "slack"],
     catchup=False,
 ) as dag:
-    dag.byline = f"{slack_member_ids['Frank']} test failure"
+    dag.byline = f"Test failure in a docker container"
     dag.icon = ":test_tube:"
 
     t1 = DockerOperator(
