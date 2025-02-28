@@ -1,5 +1,4 @@
 import os
-import datetime
 
 from cron_descriptor import get_description
 from airflow.hooks.base import BaseHook
@@ -110,6 +109,28 @@ def task_fail_slack_alert_critical(context):
     return failed_alert.execute(context=context)
 
 
+def extract_exception_from_log(log_text):
+    import re
+
+    # Find the last occurrence of 'Traceback (most recent call last):'
+    traceback_start = log_text.rfind("Traceback (most recent call last):")
+    if traceback_start == -1:
+        return None, None  # No traceback found
+
+    # Extract the traceback portion
+    traceback_text = log_text[traceback_start:]
+
+    # Find the last line (which usually contains the exception type and message)
+    last_line = traceback_text.strip().split("\n")[-1]
+
+    # Extract exception type and message
+    match = re.match(r"([\w.]+): (.*)", last_line)
+    if match:
+        return match.group(1), match.group(2)
+
+    return None, None
+
+
 def task_fail_slack_alert(context):
 
     task_instance = context.get("task_instance")
@@ -119,6 +140,13 @@ def task_fail_slack_alert(context):
     exception_message = (
         str(exception) if exception else "No exception message available"
     )
+
+    if exception and hasattr(exception, "logs") and exception.logs:
+        logs = exception.logs
+        parsed_exception_type, parsed_exception_message = extract_exception_from_log("\n".join(logs))
+        if (parsed_exception_message and parsed_exception_type):
+            exception_type = parsed_exception_type
+            exception_message = parsed_exception_message
 
     # Extract additional information
     dag = context.get("dag")
@@ -142,9 +170,7 @@ def task_fail_slack_alert(context):
 
     slack_msg = f"""
         {icon}{env_indicator} *Task failure* 
-
-        {byline}
-
+        {'\n\t\t' + byline if byline else ''}
         *DAG*: `{dag_id}`
         *Task*: `{task_id}`
         *Execution Time*: `{exec_date}`
@@ -153,7 +179,7 @@ def task_fail_slack_alert(context):
         *Exception Type*: `{exception_type}`
         *Exception Message*: `{exception_message}`
         <{log_url}|*View Task Log*>
-"""
+    """
 
     failed_alert = SlackWebhookOperator(
         task_id="slack_failure",
