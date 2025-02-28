@@ -32,11 +32,11 @@ with DAG(
 
     t1 = DockerOperator(
         task_id="docker_failure",
-        image="frankinaustin/pyfail:latest",
+        image="atddocker/atd-airflow:production",
+        command="python -c \"raise Exception('This is a test exception')\"",
         docker_conn_id="docker_default",
         auto_remove=True,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 
