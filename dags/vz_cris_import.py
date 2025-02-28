@@ -96,7 +96,7 @@ with DAG(
         image=docker_image,
         command=f"./cris_import.py --csv --pdf --s3-download --s3-upload --s3-archive --workers 2",
         environment=env_vars,
-        auto_remove=True,
+        auto_remove="force",
         tty=True,
         force_pull=True,
     )
@@ -107,7 +107,7 @@ with DAG(
         image=docker_image,
         command=f"./cr3_ocr_narrative.py --workers 2",
         environment=env_vars,
-        auto_remove=True,
+        auto_remove="force",
         tty=True,
     )
 

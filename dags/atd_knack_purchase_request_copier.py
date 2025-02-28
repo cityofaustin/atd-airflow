@@ -50,7 +50,7 @@ with DAG(
         task_id="purchase_request_copier",
         image=docker_image,
         docker_conn_id="docker_default",
-        auto_remove=True,
+        auto_remove="force",
         command=f"./atd-knack-services/services/purchase_request_copier.py -a {app_name} -c {container}",
         environment=env_vars,
         tty=True,

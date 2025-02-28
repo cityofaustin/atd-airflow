@@ -98,7 +98,7 @@ with DAG(
         image=docker_image,
         command=f"./socrata_export.py --crashes",
         environment=env_vars,
-        auto_remove=True,
+        auto_remove="force",
         tty=True,
         force_pull=True,
     )
@@ -109,7 +109,7 @@ with DAG(
         image=docker_image,
         command=f"./socrata_export.py --people",
         environment=env_vars,
-        auto_remove=True,
+        auto_remove="force",
         tty=True,
         force_pull=True,
         trigger_rule="all_done",  # always run this task regardless of outcome of crashes task

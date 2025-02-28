@@ -65,7 +65,7 @@ with DAG(
         image=docker_image,
         command=f"./run_sql.py -c refresh_location_crashes",
         environment=env_vars,
-        auto_remove=True,
+        auto_remove="force",
         tty=True,
         force_pull=True,
     )

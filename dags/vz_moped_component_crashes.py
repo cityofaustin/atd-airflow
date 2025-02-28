@@ -119,7 +119,7 @@ with DAG(
         image=docker_image_vz_moped_join,
         command="./moped_project_components_spatial_join.py",
         environment=env_vars_moped_join,
-        auto_remove=True,
+        auto_remove="force",
         tty=True,
         force_pull=True,
     )
@@ -130,7 +130,7 @@ with DAG(
         image=docker_image_socrata_export,
         command=f"./socrata_export.py --crash-components",
         environment=env_vars_socrata,
-        auto_remove=True,
+        auto_remove="force",
         tty=True,
         force_pull=True,
     )

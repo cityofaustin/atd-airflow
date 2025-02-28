@@ -67,7 +67,7 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         api_version="auto",
-        auto_remove=True,
+        auto_remove="force",
         command="./atd-service-bot/gh_index_issues_to_dts_portal.py",
         environment=env_vars,
         tty=True,

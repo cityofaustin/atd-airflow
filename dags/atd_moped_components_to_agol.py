@@ -114,7 +114,7 @@ with DAG(
         task_id="moped_components_to_agol_full",
         image=docker_image,
         docker_conn_id="docker_default",
-        auto_remove=True,
+        auto_remove="force",
         command=f"python components_to_agol.py {args}",
         environment=env_vars,
         tty=True,
@@ -126,7 +126,7 @@ with DAG(
     incremental = DockerOperator(
         task_id="moped_components_to_agol_incremental",
         image=docker_image,
-        auto_remove=True,
+        auto_remove="force",
         command=f"python components_to_agol.py {args}",
         environment=env_vars,
         tty=True,

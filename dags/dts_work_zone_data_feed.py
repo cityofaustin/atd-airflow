@@ -93,7 +93,7 @@ with DAG(
         task_id="work_zone_data_publishing",
         image=docker_image,
         docker_conn_id="docker_default",
-        auto_remove=True,
+        auto_remove="force",
         command=f"python data_sources/amanda_closure_publishing.py",
         environment=env_vars,
         tty=True,
