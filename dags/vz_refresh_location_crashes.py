@@ -25,11 +25,11 @@ else:
 
 REQUIRED_SECRETS = {
     "HASURA_GRAPHQL_ENDPOINT": {
-        "opitem": "Vision Zero CRIS Import",
+        "opitem": "Vision Zero ETLs",
         "opfield": f"{secrets_env_prefix}.HASURA_GRAPHQL_SCHEMA_API_ENDPOINT",
     },
     "HASURA_GRAPHQL_ADMIN_SECRET": {
-        "opitem": "Vision Zero CRIS Import",
+        "opitem": "Vision Zero ETLs",
         "opfield": f"{secrets_env_prefix}.HASURA_GRAPHQL_ADMIN_SECRET",
     },
 }
