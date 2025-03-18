@@ -94,4 +94,4 @@ def etl_data_import():
     ems_import >> afd_import
 
 
-data_import_dag = etl_data_import()
+etl_data_import()
