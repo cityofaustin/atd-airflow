@@ -69,7 +69,7 @@ def etl_data_import():
         environment=env_vars,
         image=docker_image,
         auto_remove="force",
-        command="ems --skip-archive",
+        command="ems",
         tty=True,
         force_pull=True,
         mount_tmp_dir=False
@@ -82,9 +82,8 @@ def etl_data_import():
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command="afd --skip-archive",
+        command="afd",
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False
     )
 
