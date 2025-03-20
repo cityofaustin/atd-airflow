@@ -40,7 +40,7 @@ else:
 
 REQUIRED_SECRETS_SOCRATA = {
     "SOCRATA_DATASET_CRASH_COMPONENTS": {
-        "opitem": "Vision Zero Socrata Export",
+        "opitem": "Vision Zero ETLs",
         "opfield": f"{secrets_env_prefix}.SOCRATA_DATASET_CRASH_COMPONENTS",
     },
     "SOCRATA_KEY_ID": {
@@ -56,22 +56,22 @@ REQUIRED_SECRETS_SOCRATA = {
         "opfield": "socrata.appToken",
     },
     "HASURA_GRAPHQL_ENDPOINT": {
-        "opitem": "Vision Zero CRIS Import",
+        "opitem": "Vision Zero ETLs",
         "opfield": f"{secrets_env_prefix}.HASURA_GRAPHQL_ENDPOINT",
     },
     "HASURA_GRAPHQL_ADMIN_SECRET": {
-        "opitem": "Vision Zero CRIS Import",
+        "opitem": "Vision Zero ETLs",
         "opfield": f"{secrets_env_prefix}.HASURA_GRAPHQL_ADMIN_SECRET",
     },
 }
 
 REQUIRED_SECRETS_MOPED_JOIN = {
     "VZ_HASURA_ENDPOINT": {
-        "opitem": "Vision Zero CRIS Import",
+        "opitem": "Vision Zero ETLs",
         "opfield": f"{secrets_env_prefix}.HASURA_GRAPHQL_ENDPOINT",
     },
     "VZ_HASURA_ADMIN_SECRET": {
-        "opitem": "Vision Zero CRIS Import",
+        "opitem": "Vision Zero ETLs",
         "opfield": f"{secrets_env_prefix}.HASURA_GRAPHQL_ADMIN_SECRET",
     },
     "MOPED_HASURA_ENDPOINT": {

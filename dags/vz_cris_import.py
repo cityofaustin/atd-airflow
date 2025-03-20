@@ -35,31 +35,31 @@ else:
 
 REQUIRED_SECRETS = {
     "BUCKET_ENV": {
-        "opitem": "Vision Zero CRIS Import",
+        "opitem": "Vision Zero ETLs",
         "opfield": f"{secrets_env_prefix}.BUCKET_ENV",
     },
     "AWS_ACCESS_KEY_ID": {
-        "opitem": "Vision Zero CRIS Import",
+        "opitem": "Vision Zero ETLs",
         "opfield": f"common.AWS_ACCESS_KEY_ID",
     },
     "AWS_SECRET_ACCESS_KEY": {
-        "opitem": "Vision Zero CRIS Import",
+        "opitem": "Vision Zero ETLs",
         "opfield": f"common.AWS_SECRET_ACCESS_KEY",
     },
     "BUCKET_NAME": {
-        "opitem": "Vision Zero CRIS Import",
+        "opitem": "Vision Zero ETLs",
         "opfield": f"common.BUCKET_NAME",
     },
     "EXTRACT_PASSWORD": {
-        "opitem": "Vision Zero CRIS Import",
+        "opitem": "Vision Zero ETLs",
         "opfield": f"common.EXTRACT_PASSWORD",
     },
     "HASURA_GRAPHQL_ENDPOINT": {
-        "opitem": "Vision Zero CRIS Import",
+        "opitem": "Vision Zero ETLs",
         "opfield": f"{secrets_env_prefix}.HASURA_GRAPHQL_ENDPOINT",
     },
     "HASURA_GRAPHQL_ADMIN_SECRET": {
-        "opitem": "Vision Zero CRIS Import",
+        "opitem": "Vision Zero ETLs",
         "opfield": f"{secrets_env_prefix}.HASURA_GRAPHQL_ADMIN_SECRET",
     },
 }
