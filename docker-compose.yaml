@@ -4,11 +4,12 @@
 # And which is documented here:
 # https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#running-airflow-in-docker
 
-  # In order to add custom dependencies or upgrade provider packages you can use your extended image.
-  # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
-  # and uncomment the "build" line below, Then run `docker compose build` to build the images.
-  # build: .
-  image: atddocker/atd-airflow:production
+x-airflow-common: &airflow-common
+  # the `image:` key here is used in production to pull our published, production airflow image.
+  # the `build:` key is used in development to build the image locally.
+  build: .
+  # image: atddocker/atd-airflow:production
+
   environment: &airflow-common-env
     AIRFLOW__CORE__FERNET_KEY: ${_AIRFLOW__CORE__FERNET_KEY}
     AIRFLOW__WEBSERVER__BASE_URL: ${_AIRFLOW__WEBSERVER__BASE_URL:-http://localhost:8080}
