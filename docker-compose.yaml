@@ -7,8 +7,8 @@
 x-airflow-common: &airflow-common
   # the `image:` key here is used in production to pull our published, production airflow image.
   # the `build:` key is used in development to build the image locally.
-  build: .
-  # image: atddocker/atd-airflow:production
+  # build: .
+  image: atddocker/atd-airflow:production
 
   environment: &airflow-common-env
     AIRFLOW__CORE__FERNET_KEY: ${_AIRFLOW__CORE__FERNET_KEY}
