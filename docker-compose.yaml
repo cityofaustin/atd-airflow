@@ -1,13 +1,15 @@
 # Docker compose based on official Airflow example, available here:
-# https://airflow.apache.org/docs/apache-airflow/2.6.1/docker-compose.yaml
-# and documented here:
+# https://github.com/apache/airflow/blob/2.10.5/docs/apache-airflow/howto/docker-compose/docker-compose.yaml
+
+# And which is documented here:
 # https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#running-airflow-in-docker
+
 x-airflow-common: &airflow-common
-  # In order to add custom dependencies or upgrade provider packages you can use your extended image.
-  # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
-  # and uncomment the "build" line below, Then run `docker compose build` to build the images.
+  # the `image:` key here is used in production to pull our published, production airflow image.
+  # the `build:` key is used in development to build the image locally.
   # build: .
   image: atddocker/atd-airflow:production
+
   environment: &airflow-common-env
     AIRFLOW__CORE__FERNET_KEY: ${_AIRFLOW__CORE__FERNET_KEY}
     AIRFLOW__WEBSERVER__BASE_URL: ${_AIRFLOW__WEBSERVER__BASE_URL:-http://localhost:8080}
@@ -23,12 +25,24 @@ x-airflow-common: &airflow-common
     # Quiet SQLAlchemy warnings
     SQLALCHEMY_SILENCE_UBER_WARNING: 1
 
+    AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
+    AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__API__AUTH_BACKENDS: "airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session"
+
+    AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: "true"
+    # WARNING: Use _PIP_ADDITIONAL_REQUIREMENTS option ONLY for a quick checks
+    # for other purpose (development, test and especially production usage) build/extend Airflow image.
+    _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
+
   volumes:
     - ${AIRFLOW_PROJ_DIR}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR}/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR}/plugins:/opt/airflow/plugins
-    - ${AIRFLOW_PROJ_DIR}/config:/opt/airflow/config
-    - ${AIRFLOW_PROJ_DIR}/airflow.cfg:/opt/airflow/airflow.cfg
+    - ${AIRFLOW_PROJ_DIR}/airflow.cfg:/opt/airflow/config/airflow.cfg
     - knack-certs:/opt/airflow/certs/knack
     - /var/run/docker.sock:/var/run/docker.sock
   user: "${AIRFLOW_UID:-50000}:0"
@@ -71,7 +85,9 @@ services:
     restart: unless-stopped
 
   redis:
-    image: redis:latest
+    # Redis is limited to 7.2-bookworm due to licensing change
+    # https://redis.io/blog/redis-adopts-dual-source-available-licensing/
+    image: redis:7.2-bookworm
     expose:
       - 6379
     healthcheck:
@@ -118,7 +134,7 @@ services:
     healthcheck:
       test:
         - "CMD-SHELL"
-        - 'celery --app airflow.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}"'
+        - 'celery --app airflow.providers.celery.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}" || celery --app airflow.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}"'
       interval: 30s
       timeout: 10s
       retries: 5
@@ -160,20 +176,6 @@ services:
     command:
       - -c
       - |
-        function ver() {
-          printf "%04d%04d%04d%04d" $${1//./ }
-        }
-        airflow_version=$$(AIRFLOW__LOGGING__LOGGING_LEVEL=INFO && gosu airflow airflow version)
-        airflow_version_comparable=$$(ver $${airflow_version})
-        min_airflow_version=2.2.0
-        min_airflow_version_comparable=$$(ver $${min_airflow_version})
-        if (( airflow_version_comparable < min_airflow_version_comparable )); then
-          echo
-          echo -e "\033[1;31mERROR!!!: Too old Airflow version $${airflow_version}!\e[0m"
-          echo "The minimum Airflow version supported: $${min_airflow_version}. Only use this or higher!"
-          echo
-          exit 1
-        fi
         if [[ -z "${AIRFLOW_UID}" ]]; then
           echo
           echo -e "\033[1;33mWARNING!!!: AIRFLOW_UID not set!\e[0m"
@@ -222,15 +224,14 @@ services:
     # yamllint enable rule:line-length
     environment:
       <<: *airflow-common-env
-      _AIRFLOW_DB_UPGRADE: "true"
+      _AIRFLOW_DB_MIGRATE: "true"
       _AIRFLOW_WWW_USER_CREATE: "true"
-      _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME}
-      _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD}
-      _PIP_ADDITIONAL_REQUIREMENTS: ""
+      _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-airflow}
+      _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
     user: "0:0"
     volumes:
       - ${AIRFLOW_PROJ_DIR}:/sources
-      - ${AIRFLOW_PROJ_DIR}/airflow.cfg:/opt/airflow/airflow.cfg
+      - ${AIRFLOW_PROJ_DIR}/airflow.cfg:/opt/airflow/config/airflow.cfg
 
   airflow-cli:
     <<: *airflow-common
@@ -248,6 +249,8 @@ services:
   flower:
     <<: *airflow-common
     command: celery flower
+    ports:
+      - "5555:5555"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:5555/"]
       interval: 30s
@@ -259,6 +262,7 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+
 volumes:
   # postgres db data persisted here
   postgres-db-volume:
