@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Get the domain that we are renewing from the script arg
+DOMAIN=$1
+
+echo "Updating email address for $DOMAIN"
+export ATD_AIRFLOW_HOMEDIR="/srv/atd-airflow";
+
+# Load the same environment variables as the Airflow stack
+source $ATD_AIRFLOW_HOMEDIR/.env
+
+# Pull op v2 (latest is currently outdated and does not include the op read command needed below)
+docker pull 1password/op:2
+
+# Retrieve and store the AWS Access Keys from 1Password
+AWS_ACCESS_KEY_ID=$(docker run --rm --name op \
+-e OP_CONNECT_HOST=$OP_CONNECT \
+-e OP_CONNECT_TOKEN=$OP_API_TOKEN \
+1password/op:2 op read op://$OP_VAULT_ID/Certbot\ IAM\ Access\ Key\ and\ Secret/accessKeyId)
+
+AWS_SECRET_ACCESS_KEY=$(docker run --rm --name op \
+-e OP_CONNECT_HOST=$OP_CONNECT \
+-e OP_CONNECT_TOKEN=$OP_API_TOKEN \
+1password/op:2 op read op://$OP_VAULT_ID/Certbot\ IAM\ Access\ Key\ and\ Secret/accessSecret)
+
+docker pull certbot/dns-route53:v2.6.0
+
+docker run --rm --name certbot \
+-e AWS_ACCESS_KEY_ID=$(echo $AWS_ACCESS_KEY_ID | tr -d '\r' ) \
+-e AWS_SECRET_ACCESS_KEY=$(echo $AWS_SECRET_ACCESS_KEY | tr -d '\r' ) \
+-v "/etc/letsencrypt:/etc/letsencrypt" \
+-v "/var/lib/letsencrypt:/var/lib/letsencrypt" \
+certbot/dns-route53 update_account --email transportation.data@austintexas.gov
