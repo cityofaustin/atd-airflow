@@ -42,7 +42,7 @@ x-airflow-common: &airflow-common
     - ${AIRFLOW_PROJ_DIR}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR}/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR}/plugins:/opt/airflow/plugins
-    - ${AIRFLOW_PROJ_DIR}/airflow.cfg:/opt/airflow/config/airflow.cfg
+    - ${AIRFLOW_PROJ_DIR}/airflow.cfg:/opt/airflow/airflow.cfg
     - knack-certs:/opt/airflow/certs/knack
     - /var/run/docker.sock:/var/run/docker.sock
   user: "${AIRFLOW_UID:-50000}:0"
@@ -231,7 +231,7 @@ services:
     user: "0:0"
     volumes:
       - ${AIRFLOW_PROJ_DIR}:/sources
-      - ${AIRFLOW_PROJ_DIR}/airflow.cfg:/opt/airflow/config/airflow.cfg
+      - ${AIRFLOW_PROJ_DIR}/airflow.cfg:/opt/airflow/airflow.cfg
 
   airflow-cli:
     <<: *airflow-common
