@@ -59,6 +59,10 @@ REQUIRED_SECRETS = {
         "opitem": "Maximo Data Warehouse",
         "opfield": "production.port",
     },
+    "MAXIMO_BASE_URL": {
+        "opitem": "Maximo Data Warehouse",
+        "opfield": "production.base url",
+    },
 }
 
 with DAG(
