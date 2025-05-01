@@ -5,7 +5,6 @@ from airflow.operators.docker_operator import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
-from utils.knack import get_date_filter_arg
 from utils.slack_operator import task_fail_slack_alert
 
 DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
@@ -65,15 +64,13 @@ with DAG(
     dag_id="atd_knack_detectors",
     description="Load detectors (view_1333) records from Knack to Postgrest to AGOL and Socrata",
     default_args=DEFAULT_ARGS,
-    schedule_interval="10 9 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="10 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "agol", "data-tracker"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/atd-knack-services:production"
     app_name = "data-tracker"
     container = "view_1333"
-
-    date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
@@ -82,7 +79,7 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
+        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container}",
         environment=env_vars,
         tty=True,
         force_pull=True,
@@ -94,7 +91,7 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}",
+        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
@@ -105,10 +102,10 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container} {date_filter_arg}",
+        command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
     )
 
-    date_filter_arg >> t1 >> t2 >> t3
+    t1 >> t2 >> t3
