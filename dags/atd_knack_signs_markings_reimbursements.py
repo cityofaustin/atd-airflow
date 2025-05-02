@@ -57,8 +57,7 @@ with DAG(
     dag_id="atd_knack_signs_markings_reimbursements",
     description="Load signs and markings (view_3527) reimbursement records from Knack to Postgrest to Socrata",
     default_args=DEFAULT_ARGS,
-    # check schedule
-    schedule_interval="0 10,14 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="35 3 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "signs-markings"],
     catchup=False,
 ) as dag:
