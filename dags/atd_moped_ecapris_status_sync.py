@@ -1,4 +1,4 @@
-# Test locally with: docker compose run --rm airflow-cli dags test atd_moped_components_to_agol
+# Test locally with: docker compose run --rm airflow-cli dags test atd_moped_ecapris_status_sync
 
 import os
 
@@ -59,11 +59,10 @@ with DAG(
     dag_id="atd_moped_ecapris_status_sync",
     description="sync eCapris statuses to Moped database",
     default_args=DEFAULT_ARGS,
-    schedule_interval="0 3 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    tags=["repo:atd-moped", "moped", "agol"],
+    schedule_interval="*/30 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    dagrun_timeout=duration(minutes=30),
+    tags=["repo:atd-moped", "moped", "ecapris"],
     catchup=False,
-    params={"full_replace": Param(default=False, type="boolean")},
-    max_active_runs=1,  # Block schedule while DAG with params is triggered
 ) as dag:
     docker_image = f"atddocker/atd-moped-etl-ecapris-statuses:{DEPLOYMENT_ENVIRONMENT}"
 
@@ -79,7 +78,6 @@ with DAG(
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
-        execution_timeout=duration(minutes=30),
     )
 
     t1
