@@ -27,20 +27,31 @@ DEFAULT_ARGS = {
 REQUIRED_SECRETS = {
     "HASURA_ENDPOINT": {
         "opitem": "Moped Hasura Admin",
-        "opfield": "production.Endpoint",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.Endpoint",
     },
     "HASURA_ADMIN_SECRET": {
         "opitem": "Moped Hasura Admin",
-        "opfield": "production.Admin Secret",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.Admin Secret",
     },
-    "AGOL_USERNAME": {
-        "opitem": "AGOL Scripts Publisher",
-        "opfield": "production.Username",
-    },
-    "AGOL_PASSWORD": {
-        "opitem": "AGOL Scripts Publisher",
+    "ORACLE_USER":{
+        "opitem": "Finance Data Warehouse Oracle DB",
+        "opfield": "production.Username",},
+    "ORACLE_PASSWORD": {
+        "opitem": "Finance Data Warehouse Oracle DB",
         "opfield": "production.Password",
     },
+    "ORACLE_HOST": {
+        "opitem": "Finance Data Warehouse Oracle DB",
+        "opfield": "production.Host",
+    },
+    "ORACLE_PORT": {
+        "opitem": "Finance Data Warehouse Oracle DB",
+        "opfield": "production.Port",
+    },
+    "ORACLE_SERVICE": {
+        "opitem": "Finance Data Warehouse Oracle DB",
+        "opfield": "production.Service",
+    }, 
 }
 
 
@@ -48,13 +59,15 @@ with DAG(
     dag_id="atd_moped_ecapris_status_sync",
     description="sync eCapris statuses to Moped database",
     default_args=DEFAULT_ARGS,
-    schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="0 3 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-moped", "moped", "agol"],
     catchup=False,
     params={"full_replace": Param(default=False, type="boolean")},
     max_active_runs=1,  # Block schedule while DAG with params is triggered
 ) as dag:
-    docker_image = "atddocker/atd-moped-etl-ecapris-statuses:production"
+    docker_image = f"atddocker/atd-moped-etl-ecapris-statuses:{DEPLOYMENT_ENVIRONMENT}"
+
+    env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
         task_id="ecapris_statues_to_moped",
@@ -67,18 +80,6 @@ with DAG(
         force_pull=True,
         mount_tmp_dir=False,
         execution_timeout=duration(minutes=30),
-    )
-
-    incremental = DockerOperator(
-        task_id="moped_components_to_agol_incremental",
-        image=docker_image,
-        auto_remove="force",
-        command=f"python components_to_agol.py {args}",
-        environment=env_vars,
-        tty=True,
-        force_pull=True,
-        mount_tmp_dir=False,
-        execution_timeout=duration(minutes=5),
     )
 
     t1
