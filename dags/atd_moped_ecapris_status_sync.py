@@ -4,9 +4,7 @@ import os
 
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
-from airflow.decorators import task
-from airflow.models import Param
-from pendulum import datetime, duration, parse
+from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
