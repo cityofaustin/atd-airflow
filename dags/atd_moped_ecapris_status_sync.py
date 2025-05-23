@@ -67,7 +67,7 @@ with DAG(
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
-        task_id="ecapris_statues_to_moped",
+        task_id="ecapris_statuses_to_moped",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
