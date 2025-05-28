@@ -319,5 +319,33 @@ with DAG(
         trigger_rule="all_done",
     )
 
+    t14 = DockerOperator(
+        task_id="tds_cases_s3",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove="force",
+        command="python amanda/amanda_to_s3.py --query tds_cases",
+        environment=env_vars,
+        tty=True,
+        mount_tmp_dir=False,
+        retries=3,
+        retry_delay=duration(seconds=60),
+        trigger_rule="all_done",
+    )
 
-    t1 >> t2 >> t3 >> t4 >> t5 >> t6 >> t7 >> t8 >> t9 >> t10 >> t11 >> t12 >> t13
+    t15 = DockerOperator(
+        task_id="tds_cases_socrata",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove="force",
+        command="python metrics/s3_to_socrata.py --dataset tds_cases",
+        environment=env_vars,
+        tty=True,
+        mount_tmp_dir=False,
+        retries=3,
+        retry_delay=duration(seconds=60),
+        trigger_rule="all_done",
+    )
+
+
+    t1 >> t2 >> t3 >> t4 >> t5 >> t6 >> t7 >> t8 >> t9 >> t10 >> t11 >> t12 >> t13 >> t14 >> t15
