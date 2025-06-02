@@ -24,7 +24,15 @@ default_task_args = {
 
 @task(task_id="get_days_back_to_prune")
 def get_days_back_to_prune(days_back_to_prune: int):
-    """Task to retrieve the number of days to prune back."""
+    """
+    Retrieve the number of days to prune back from the Airflow database.
+
+    Args:
+        days_back_to_prune (int): Number of days to look back for pruning.
+
+    Returns:
+        int: The number of days to prune back.
+    """
     prune_before_days = int(days_back_to_prune)
     logger = LoggingMixin().log
     logger.info(f"Pruning Airflow DB records older than {prune_before_days} days")
@@ -33,7 +41,15 @@ def get_days_back_to_prune(days_back_to_prune: int):
 
 @task(task_id="get_clean_before_timestamp")
 def get_clean_before_timestamp(prune_before_days: int):
-    """Task to calculate the timestamp to prune before."""
+    """
+    Calculate the ISO8601 timestamp before which records should be pruned.
+
+    Args:
+        prune_before_days (int): Number of days to look back for pruning.
+
+    Returns:
+        str: ISO8601 formatted timestamp.
+    """
     clean_before_timestamp = (
         pendulum.now("America/Chicago") - pendulum.duration(days=prune_before_days)
     ).to_iso8601_string()
@@ -46,6 +62,15 @@ def get_clean_before_timestamp(prune_before_days: int):
 
 @task.bash(task_id="airflow_db_clean")
 def db_clean_bash(timestamp: str) -> str:
+    """
+    Generate the bash command to clean the Airflow database before a given timestamp.
+
+    Args:
+        timestamp (str): ISO8601 formatted timestamp.
+
+    Returns:
+        str: Bash command string.
+    """
     cmd = f'airflow db clean --yes --clean-before-timestamp "{timestamp}"'
     logger = LoggingMixin().log
     logger.info(f"Running command: {cmd}")
@@ -54,6 +79,15 @@ def db_clean_bash(timestamp: str) -> str:
 
 @task.bash(task_id="airflow_log_file_cleanup")
 def log_file_cleanup_bash(day_interval: int) -> str:
+    """
+    Generate the bash command to delete Airflow log files older than a given number of days.
+
+    Args:
+        day_interval (int): Number of days; logs older than this will be deleted.
+
+    Returns:
+        str: Bash command string.
+    """
     cmd = (
         f'find /opt/airflow/logs/ -type f -name "*.log" -mtime +{day_interval} -delete'
     )
@@ -64,6 +98,12 @@ def log_file_cleanup_bash(day_interval: int) -> str:
 
 @task.bash(task_id="airflow_log_dir_cleanup")
 def log_dir_cleanup_bash() -> str:
+    """
+    Generate the bash command to delete empty directories in the Airflow logs directory.
+
+    Returns:
+        str: Bash command string.
+    """
     cmd = "find /opt/airflow/logs/ -type d -empty -delete"
     logger = LoggingMixin().log
     logger.info(f"Running command: {cmd}")
