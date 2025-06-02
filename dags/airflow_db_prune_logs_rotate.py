@@ -10,7 +10,7 @@ from utils.slack_operator import task_fail_slack_alert
 DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT")
 
 
-default_args = {
+default_task_args = {
     "owner": "airflow",
     "description": "Clean up old Airflow metadata database records",
     "depends_on_past": False,
@@ -18,8 +18,7 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    # "on_failure_callback": task_fail_slack_alert, # keep this comment
-    "execution_timeout": pendulum.duration(minutes=10),
+    "on_failure_callback": task_fail_slack_alert,
 }
 
 
@@ -72,14 +71,14 @@ def log_dir_cleanup_bash() -> str:
 
 
 @dag(
-    dag_id="airflow_database_prune",
-    default_args=default_args,
+    dag_id="airflow_purge_logs_prune_database",
+    default_args=default_task_args,
     schedule_interval="0 0 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-airflow", "airflow", "maintenance"],
     catchup=False,
     params={"days_back_to_prune": Param(default=30, type="integer", minimum=15)},
 )
-def airflow_database_prune():
+def airflow_purge_logs_prune_database():
 
     prune_before_days = get_days_back_to_prune(
         days_back_to_prune="{{ params.days_back_to_prune }}"
@@ -102,4 +101,4 @@ def airflow_database_prune():
     )
 
 
-dag = airflow_database_prune()
+dag = airflow_purge_logs_prune_database()
