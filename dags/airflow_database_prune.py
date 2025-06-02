@@ -9,13 +9,6 @@ from utils.slack_operator import task_fail_slack_alert
 
 DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT")
 
-# Configuration: number of days to keep in the Airflow DB
-AIRFLOW_DB_PRUNE_DAYS = int(os.getenv("AIRFLOW_DB_PRUNE_DAYS", "30"))
-
-# Calculate the timestamp N days ago in ISO format
-CLEAN_BEFORE_TIMESTAMP = (
-    pendulum.now("America/Chicago") - pendulum.duration(days=AIRFLOW_DB_PRUNE_DAYS)
-).to_iso8601_string()
 
 default_args = {
     "owner": "airflow",
@@ -30,6 +23,16 @@ default_args = {
 }
 
 
+@task(task_id="get_parameters")
+def get_parameters(days_back_to_prune: int):
+    """Task to retrieve parameters from the DAG."""
+    prune_before_days = int(days_back_to_prune)
+    clean_before_timestamp = (
+        pendulum.now("America/Chicago") - pendulum.duration(days=prune_before_days)
+    ).to_iso8601_string()
+    return clean_before_timestamp
+
+
 @dag(
     dag_id="airflow_database_prune",
     default_args=default_args,
@@ -39,10 +42,17 @@ default_args = {
     params={"days_back_to_prune": Param(default=30, type="integer", minimum=15)},
 )
 def airflow_database_prune():
-    BashOperator(
+
+    parameters = get_parameters(days_back_to_prune="{{ params.days_back_to_prune }}")
+
+    db_clean = BashOperator(
         task_id="airflow_db_clean",
-        bash_command=f"airflow db clean --yes --clean-before-timestamp '{CLEAN_BEFORE_TIMESTAMP}'",
+        bash_command=(
+            "airflow db clean --yes --clean-before-timestamp '{{ ti.xcom_pull(task_ids='get_parameters') }}'"
+        ),
     )
+
+    parameters >> db_clean
 
 
 dag = airflow_database_prune()
