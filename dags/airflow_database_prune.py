@@ -4,6 +4,7 @@ import pendulum
 from airflow.decorators import dag, task
 from airflow.operators.bash import BashOperator
 from airflow.models import Param
+from airflow.utils.log.logging_mixin import LoggingMixin
 
 from utils.slack_operator import task_fail_slack_alert
 
@@ -30,6 +31,11 @@ def get_parameters(days_back_to_prune: int):
     clean_before_timestamp = (
         pendulum.now("America/Chicago") - pendulum.duration(days=prune_before_days)
     ).to_iso8601_string()
+    logger = LoggingMixin().log
+    logger.info(
+        f"Pruning Airflow DB records older than {prune_before_days} days "
+        f"(before {pendulum.parse(clean_before_timestamp).to_datetime_string()} America/Chicago, ISO8601: {clean_before_timestamp})"
+    )
     return clean_before_timestamp
 
 
