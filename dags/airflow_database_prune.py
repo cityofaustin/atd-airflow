@@ -42,7 +42,7 @@ def get_parameters(days_back_to_prune: int):
 @dag(
     dag_id="airflow_database_prune",
     default_args=default_args,
-    schedule_interval="10 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval="0 0 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-airflow", "airflow", "maintenance"],
     catchup=False,
     params={"days_back_to_prune": Param(default=30, type="integer", minimum=15)},
