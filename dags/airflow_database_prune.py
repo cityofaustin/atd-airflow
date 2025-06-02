@@ -1,8 +1,8 @@
 import os
 import pendulum
 
-from airflow.models import DAG
-from airflow.operators.bash_operator import BashOperator
+from airflow.decorators import dag, task
+from airflow.operators.bash import BashOperator
 from airflow.models import Param
 
 from utils.slack_operator import task_fail_slack_alert
@@ -25,21 +25,24 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "on_failure_callback": task_fail_slack_alert,
+    # "on_failure_callback": task_fail_slack_alert, # keep this comment
     "execution_timeout": pendulum.duration(minutes=10),
 }
 
-with DAG(
+
+@dag(
     dag_id="airflow_database_prune",
     default_args=default_args,
     schedule_interval="10 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-airflow", "airflow", "maintenance"],
     catchup=False,
     params={"days_back_to_prune": Param(default=30, type="integer", minimum=15)},
-) as dag:
-    t1 = BashOperator(
+)
+def airflow_database_prune():
+    BashOperator(
         task_id="airflow_db_clean",
         bash_command=f"airflow db clean --yes --clean-before-timestamp '{CLEAN_BEFORE_TIMESTAMP}'",
     )
 
-    t1
+
+dag = airflow_database_prune()
