@@ -123,13 +123,9 @@ def airflow_purge_logs_prune_database():
     prune_before_days = get_days_back_to_prune(
         days_back_to_prune="{{ params.days_back_to_prune }}"
     )
-
     clean_before_timestamp = get_clean_before_timestamp(prune_before_days)
-
     db_clean = db_clean_bash(clean_before_timestamp)
-
     log_file_cleanup = log_file_cleanup_bash(prune_before_days)
-
     log_dir_cleanup = log_dir_cleanup_bash()
 
     (
