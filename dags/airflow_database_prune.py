@@ -2,7 +2,6 @@ import os
 import pendulum
 
 from airflow.decorators import dag, task
-from airflow.operators.bash import BashOperator
 from airflow.models import Param
 from airflow.utils.log.logging_mixin import LoggingMixin
 
@@ -24,19 +23,52 @@ default_args = {
 }
 
 
-@task(task_id="get_parameters")
-def get_parameters(days_back_to_prune: int):
-    """Task to retrieve parameters from the DAG."""
+@task(task_id="get_days_back_to_prune")
+def get_days_back_to_prune(days_back_to_prune: int):
+    """Task to retrieve the number of days to prune back."""
     prune_before_days = int(days_back_to_prune)
+    logger = LoggingMixin().log
+    logger.info(f"Pruning Airflow DB records older than {prune_before_days} days")
+    return prune_before_days
+
+
+@task(task_id="get_clean_before_timestamp")
+def get_clean_before_timestamp(prune_before_days: int):
+    """Task to calculate the timestamp to prune before."""
     clean_before_timestamp = (
         pendulum.now("America/Chicago") - pendulum.duration(days=prune_before_days)
     ).to_iso8601_string()
     logger = LoggingMixin().log
     logger.info(
-        f"Pruning Airflow DB records older than {prune_before_days} days "
-        f"(before {pendulum.parse(clean_before_timestamp).to_datetime_string()} America/Chicago, ISO8601: {clean_before_timestamp})"
+        f"Pruning records before {pendulum.parse(clean_before_timestamp).to_datetime_string()} America/Chicago, ISO8601: {clean_before_timestamp}"
     )
     return clean_before_timestamp
+
+
+@task.bash(task_id="airflow_db_clean")
+def db_clean_bash(timestamp: str) -> str:
+    cmd = f'airflow db clean --yes --clean-before-timestamp "{timestamp}"'
+    logger = LoggingMixin().log
+    logger.info(f"Running command: {cmd}")
+    return cmd
+
+
+@task.bash(task_id="airflow_log_file_cleanup")
+def log_file_cleanup_bash(day_interval: int) -> str:
+    cmd = (
+        f'find /opt/airflow/logs/ -type f -name "*.log" -mtime +{day_interval} -delete'
+    )
+    logger = LoggingMixin().log
+    logger.info(f"Running command: {cmd}")
+    return cmd
+
+
+@task.bash(task_id="airflow_log_dir_cleanup")
+def log_dir_cleanup_bash() -> str:
+    cmd = "find /opt/airflow/logs/ -type d -empty -delete"
+    logger = LoggingMixin().log
+    logger.info(f"Running command: {cmd}")
+    return cmd
 
 
 @dag(
@@ -49,16 +81,25 @@ def get_parameters(days_back_to_prune: int):
 )
 def airflow_database_prune():
 
-    parameters = get_parameters(days_back_to_prune="{{ params.days_back_to_prune }}")
-
-    db_clean = BashOperator(
-        task_id="airflow_db_clean",
-        bash_command=(
-            "airflow db clean --yes --clean-before-timestamp '{{ ti.xcom_pull(task_ids='get_parameters') }}'"
-        ),
+    prune_before_days = get_days_back_to_prune(
+        days_back_to_prune="{{ params.days_back_to_prune }}"
     )
 
-    parameters >> db_clean
+    clean_before_timestamp = get_clean_before_timestamp(prune_before_days)
+
+    db_clean = db_clean_bash(clean_before_timestamp)
+
+    log_file_cleanup = log_file_cleanup_bash(prune_before_days)
+
+    log_dir_cleanup = log_dir_cleanup_bash()
+
+    (
+        prune_before_days
+        >> clean_before_timestamp
+        >> db_clean
+        >> log_file_cleanup
+        >> log_dir_cleanup
+    )
 
 
 dag = airflow_database_prune()
