@@ -59,18 +59,17 @@ REQUIRED_SECRETS = {
 
 def knack_services_task_template(task_id, image, command, env_vars, pull=False):
     return DockerOperator(
-            task_id=task_id,
-            image=image,
-            docker_conn_id="docker_default",
-            auto_remove="force",
-            command=command,
-            environment=env_vars,
-            tty=True,
-            force_pull=pull,
-            mount_tmp_dir=False,
-            trigger_rule="all_done",
-        )
-    
+        task_id=task_id,
+        image=image,
+        docker_conn_id="docker_default",
+        auto_remove="force",
+        command=command,
+        environment=env_vars,
+        tty=True,
+        force_pull=pull,
+        mount_tmp_dir=False,
+        trigger_rule="all_done",
+    )
 
 
 with DAG(
@@ -86,7 +85,6 @@ with DAG(
     date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
 
     app_name = "development-services"
-
 
     commmands = [
         {
@@ -171,6 +169,14 @@ with DAG(
             pull = True
         else:
             pull = False
-        tasks.append(knack_services_task_template(task_id=cmd["task_id"], image=docker_image, command=cmd["command"], env_vars=env_vars, pull=pull))
+        tasks.append(
+            knack_services_task_template(
+                task_id=cmd["task_id"],
+                image=docker_image,
+                command=cmd["command"],
+                env_vars=env_vars,
+                pull=pull,
+            )
+        )
 
     chain(*tasks)
