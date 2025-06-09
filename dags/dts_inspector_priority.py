@@ -84,12 +84,12 @@ REQUIRED_SECRETS = {
     },
     # ArcGIS Online
     "AGOL_USERNAME": {
-        "opitem": "AGOL Scripts Publisher",
-        "opfield": "production.Username",
+        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
+        "opfield": "production.username",
     },
     "AGOL_PASSWORD": {
-        "opitem": "AGOL Scripts Publisher",
-        "opfield": "production.Password",
+        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
+        "opfield": "production.password",
     },
 }
 
@@ -157,6 +157,5 @@ with DAG(
         mount_tmp_dir=False,
         trigger_rule="all_done",
     )
-
 
     t1 >> t2 >> t3 >> t4
