@@ -2,16 +2,17 @@
 Various utilities for interacting with the onepasswordconnectsdk.
 See: https://github.com/1Password/connect-sdk-python
 """
-import os
+
+from os import getenv
 
 from airflow.decorators import task
 from onepasswordconnectsdk.client import Client, new_client
 import onepasswordconnectsdk
 from pendulum import duration
 
-ONEPASSWORD_CONNECT_HOST = os.getenv("OP_CONNECT")
-ONEPASSWORD_CONNECT_TOKEN = os.getenv("OP_API_TOKEN")
-VAULT_ID = os.getenv("OP_VAULT_ID")
+ONEPASSWORD_CONNECT_HOST = getenv("OP_CONNECT")
+ONEPASSWORD_CONNECT_TOKEN = getenv("OP_API_TOKEN")
+VAULT_ID = getenv("OP_VAULT_ID")
 
 
 def get_client():

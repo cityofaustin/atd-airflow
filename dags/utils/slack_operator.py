@@ -1,4 +1,4 @@
-import os
+from os import getenv
 
 from cron_descriptor import get_description
 from airflow.hooks.base import BaseHook
@@ -9,7 +9,7 @@ from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
 # in Admin > Connections.
 SLACK_CONN_ID = "slack"
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 slack_member_ids = {
     "Frank": "<@UMS32US1E>",
@@ -143,8 +143,10 @@ def task_fail_slack_alert(context):
 
     if exception and hasattr(exception, "logs") and exception.logs:
         logs = exception.logs
-        parsed_exception_type, parsed_exception_message = extract_exception_from_log("\n".join(logs))
-        if (parsed_exception_message and parsed_exception_type):
+        parsed_exception_type, parsed_exception_message = extract_exception_from_log(
+            "\n".join(logs)
+        )
+        if parsed_exception_message and parsed_exception_type:
             exception_type = parsed_exception_type
             exception_message = parsed_exception_message
 
