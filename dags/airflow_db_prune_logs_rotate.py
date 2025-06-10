@@ -139,4 +139,4 @@ def airflow_purge_logs_prune_database():
     )
 
 
-dag = airflow_purge_logs_prune_database()
+airflow_purge_logs_prune_database()
