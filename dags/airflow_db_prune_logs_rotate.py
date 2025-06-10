@@ -1,5 +1,6 @@
 from os import getenv
 from pendulum import datetime
+from datetime import timedelta
 
 from airflow.decorators import dag, task
 from airflow.models import Param
@@ -119,6 +120,7 @@ def log_dir_cleanup_bash() -> str:
     tags=["repo:atd-airflow", "airflow", "maintenance"],
     catchup=False,
     params={"days_back_to_prune": Param(default=30, type="integer", minimum=15)},
+    dagrun_timeout=timedelta(minutes=10),
 )
 def airflow_purge_logs_prune_database():
 
