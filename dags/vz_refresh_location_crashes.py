@@ -2,7 +2,7 @@
 This DAG refreshes the location_crashes_view in the Vision Zero database
 """
 
-import os
+from os import getenv
 from pendulum import datetime, duration
 
 from airflow.models import DAG
@@ -12,7 +12,7 @@ from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT")
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT")
 secrets_env_prefix = None
 
 if DEPLOYMENT_ENVIRONMENT == "production":

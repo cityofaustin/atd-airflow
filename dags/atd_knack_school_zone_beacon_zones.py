@@ -1,4 +1,4 @@
-import os
+from os import getenv
 
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
@@ -7,7 +7,7 @@ from pendulum import datetime, duration
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 DEFAULT_ARGS = {
     "owner": "airflow",
@@ -78,7 +78,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t2  = DockerOperator(
+    t2 = DockerOperator(
         task_id="atd_knack_school_zone_beacon_zones_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",

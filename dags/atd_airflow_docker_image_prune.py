@@ -6,7 +6,8 @@ layers contain ETL code. When that code changes, the previous layer is discarded
 resulting in dangling docker images that can consume signficant disk space. This DAG
 removes those dangling images.
 """
-import os
+
+from os import getenv
 
 from airflow.models import DAG
 from airflow.operators.bash_operator import BashOperator
@@ -14,7 +15,7 @@ from pendulum import datetime, duration
 
 from utils.slack_operator import task_fail_slack_alert
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT")
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT")
 
 default_args = {
     "owner": "airflow",

@@ -1,4 +1,4 @@
-import os
+from os import getenv
 
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
@@ -8,7 +8,7 @@ from utils.onepassword import get_env_vars_task
 from utils.knack import get_date_filter_arg
 from utils.slack_operator import task_fail_slack_alert
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 DEFAULT_ARGS = {
     "owner": "airflow",
@@ -66,7 +66,9 @@ with DAG(
     description="Load work orders markings (view_3099) records from Knack to Postgrest to AGOL, Socrata",
     default_args=DEFAULT_ARGS,
     # runs once at 1130a ct and again at 140pm ct
-    schedule_interval="30 11,13 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval=(
+        "30 11,13 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
+    ),
     tags=["repo:atd-knack-services", "knack", "socrata", "agol", "signs-markings"],
     catchup=False,
 ) as dag:
@@ -90,7 +92,6 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-
     t2 = DockerOperator(
         task_id="atd_knack_markings_work_orders_to_agol",
         image=docker_image,
@@ -108,7 +109,7 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f'./atd-knack-services/services/agol_build_markings_segment_geometries.py -l markings_jobs  {date_filter_arg}',
+        command=f"./atd-knack-services/services/agol_build_markings_segment_geometries.py -l markings_jobs  {date_filter_arg}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
@@ -119,7 +120,7 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f'./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}',
+        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,

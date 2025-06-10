@@ -1,4 +1,4 @@
-import os
+from os import getenv
 
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
@@ -8,7 +8,7 @@ from utils.onepassword import get_env_vars_task
 from utils.knack import get_date_filter_arg
 from utils.slack_operator import task_fail_slack_alert
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 DEFAULT_ARGS = {
     "owner": "airflow",
@@ -54,7 +54,9 @@ with DAG(
     description="Loads markings specifications records from Knack to Postgrest to AGOL",
     default_args=DEFAULT_ARGS,
     # runs once at 1130a ct and again at 140pm ct
-    schedule_interval="50 11,13 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval=(
+        "50 11,13 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
+    ),
     tags=["repo:atd-knack-services", "knack", "agol", "signs-markings"],
     catchup=False,
 ) as dag:
@@ -77,7 +79,6 @@ with DAG(
         force_pull=True,
         mount_tmp_dir=False,
     )
-
 
     t2 = DockerOperator(
         task_id="atd_knack_markings_specifications_to_agol",
