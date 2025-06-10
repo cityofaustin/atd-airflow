@@ -1,5 +1,5 @@
-import os
-import pendulum
+from os import getenv
+from pendulum import datetime
 
 from airflow.decorators import dag, task
 from airflow.models import Param
@@ -7,14 +7,14 @@ from airflow.utils.log.logging_mixin import LoggingMixin
 
 from utils.slack_operator import task_fail_slack_alert
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT")
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT")
 
 
 default_task_args = {
     "owner": "airflow",
     "description": "Clean up old Airflow metadata database records",
     "depends_on_past": False,
-    "start_date": pendulum.datetime(2015, 12, 1, tz="America/Chicago"),
+    "start_date": datetime(2015, 12, 1, tz="America/Chicago"),
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
@@ -50,12 +50,14 @@ def get_clean_before_timestamp(prune_before_days: int):
     Returns:
         str: ISO8601 formatted timestamp.
     """
+    from pendulum import duration, now, parse
+
     clean_before_timestamp = (
-        pendulum.now("America/Chicago") - pendulum.duration(days=prune_before_days)
+        now("America/Chicago") - duration(days=prune_before_days)
     ).to_iso8601_string()
     logger = LoggingMixin().log
     logger.info(
-        f"Pruning records before {pendulum.parse(clean_before_timestamp).to_datetime_string()} America/Chicago, ISO8601: {clean_before_timestamp}"
+        f"Pruning records before {parse(clean_before_timestamp).to_datetime_string()} America/Chicago, ISO8601: {clean_before_timestamp}"
     )
     return clean_before_timestamp
 
