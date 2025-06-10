@@ -34,12 +34,12 @@ REQUIRED_SECRETS = {
         "opfield": "production.Admin Secret",
     },
     "AGOL_USERNAME": {
-        "opitem": "AGOL Scripts Publisher",
-        "opfield": "production.Username",
+        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
+        "opfield": "production.username",
     },
     "AGOL_PASSWORD": {
-        "opitem": "AGOL Scripts Publisher",
-        "opfield": "production.Password",
+        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
+        "opfield": "production.password",
     },
 }
 
