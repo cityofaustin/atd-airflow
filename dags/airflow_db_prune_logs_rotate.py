@@ -5,6 +5,7 @@ from datetime import timedelta
 from airflow.decorators import dag, task
 from airflow.models import Param
 from airflow.utils.log.logging_mixin import LoggingMixin
+from airflow.exceptions import AirflowException
 
 from utils.slack_operator import task_fail_slack_alert
 
@@ -24,17 +25,22 @@ default_task_args = {
 
 
 @task(task_id="get_days_back_to_prune")
-def get_days_back_to_prune(days_back_to_prune: int):
+def get_days_back_to_prune(days_back_to_prune: str):
     """
     Retrieve the number of days to prune back from the Airflow database.
 
     Args:
-        days_back_to_prune (int): Number of days to look back for pruning.
+        days_back_to_prune (str): Number of days to look back for pruning.
 
     Returns:
         int: The number of days to prune back.
     """
-    prune_before_days = int(days_back_to_prune)
+    try:
+        prune_before_days = int(days_back_to_prune)
+    except ValueError:
+        raise AirflowException(
+            f"Invalid 'days_back_to_prune' parameter: '{days_back_to_prune}'. Must be an integer."
+        )
     logger = LoggingMixin().log
     logger.info(f"Pruning Airflow DB records older than {prune_before_days} days")
     return prune_before_days
