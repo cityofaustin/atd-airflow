@@ -128,6 +128,8 @@ def airflow_purge_logs_prune_database():
     log_file_cleanup = log_file_cleanup_bash(prune_before_days)
     log_dir_cleanup = log_dir_cleanup_bash()
 
+    # expressly defining the order of execution to be serial beyond what can be
+    # inferred from the task dependencies. the intent is to spread out io load
     (
         prune_before_days
         >> clean_before_timestamp
