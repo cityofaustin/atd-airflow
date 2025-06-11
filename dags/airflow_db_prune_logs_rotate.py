@@ -1,0 +1,152 @@
+from os import getenv
+from pendulum import datetime
+from datetime import timedelta
+
+from airflow.decorators import dag, task
+from airflow.models import Param
+from airflow.utils.log.logging_mixin import LoggingMixin
+from airflow.exceptions import AirflowException
+
+from utils.slack_operator import task_fail_slack_alert
+
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT")
+
+
+default_task_args = {
+    "owner": "airflow",
+    "description": "Clean up old Airflow metadata database records",
+    "depends_on_past": False,
+    "start_date": datetime(2015, 12, 1, tz="America/Chicago"),
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "retries": 0,
+    "on_failure_callback": task_fail_slack_alert,
+}
+
+
+@task(task_id="get_days_back_to_prune")
+def get_days_back_to_prune(days_back_to_prune: str):
+    """
+    Retrieve the number of days to prune back from the Airflow database.
+
+    Args:
+        days_back_to_prune (str): Number of days to look back for pruning.
+
+    Returns:
+        int: The number of days to prune back.
+    """
+    try:
+        prune_before_days = int(days_back_to_prune)
+    except ValueError:
+        raise AirflowException(
+            f"Invalid 'days_back_to_prune' parameter: '{days_back_to_prune}'. Must be an integer."
+        )
+    logger = LoggingMixin().log
+    logger.info(f"Pruning Airflow DB records older than {prune_before_days} days")
+    return prune_before_days
+
+
+@task(task_id="get_clean_before_timestamp")
+def get_clean_before_timestamp(prune_before_days: int):
+    """
+    Calculate the ISO8601 timestamp before which records should be pruned.
+
+    Args:
+        prune_before_days (int): Number of days to look back for pruning.
+
+    Returns:
+        str: ISO8601 formatted timestamp.
+    """
+    from pendulum import duration, now, parse
+
+    clean_before_timestamp = (
+        now("America/Chicago") - duration(days=prune_before_days)
+    ).to_iso8601_string()
+    logger = LoggingMixin().log
+    logger.info(
+        f"Pruning records before {parse(clean_before_timestamp).to_datetime_string()} America/Chicago, ISO8601: {clean_before_timestamp}"
+    )
+    return clean_before_timestamp
+
+
+@task.bash(task_id="airflow_db_clean")
+def db_clean_bash(timestamp: str) -> str:
+    """
+    Generate the bash command to clean the Airflow database before a given timestamp.
+
+    Args:
+        timestamp (str): ISO8601 formatted timestamp.
+
+    Returns:
+        str: Bash command string.
+    """
+    cmd = f'airflow db clean --yes --clean-before-timestamp "{timestamp}"'
+    logger = LoggingMixin().log
+    logger.info(f"Running command: {cmd}")
+    return cmd
+
+
+@task.bash(task_id="airflow_log_file_cleanup")
+def log_file_cleanup_bash(day_interval: int) -> str:
+    """
+    Generate the bash command to delete Airflow log files older than a given number of days.
+
+    Args:
+        day_interval (int): Number of days; logs older than this will be deleted.
+
+    Returns:
+        str: Bash command string.
+    """
+    cmd = (
+        f'find /opt/airflow/logs/ -type f -name "*.log" -mtime +{day_interval} -delete'
+    )
+    logger = LoggingMixin().log
+    logger.info(f"Running command: {cmd}")
+    return cmd
+
+
+@task.bash(task_id="airflow_log_dir_cleanup")
+def log_dir_cleanup_bash() -> str:
+    """
+    Generate the bash command to delete empty directories in the Airflow logs directory.
+
+    Returns:
+        str: Bash command string.
+    """
+    cmd = "find /opt/airflow/logs/ -type d -empty -delete"
+    logger = LoggingMixin().log
+    logger.info(f"Running command: {cmd}")
+    return cmd
+
+
+@dag(
+    dag_id="airflow_purge_logs_prune_database",
+    default_args=default_task_args,
+    schedule_interval="0 0 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    tags=["repo:atd-airflow", "airflow", "maintenance"],
+    catchup=False,
+    params={"days_back_to_prune": Param(default=30, type="integer", minimum=15)},
+    dagrun_timeout=timedelta(minutes=10),
+)
+def airflow_purge_logs_prune_database():
+
+    prune_before_days = get_days_back_to_prune(
+        days_back_to_prune="{{ params.days_back_to_prune }}"
+    )
+    clean_before_timestamp = get_clean_before_timestamp(prune_before_days)
+    db_clean = db_clean_bash(clean_before_timestamp)
+    log_file_cleanup = log_file_cleanup_bash(prune_before_days)
+    log_dir_cleanup = log_dir_cleanup_bash()
+
+    # expressly defining the order of execution to be serial beyond what can be
+    # inferred from the task dependencies. the intent is to spread out io load
+    (
+        prune_before_days
+        >> clean_before_timestamp
+        >> db_clean
+        >> log_file_cleanup
+        >> log_dir_cleanup
+    )
+
+
+airflow_purge_logs_prune_database()
