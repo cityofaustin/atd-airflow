@@ -77,7 +77,7 @@ with DAG(
     description="Downloads Knack data for several objects then publishes it to socrata datasets.",
     default_args=DEFAULT_ARGS,
     schedule_interval="0 2 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    tags=["repo:atd-knack-services", "knack", "socrata", "tds", "development services"],
+    tags=["repo:atd-knack-services", "knack", "socrata", "tds", "development-services"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/atd-knack-services:production"
@@ -86,7 +86,7 @@ with DAG(
 
     app_name = "development-services"
 
-    commmands = [
+    commands = [
         {
             "task_id": "tia_mitigations_to_postgrest",
             "command": f"./atd-knack-services/services/records_to_postgrest.py -a development-services -c view_2814 {date_filter_arg}",
