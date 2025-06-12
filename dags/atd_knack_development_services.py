@@ -163,7 +163,7 @@ with DAG(
 
     tasks = []
 
-    for cmd in commmands:
+    for cmd in commands:
         # We want the first task to pull the latest docker image
         if len(tasks) == 0:
             pull = True
