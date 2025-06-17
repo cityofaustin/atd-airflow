@@ -1,6 +1,6 @@
 # Test locally with: docker compose run --rm airflow-cli dags test atd_moped_ecapris_status_sync
 
-import os
+from os import getenv
 
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
@@ -9,7 +9,7 @@ from pendulum import datetime, duration
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 DEFAULT_ARGS = {
     "owner": "airflow",
@@ -31,9 +31,10 @@ REQUIRED_SECRETS = {
         "opitem": "Moped Hasura Admin",
         "opfield": f"{DEPLOYMENT_ENVIRONMENT}.Admin Secret",
     },
-    "ORACLE_USER":{
+    "ORACLE_USER": {
         "opitem": "Finance Data Warehouse Oracle DB",
-        "opfield": "production.Username",},
+        "opfield": "production.Username",
+    },
     "ORACLE_PASSWORD": {
         "opitem": "Finance Data Warehouse Oracle DB",
         "opfield": "production.Password",
@@ -49,7 +50,7 @@ REQUIRED_SECRETS = {
     "ORACLE_SERVICE": {
         "opitem": "Finance Data Warehouse Oracle DB",
         "opfield": "production.Service",
-    }, 
+    },
 }
 
 
@@ -57,7 +58,9 @@ with DAG(
     dag_id="atd_moped_ecapris_status_sync",
     description="sync eCapris statuses to Moped database",
     default_args=DEFAULT_ARGS,
-    schedule_interval="*/30 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval=(
+        "*/30 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
+    ),
     dagrun_timeout=duration(minutes=30),
     tags=["repo:atd-moped", "moped", "ecapris"],
     catchup=False,

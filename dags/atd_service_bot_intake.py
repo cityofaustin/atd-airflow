@@ -1,4 +1,4 @@
-import os
+from os import getenv
 from pendulum import datetime, duration
 
 from airflow.decorators import task
@@ -7,7 +7,7 @@ from airflow.operators.docker_operator import DockerOperator
 
 from utils.slack_operator import task_fail_slack_alert
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 default_args = {
     "owner": "airflow",
@@ -16,7 +16,7 @@ default_args = {
     "start_date": datetime(2015, 12, 1, tz="America/Chicago"),
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 0, 
+    "retries": 0,
     "execution_timeout": duration(minutes=5),
     "on_failure_callback": task_fail_slack_alert,
 }
@@ -53,16 +53,18 @@ with DAG(
     tags=["repo:atd-service-bot", "knack", "github"],
     catchup=False,
 ) as dag:
+
     @task(
         task_id="get_env_vars",
         execution_timeout=duration(seconds=30),
     )
     def get_env_vars():
         from utils.onepassword import load_dict
+
         return load_dict(REQUIRED_SECRETS)
 
     env_vars = get_env_vars()
-    
+
     DockerOperator(
         task_id="dts_sr_to_github",
         image=docker_image,

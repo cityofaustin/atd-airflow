@@ -1,4 +1,4 @@
-import os
+from os import getenv
 
 from airflow.decorators import task
 from airflow.models import DAG
@@ -9,7 +9,7 @@ from utils.knack import get_date_filter_arg
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 DEFAULT_ARGS = {
     "owner": "airflow",

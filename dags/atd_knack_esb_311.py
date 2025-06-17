@@ -1,16 +1,16 @@
-import os
+from os import getenv
 
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
-from docker.types import Mount 
+from docker.types import Mount
 from pendulum import datetime, duration, now
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
-DOCKER_IMAGE ="atddocker/atd-knack-311:production"
+DOCKER_IMAGE = "atddocker/atd-knack-311:production"
 
 DEFAULT_ARGS = {
     "owner": "airflow",
@@ -35,7 +35,7 @@ REQUIRED_SECRETS_DATA_TRACKER = {
     "ESB_ENDPOINT": {
         "opitem": "CTM Enterprise Service Bus - ESB - 311 Interface",
         "opfield": f"production.endpoint",
-    }
+    },
 }
 
 REQUIRED_SECRETS_SIGNS_MARKINGS = {
@@ -50,7 +50,7 @@ REQUIRED_SECRETS_SIGNS_MARKINGS = {
     "ESB_ENDPOINT": {
         "opitem": "CTM Enterprise Service Bus - ESB - 311 Interface",
         "opfield": f"production.endpoint",
-    }
+    },
 }
 
 
@@ -58,7 +58,9 @@ with DAG(
     dag_id=f"atd_knack_esb_311",
     description="Publishes 311 SR activities from Knack to 311 CSR via the CTM ESB",
     default_args=DEFAULT_ARGS,
-    schedule_interval="1-59/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval=(
+        "1-59/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
+    ),
     tags=["repo:atd-knack-311", "311", "knack", "esb"],
     catchup=False,
 ) as dag:
@@ -67,10 +69,10 @@ with DAG(
 
     # the self-signed certificate and key must be stored within the airflow project directory
     # according to the path specified in the docker compose volumne definition
-    cert_mount =  Mount(
-        source="atd-airflow_knack-certs", 
+    cert_mount = Mount(
+        source="atd-airflow_knack-certs",
         target="/app/atd-knack-311/certs",
-        type="volume"
+        type="volume",
     )
 
     t1 = DockerOperator(
@@ -84,7 +86,7 @@ with DAG(
         force_pull=True,
         mount_tmp_dir=False,
         network_mode="bridge",
-        mounts=[cert_mount]
+        mounts=[cert_mount],
     )
 
     t2 = DockerOperator(
@@ -98,7 +100,7 @@ with DAG(
         force_pull=True,
         mount_tmp_dir=False,
         network_mode="bridge",
-        mounts=[cert_mount]
+        mounts=[cert_mount],
     )
 
     t1 >> t2

@@ -6,7 +6,7 @@ The VZD source and the target datasets are controlled by the Airflow `ENVIRONMEN
 env var, which determines which 1pass secrets to apply to the docker runtime env.
 
 Check the 1Pass entry to understand exactly what will happen when you trigger
-this DAG in a given context, but the expected behavior is that you may set the 
+this DAG in a given context, but the expected behavior is that you may set the
 Airflow `ENVIRONMENT` to `production`, `staging`, or `dev`, with the following
 results:
 - production: use production VZ db and update production data portal datasets
@@ -14,7 +14,7 @@ results:
 - dev: use local VZ db and update staging data portal datasets
 """
 
-import os
+from os import getenv
 from pendulum import datetime, duration
 
 from airflow.models import DAG
@@ -24,7 +24,7 @@ from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT")
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT")
 secrets_env_prefix = None
 
 if DEPLOYMENT_ENVIRONMENT == "production":

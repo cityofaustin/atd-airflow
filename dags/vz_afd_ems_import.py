@@ -1,4 +1,4 @@
-import os
+from os import getenv
 
 from airflow.decorators import dag
 from airflow.operators.docker_operator import DockerOperator
@@ -8,7 +8,7 @@ from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert, slack_member_ids
 
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT")
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT")
 
 secrets_env_prefix = None
 
@@ -72,7 +72,7 @@ def etl_data_import():
         command="ems",
         tty=True,
         force_pull=True,
-        mount_tmp_dir=False
+        mount_tmp_dir=False,
     )
 
     # AFD
@@ -84,7 +84,7 @@ def etl_data_import():
         auto_remove="force",
         command="afd",
         tty=True,
-        mount_tmp_dir=False
+        mount_tmp_dir=False,
     )
 
     # run the AFD task regardless of whether EMS succeeded or failed

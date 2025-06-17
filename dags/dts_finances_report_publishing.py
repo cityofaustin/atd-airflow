@@ -1,6 +1,6 @@
 # test locally with: docker compose run --rm airflow-cli dags test dts_finances_report_publishing
 
-import os
+from os import getenv
 
 from datetime import timedelta
 
@@ -12,7 +12,7 @@ from pendulum import datetime, duration
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 default_args = {
     "owner": "airflow",
@@ -91,9 +91,8 @@ with DAG(
     catchup=False,
 ) as dag:
     docker_image = "atddocker/dts-finance-reporting:production"
-    
-    env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
+    env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
         task_id="download_microstrategy_reports",

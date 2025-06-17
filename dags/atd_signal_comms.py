@@ -1,4 +1,4 @@
-import os
+from os import getenv
 
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
@@ -8,7 +8,7 @@ from pendulum import datetime, duration
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
-DEPLOYMENT_ENVIRONMENT = "prod" if os.getenv("ENVIRONMENT") == "production" else "dev"
+DEPLOYMENT_ENVIRONMENT = "prod" if getenv("ENVIRONMENT") == "production" else "dev"
 
 DEFAULT_ARGS = {
     "owner": "airflow",
