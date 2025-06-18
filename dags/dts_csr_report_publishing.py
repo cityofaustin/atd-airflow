@@ -1,6 +1,6 @@
 # test locally with: docker compose run --rm airflow-cli dags test dts_csr_report_publishing
 
-import os
+from os import getenv
 
 from datetime import timedelta
 
@@ -12,7 +12,7 @@ from pendulum import datetime, duration
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 default_args = {
     "owner": "airflow",
@@ -145,7 +145,9 @@ with DAG(
     dag_id="dts_csr_report_publishing",
     description="Downloads reports of 311 service requests for TPW and publishes it in a Socrata dataset.",
     default_args=default_args,
-    schedule_interval="36 2,13 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule_interval=(
+        "36 2,13 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
+    ),
     dagrun_timeout=timedelta(minutes=60),
     tags=["repo:dts-311-reporting", "socrata", "csr"],
     catchup=False,

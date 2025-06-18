@@ -1,4 +1,4 @@
-import os
+from os import getenv
 
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
@@ -8,7 +8,7 @@ from utils.knack import get_date_filter_arg
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 DEFAULT_ARGS = {
     "owner": "airflow",
@@ -50,15 +50,15 @@ with DAG(
 ) as dag:
     docker_image = "atddocker/atd-knack-services:production"
     app_name = "data-tracker"
-    container = "view_1201" 
+    container = "view_1201"
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
-    
+
     date_filter_arg = get_date_filter_arg()
 
     t1 = DockerOperator(
         task_id="update_locations",
-        image= "atddocker/atd-knack-services:production",
+        image="atddocker/atd-knack-services:production",
         docker_conn_id="docker_default",
         auto_remove="force",
         command=f"./atd-knack-services/services/knack_location_updater.py -a {app_name} -c {container} {date_filter_arg}",

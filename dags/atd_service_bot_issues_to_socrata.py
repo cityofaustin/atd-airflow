@@ -1,4 +1,4 @@
-import os
+from os import getenv
 from pendulum import datetime, duration
 
 from airflow.decorators import task
@@ -8,7 +8,7 @@ from airflow.operators.docker_operator import DockerOperator
 from utils.slack_operator import task_fail_slack_alert
 
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 default_args = {
     "owner": "airflow",
@@ -56,7 +56,6 @@ REQUIRED_SECRETS = {
 }
 
 
-
 with DAG(
     dag_id=f"atd_service_bot_github_to_socrata_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
@@ -64,17 +63,19 @@ with DAG(
     tags=["repo:atd-service-bot", "socrata", "github"],
     catchup=False,
 ) as dag:
+
     @task(
         task_id="get_env_vars",
         execution_timeout=duration(seconds=30),
     )
     def get_env_vars():
         from utils.onepassword import load_dict
+
         env_vars = load_dict(REQUIRED_SECRETS)
         return env_vars
-    
+
     env_vars = get_env_vars()
-    
+
     DockerOperator(
         task_id="dts_github_to_socrata",
         image=docker_image,
@@ -86,4 +87,3 @@ with DAG(
         tty=True,
         force_pull=True,
     )
-

@@ -1,4 +1,4 @@
-import os
+from os import getenv
 
 from airflow.decorators import task
 from airflow.models import DAG
@@ -7,7 +7,7 @@ from pendulum import datetime, duration
 
 from utils.slack_operator import task_fail_slack_alert
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 default_args = {
     "owner": "airflow",

@@ -1,4 +1,4 @@
-import os
+from os import getenv
 
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
@@ -8,7 +8,7 @@ from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 from utils.knack import get_date_filter_arg
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 DEFAULT_ARGS = {
     "owner": "airflow",
@@ -55,7 +55,7 @@ REQUIRED_SECRETS = {
     # Socrata
     "SOCRATA_RESOURCE_ID": {
         "opitem": "atd-traffic-incident-reports",
-        "opfield": "production.Socrata Resource ID"
+        "opfield": "production.Socrata Resource ID",
     },
     "SOCRATA_API_KEY_ID": {
         "opitem": "Socrata Key ID, Secret, and Token",
@@ -69,7 +69,6 @@ REQUIRED_SECRETS = {
         "opitem": "Socrata Key ID, Secret, and Token",
         "opfield": "socrata.appToken",
     },
-
 }
 
 

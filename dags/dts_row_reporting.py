@@ -1,6 +1,6 @@
 # test locally with: docker compose run --rm airflow-cli dags test dts_row_reporting
 
-import os
+from os import getenv
 
 from airflow.decorators import task
 from airflow.models import DAG
@@ -10,7 +10,7 @@ from pendulum import datetime, duration, now
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 DEFAULT_ARGS = {
     "owner": "airflow",
@@ -117,9 +117,10 @@ SECRETS_SOCRATA_BACKUP = {
     },
 }
 
+
 @task
 def get_dataset_id(env_vars):
-    return env_vars['ACTIVE_DATASET']
+    return env_vars["ACTIVE_DATASET"]
 
 
 with DAG(
@@ -347,5 +348,20 @@ with DAG(
         trigger_rule="all_done",
     )
 
-
-    t1 >> t2 >> t3 >> t4 >> t5 >> t6 >> t7 >> t8 >> t9 >> t10 >> t11 >> t12 >> t13 >> t14 >> t15
+    (
+        t1
+        >> t2
+        >> t3
+        >> t4
+        >> t5
+        >> t6
+        >> t7
+        >> t8
+        >> t9
+        >> t10
+        >> t11
+        >> t12
+        >> t13
+        >> t14
+        >> t15
+    )
