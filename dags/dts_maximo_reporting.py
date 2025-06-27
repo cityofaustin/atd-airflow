@@ -66,7 +66,7 @@ REQUIRED_SECRETS = {
 }
 
 with DAG(
-    dag_id=f"dts_maximo_reporting_workorders",
+    dag_id=f"dts_maximo_reporting",
     description="Uploads the last 7 days of Maximo work orders to Socrata from the Maximo data warehouse.",
     default_args=DEFAULT_ARGS,
     schedule_interval="00 6 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
@@ -82,11 +82,35 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"python etl/work_orders_to_socrata.py",
+        command=f"python etl/maximo_to_socrata.py --query work_orders",
         environment=env_vars,
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
     )
 
-    t1
+    t2 = DockerOperator(
+        task_id="maximo_service_requests_to_socrata",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove="force",
+        command=f"python etl/maximo_to_socrata.py --query service_requests",
+        environment=env_vars,
+        tty=True,
+        force_pull=False,
+        mount_tmp_dir=False,
+    )
+
+    t3 = DockerOperator(
+        task_id="maximo_work_order_history_to_socrata",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove="force",
+        command=f"python etl/maximo_to_socrata.py --query work_order_status_history",
+        environment=env_vars,
+        tty=True,
+        force_pull=False,
+        mount_tmp_dir=False,
+    )
+
+    t1 >> t2 >> t3
