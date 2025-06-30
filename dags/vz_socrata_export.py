@@ -21,7 +21,7 @@ from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
 
 from utils.onepassword import get_env_vars_task
-from utils.slack_operator import task_fail_slack_alert
+from utils.slack_operator import task_fail_slack_alert, slack_member_ids
 
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT")
@@ -85,11 +85,14 @@ with DAG(
     dag_id="vz-socrata-export",
     description="Exports Vision Zero crash and people datasets to Socrata from Vision Zero database.",
     default_args=DEFAULT_ARGS,
-    # do not run on sunday and monday mornings to give VZ team time to QA records imported over weekend
-    schedule_interval="0 4 * * 2-6" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    # do not run on saturday, sunday and monday mornings to give VZ team time to QA records imported over weekend
+    # and avoid Socrata maintenance window
+    schedule_interval="0 4 * * 2-5" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     start_date=datetime(2024, 8, 1, tz="America/Chicago"),
     tags=["vision-zero", "cris", "repo:atd-vz-data", "socrata"],
 ) as dag:
+    dag.byline = f"Failure impacts VZ team, {slack_member_ids['John']} & {slack_member_ids['Frank']}"
+
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     socrata_export_crashes = DockerOperator(
