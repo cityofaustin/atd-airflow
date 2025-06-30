@@ -106,7 +106,7 @@ with DAG(
         image="atddocker/atd-finance-data:production",
         docker_conn_id="docker_default",
         auto_remove="force",
-        command="python3 program_tagging/fdu_program_tagging.py",
+        command="python3 fdu_program_tagging.py",
         environment=env_vars,
         tty=True,
         force_pull=False,
