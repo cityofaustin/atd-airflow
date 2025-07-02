@@ -2,11 +2,10 @@ from os import getenv
 
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
-from airflow.decorators import task
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
-from utils.slack_operator import task_fail_slack_alert
+from utils.slack_operator import task_fail_slack_alert, slack_member_ids
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -17,7 +16,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "retry_delay": duration(minutes=5),
+    "execution_timeout": duration(minutes=30),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -48,10 +47,11 @@ with DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval="45 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=30),
-    tags=["repo:atd-knack-banner", "knack"],
+    tags=["repo:atd-knack-banner", "knack", "hr"],
     catchup=False,
 ) as dag:
     docker_image = f"atddocker/atd-knack-banner:production"
+    dag.byline = f"{slack_member_ids['Chia']}"
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
