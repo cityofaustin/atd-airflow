@@ -5,6 +5,7 @@ from os import getenv
 from airflow.decorators import task
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
+from airflow.utils.helpers import chain
 from pendulum import datetime, duration, now
 
 from utils.onepassword import get_env_vars_task
@@ -123,6 +124,23 @@ def get_dataset_id(env_vars):
     return env_vars["ACTIVE_DATASET"]
 
 
+def knack_services_task_template(task_id, image, command, env_vars, pull=False):
+    return DockerOperator(
+        task_id=task_id,
+        image=image,
+        docker_conn_id="docker_default",
+        auto_remove="force",
+        command=command,
+        environment=env_vars,
+        tty=True,
+        force_pull=pull,
+        mount_tmp_dir=False,
+        trigger_rule="all_done",
+        retries=3,
+        retry_delay=duration(seconds=60),
+    )
+
+
 with DAG(
     dag_id="dts_row_reporting",
     description="Downloads ROW data from AMANDA and Smartsheet and publishes the weekly summary results in a Socrata Dataset.",
@@ -140,228 +158,127 @@ with DAG(
     # pulling out dataset identifier for command arg
     dataset_id = get_dataset_id(env_vars)
 
-    t1 = DockerOperator(
-        task_id="amanda_applications_received",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command=f"python amanda/amanda_to_s3.py --query applications_received",
-        environment=env_vars,
-        tty=True,
-        force_pull=True,
-        mount_tmp_dir=False,
-        retries=3,
-        retry_delay=duration(seconds=60),
-        trigger_rule="all_done",
-    )
+    commands = [
+        {
+            "task_id": "amanda_applications_received",
+            "command": "python amanda/amanda_to_s3.py --query applications_received",
+            "image": docker_image,
+            "env": env_vars,
+        },
+        {
+            "task_id": "amanda_active_permits",
+            "command": "python amanda/amanda_to_s3.py --query active_permits",
+            "image": docker_image,
+            "env": env_vars,
+        },
+        {
+            "task_id": "amanda_issued_permits",
+            "command": "python amanda/amanda_to_s3.py --query issued_permits",
+            "image": docker_image,
+            "env": env_vars,
+        },
+        {
+            "task_id": "amanda_license_agreements_timeline",
+            "command": "python amanda/amanda_to_s3.py --query license_agreements_timeline",
+            "image": docker_image,
+            "env": env_vars,
+        },
+        {
+            "task_id": "smartsheet_to_s3",
+            "command": "python smartsheet/smartsheet_to_s3.py",
+            "image": docker_image,
+            "env": env_vars,
+        },
+        {
+            "task_id": "row_data_summary",
+            "command": "python metrics/row_data_summary.py",
+            "image": docker_image,
+            "env": env_vars,
+        },
+        {
+            "task_id": "amanda_review_time",
+            "command": "python amanda/amanda_to_s3.py --query review_time",
+            "image": docker_image,
+            "env": env_vars,
+        },
+        {
+            "task_id": "ex_permits_issued",
+            "command": "python amanda/amanda_to_s3.py --query ex_permits_issued",
+            "image": docker_image,
+            "env": env_vars,
+        },
+        {
+            "task_id": "active_permits_logging",
+            "command": "python metrics/active_permits_logging.py",
+            "image": docker_image,
+            "env": env_vars,
+        },
+        {
+            "task_id": "backup_active_permits",
+            "command": f"./atd-knack-services/services/backup_socrata.py --dataset {dataset_id}",
+            "image": knack_services_image,
+            "env": env_vars_knack_services,
+        },
+        {
+            "task_id": "license_agreements_socrata",
+            "command": "python metrics/s3_to_socrata.py --dataset license_agreements_timeline",
+            "image": docker_image,
+            "env": env_vars,
+        },
+        {
+            "task_id": "lde_site_plan_revisions_s3",
+            "command": "python amanda/amanda_to_s3.py --query lde_site_plan_revisions",
+            "image": docker_image,
+            "env": env_vars,
+        },
+        {
+            "task_id": "lde_site_plan_revisions_socrata",
+            "command": "python metrics/s3_to_socrata.py --dataset lde_site_plan_revisions",
+            "image": docker_image,
+            "env": env_vars,
+        },
+        {
+            "task_id": "tds_cases_s3",
+            "command": "python amanda/amanda_to_s3.py --query tds_cases",
+            "image": docker_image,
+            "env": env_vars,
+        },
+        {
+            "task_id": "tds_cases_socrata",
+            "command": "python metrics/s3_to_socrata.py --dataset tds_cases",
+            "image": docker_image,
+            "env": env_vars,
+        },
+        {
+            "task_id": "tds_sif_map_s3",
+            "command": "python amanda/amanda_to_s3.py --query tds_asmd_map",
+            "image": docker_image,
+            "env": env_vars,
+        },
+        {
+            "task_id": "tds_sif_map_socrata",
+            "command": "python metrics/s3_to_socrata.py --dataset tds_asmd_map",
+            "image": docker_image,
+            "env": env_vars,
+        },
+    ]
 
-    t2 = DockerOperator(
-        task_id="amanda_active_permits",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command=f"python amanda/amanda_to_s3.py --query active_permits",
-        environment=env_vars,
-        tty=True,
-        mount_tmp_dir=False,
-        retries=3,
-        retry_delay=duration(seconds=60),
-        trigger_rule="all_done",
-    )
+    tasks = []
 
-    t3 = DockerOperator(
-        task_id="amanda_issued_permits",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command=f"python amanda/amanda_to_s3.py --query issued_permits",
-        environment=env_vars,
-        tty=True,
-        mount_tmp_dir=False,
-        retries=3,
-        retry_delay=duration(seconds=60),
-        trigger_rule="all_done",
-    )
+    for cmd in commands:
+        # We want the first task to pull the latest docker image
+        if len(tasks) == 0:
+            pull = True
+        else:
+            pull = False
+        tasks.append(
+            knack_services_task_template(
+                task_id=cmd["task_id"],
+                image=cmd["image"],
+                command=cmd["command"],
+                env_vars=cmd["env"],
+                pull=pull,
+            )
+        )
 
-    t4 = DockerOperator(
-        task_id="amanda_license_agreements_timeline",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command=f"python amanda/amanda_to_s3.py --query license_agreements_timeline",
-        environment=env_vars,
-        tty=True,
-        mount_tmp_dir=False,
-        retries=3,
-        retry_delay=duration(seconds=60),
-        trigger_rule="all_done",
-    )
-
-    t5 = DockerOperator(
-        task_id="smartsheet_to_s3",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command=f"python smartsheet/smartsheet_to_s3.py",
-        environment=env_vars,
-        tty=True,
-        mount_tmp_dir=False,
-        retries=3,
-        retry_delay=duration(seconds=60),
-        trigger_rule="all_done",
-    )
-
-    t6 = DockerOperator(
-        task_id="row_data_summary",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command=f"python metrics/row_data_summary.py",
-        environment=env_vars,
-        tty=True,
-        mount_tmp_dir=False,
-        retries=3,
-        retry_delay=duration(seconds=60),
-        trigger_rule="all_done",
-    )
-
-    t7 = DockerOperator(
-        task_id="amanda_review_time",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command=f"python amanda/amanda_to_s3.py --query review_time",
-        environment=env_vars,
-        tty=True,
-        mount_tmp_dir=False,
-        retries=3,
-        retry_delay=duration(seconds=60),
-        trigger_rule="all_done",
-    )
-
-    t8 = DockerOperator(
-        task_id="ex_permits_issued",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command=f"python amanda/amanda_to_s3.py --query ex_permits_issued",
-        environment=env_vars,
-        tty=True,
-        mount_tmp_dir=False,
-        retries=3,
-        retry_delay=duration(seconds=60),
-        trigger_rule="all_done",
-    )
-
-    t9 = DockerOperator(
-        task_id="active_permits_logging",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command=f"python metrics/active_permits_logging.py",
-        environment=env_vars,
-        tty=True,
-        mount_tmp_dir=False,
-        retries=3,
-        retry_delay=duration(seconds=60),
-        trigger_rule="all_done",
-    )
-
-    t10 = DockerOperator(
-        task_id="backup_active_permits",
-        image=knack_services_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command=f"./atd-knack-services/services/backup_socrata.py --dataset {dataset_id}",
-        environment=env_vars_knack_services,
-        tty=True,
-        force_pull=True,
-        mount_tmp_dir=False,
-        trigger_rule="all_done",
-    )
-
-    t11 = DockerOperator(
-        task_id="license_agreements_socrata",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command=f"python metrics/s3_to_socrata.py --dataset license_agreements_timeline",
-        environment=env_vars,
-        tty=True,
-        mount_tmp_dir=False,
-        trigger_rule="all_done",
-    )
-
-    t12 = DockerOperator(
-        task_id="lde_site_plan_revisions_s3",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command=f"python amanda/amanda_to_s3.py --query lde_site_plan_revisions",
-        environment=env_vars,
-        tty=True,
-        mount_tmp_dir=False,
-        retries=3,
-        retry_delay=duration(seconds=60),
-        trigger_rule="all_done",
-    )
-
-    t13 = DockerOperator(
-        task_id="lde_site_plan_revisions_socrata",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command=f"python metrics/s3_to_socrata.py --dataset lde_site_plan_revisions",
-        environment=env_vars,
-        tty=True,
-        mount_tmp_dir=False,
-        retries=3,
-        retry_delay=duration(seconds=60),
-        trigger_rule="all_done",
-    )
-
-    t14 = DockerOperator(
-        task_id="tds_cases_s3",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command="python amanda/amanda_to_s3.py --query tds_cases",
-        environment=env_vars,
-        tty=True,
-        mount_tmp_dir=False,
-        retries=3,
-        retry_delay=duration(seconds=60),
-        trigger_rule="all_done",
-    )
-
-    t15 = DockerOperator(
-        task_id="tds_cases_socrata",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command="python metrics/s3_to_socrata.py --dataset tds_cases",
-        environment=env_vars,
-        tty=True,
-        mount_tmp_dir=False,
-        retries=3,
-        retry_delay=duration(seconds=60),
-        trigger_rule="all_done",
-    )
-
-    (
-        t1
-        >> t2
-        >> t3
-        >> t4
-        >> t5
-        >> t6
-        >> t7
-        >> t8
-        >> t9
-        >> t10
-        >> t11
-        >> t12
-        >> t13
-        >> t14
-        >> t15
-    )
+    chain(*tasks)
