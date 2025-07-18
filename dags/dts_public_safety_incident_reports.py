@@ -24,38 +24,42 @@ DEFAULT_ARGS = {
 REQUIRED_SECRETS = {
     # Database
     "HOST": {
-        "opitem": "atd-traffic-incident-reports",
+        "opitem": "Public Safety Incident Reports",
         "opfield": "production.Host",
     },
     "PORT": {
-        "opitem": "atd-traffic-incident-reports",
+        "opitem": "Public Safety Incident Reports",
         "opfield": "production.Port",
     },
     "USER": {
-        "opitem": "atd-traffic-incident-reports",
+        "opitem": "Public Safety Incident Reports",
         "opfield": "production.Username",
     },
     "SERVICE": {
-        "opitem": "atd-traffic-incident-reports",
+        "opitem": "Public Safety Incident Reports",
         "opfield": "production.Service",
     },
     "PASSWORD": {
-        "opitem": "atd-traffic-incident-reports",
+        "opitem": "Public Safety Incident Reports",
         "opfield": "production.Password",
     },
     # PostgREST
     "PGREST_TOKEN": {
-        "opitem": "atd-traffic-incident-reports",
+        "opitem": "Public Safety Incident Reports",
         "opfield": "production.Postgrest JWT",
     },
     "PGREST_ENDPOINT": {
-        "opitem": "atd-traffic-incident-reports",
+        "opitem": "Public Safety Incident Reports",
         "opfield": "production.Postgrest Endpoint",
     },
     # Socrata
-    "SOCRATA_RESOURCE_ID": {
-        "opitem": "atd-traffic-incident-reports",
-        "opfield": "production.Socrata Resource ID",
+    "TRAFFIC_RESOURCE_ID": {
+        "opitem": "Public Safety Incident Reports",
+        "opfield": "production.Traffic Resource ID",
+    },
+    "FIRE_RESOURCE_ID": {
+        "opitem": "Public Safety Incident Reports",
+        "opfield": "production.Fire Resource ID",
     },
     "SOCRATA_API_KEY_ID": {
         "opitem": "Socrata Key ID, Secret, and Token",
@@ -73,8 +77,8 @@ REQUIRED_SECRETS = {
 
 
 with DAG(
-    dag_id="atd_traffic_incident_reports",
-    description="wrapper etl for atd-traffic-incident-reports docker image connects to oracle db and updates postrgrest and socrata with incidents",
+    dag_id="dts_public_safety_incident_reports",
+    description="wrapper etl for atd-traffic-incident-reports docker image connects to oracle db and updates postrgrest and socrata with fire and traffic incidents",
     default_args=DEFAULT_ARGS,
     schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-traffic-incident-reports", "postgrest", "socrata"],
@@ -87,7 +91,7 @@ with DAG(
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
-        task_id="traffic_incident_reports_to_postgres",
+        task_id="public_safety_incident_reports_to_postgres",
         docker_conn_id="docker_default",
         image=docker_image,
         auto_remove="force",
@@ -99,7 +103,7 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id="traffic_incident_reports_to_socrata",
+        task_id="public_safety_incident_reports_to_socrata",
         docker_conn_id="docker_default",
         image=docker_image,
         auto_remove="force",
