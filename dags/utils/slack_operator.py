@@ -87,28 +87,6 @@ def get_central_time_exec_data(context):
     return local_tz.convert(execution_date_timestamp).format("MM/DD/YYYY hh:mm:ss A")
 
 
-def task_fail_slack_alert_critical(context):
-    slack_msg = """
-            <!channel> :red_circle: Critical Failure
-            *Task*: {task}  
-            *DAG*: {dag} 
-            *Execution Time*: {exec_date}  
-            *Log URL*: {log_url} 
-            """.format(
-        task=context.get("task_instance").task_id,
-        dag=context.get("task_instance").dag_id,
-        exec_date=get_central_time_exec_data(context),
-        log_url=context.get("task_instance").log_url,
-    )
-    failed_alert = SlackWebhookOperator(
-        task_id="slack_critical_failure",
-        slack_webhook_conn_id=SLACK_CONN_ID,
-        message=slack_msg,
-        username="airflow",
-    )
-    return failed_alert.execute(context=context)
-
-
 def extract_exception_from_log(log_text):
     import re
 
