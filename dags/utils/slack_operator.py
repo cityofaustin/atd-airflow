@@ -109,6 +109,41 @@ def extract_exception_from_log(log_text):
     return None, None
 
 
+def extract_all_exceptions_from_log(log_text):
+    import re
+
+    # Find all occurrences of 'Traceback (most recent call last):'
+    exceptions = []
+    traceback_pattern = "Traceback (most recent call last):"
+    
+    start_pos = 0
+    while True:
+        traceback_start = log_text.find(traceback_pattern, start_pos)
+        if traceback_start == -1:
+            break
+        
+        # Find the end of this traceback by looking for the next traceback or end of text
+        next_traceback = log_text.find(traceback_pattern, traceback_start + len(traceback_pattern))
+        if next_traceback == -1:
+            traceback_text = log_text[traceback_start:]
+        else:
+            traceback_text = log_text[traceback_start:next_traceback]
+        
+        # Find the last line of this traceback (which contains the exception)
+        lines = traceback_text.strip().split("\n")
+        if len(lines) > 1:
+            last_line = lines[-1]
+            
+            # Extract exception type and message
+            match = re.match(r"([\w.]+): (.*)", last_line)
+            if match:
+                exceptions.append((match.group(1), match.group(2)))
+        
+        start_pos = traceback_start + len(traceback_pattern)
+    
+    return exceptions if exceptions else [(None, None)]
+
+
 def task_fail_slack_alert(context):
 
     task_instance = context.get("task_instance")
@@ -119,14 +154,23 @@ def task_fail_slack_alert(context):
         str(exception) if exception else "No exception message available"
     )
 
+    # Extract all exceptions from logs if available
+    all_exceptions = []
     if exception and hasattr(exception, "logs") and exception.logs:
         logs = exception.logs
-        parsed_exception_type, parsed_exception_message = extract_exception_from_log(
-            "\n".join(logs)
-        )
-        if parsed_exception_message and parsed_exception_type:
-            exception_type = parsed_exception_type
-            exception_message = parsed_exception_message
+        all_exceptions = extract_all_exceptions_from_log("\n".join(logs))
+        
+        # If we found exceptions in logs, use them; otherwise keep the original exception
+        if all_exceptions and all_exceptions[0][0] is not None:
+            # Use the last exception as the primary one for backward compatibility
+            exception_type = all_exceptions[-1][0]
+            exception_message = all_exceptions[-1][1]
+        else:
+            # Fallback to original exception if no parsed exceptions found
+            all_exceptions = [(exception_type, exception_message)]
+    else:
+        # No logs available, use the original exception
+        all_exceptions = [(exception_type, exception_message)]
 
     # Extract additional information
     dag = context.get("dag")
@@ -148,6 +192,17 @@ def task_fail_slack_alert(context):
     if DEPLOYMENT_ENVIRONMENT != "production":
         env_indicator = f" *{DEPLOYMENT_ENVIRONMENT.capitalize()} Environment*"
 
+    # Format all exceptions for display
+    exceptions_text = ""
+    if len(all_exceptions) == 1:
+        # Single exception - use original format
+        exceptions_text = f"*Exception Type*: `{exception_type}`\n        *Exception Message*: `{exception_message}`"
+    else:
+        # Multiple exceptions - list them all
+        exceptions_text = f"*Exceptions Found ({len(all_exceptions)} total)*:"
+        for i, (exc_type, exc_msg) in enumerate(all_exceptions, 1):
+            exceptions_text += f"\n        {i}. *{exc_type}*: `{exc_msg}`"
+
     slack_msg = f"""
         {icon}{env_indicator} *Task failure* 
         {'\n\t\t' + byline if byline else ''}
@@ -156,8 +211,7 @@ def task_fail_slack_alert(context):
         *Execution Time*: `{exec_date}`
         *Schedule*: `{schedule_description}`
         *Duration*: `{duration} seconds`
-        *Exception Type*: `{exception_type}`
-        *Exception Message*: `{exception_message}`
+        {exceptions_text}
         <{log_url}|*View Task Log*>
     """
 
