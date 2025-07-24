@@ -155,7 +155,6 @@ def extract_all_exceptions_from_log(log_text):
             if exc_type:
                 exceptions.append((exc_type, exc_msg, source))
     
-    print(f"Found exceptions: {exceptions}")
     return exceptions if exceptions else [(None, None, "Unknown")]
 
 
