@@ -112,36 +112,85 @@ def extract_exception_from_log(log_text):
 def extract_all_exceptions_from_log(log_text):
     import re
 
-    # Find all occurrences of 'Traceback (most recent call last):'
     exceptions = []
-    traceback_pattern = "Traceback (most recent call last):"
     
-    start_pos = 0
-    while True:
-        traceback_start = log_text.find(traceback_pattern, start_pos)
-        if traceback_start == -1:
-            break
+    # Split log into lines for easier processing
+    lines = log_text.split('\n')
+    
+    # Track whether we're in a traceback section
+    in_traceback = False
+    current_traceback_lines = []
+    
+    for line in lines:
+        line = line.strip()
         
-        # Find the end of this traceback by looking for the next traceback or end of text
-        next_traceback = log_text.find(traceback_pattern, traceback_start + len(traceback_pattern))
-        if next_traceback == -1:
-            traceback_text = log_text[traceback_start:]
-        else:
-            traceback_text = log_text[traceback_start:next_traceback]
-        
-        # Find the last line of this traceback (which contains the exception)
-        lines = traceback_text.strip().split("\n")
-        if len(lines) > 1:
-            last_line = lines[-1]
+        # Start of a new traceback
+        if "Traceback (most recent call last):" in line:
+            # Process previous traceback if we have one
+            if in_traceback and current_traceback_lines:
+                exception = _extract_exception_from_traceback_lines(current_traceback_lines)
+                if exception:
+                    exceptions.append(exception)
             
-            # Extract exception type and message
-            match = re.match(r"([\w.]+): (.*)", last_line)
-            if match:
-                exceptions.append((match.group(1), match.group(2)))
-        
-        start_pos = traceback_start + len(traceback_pattern)
+            # Start new traceback
+            in_traceback = True
+            current_traceback_lines = [line]
+            
+        elif in_traceback:
+            # Check if this line ends the current traceback
+            # Lines that typically end a traceback: empty lines, INFO logs, or new sections
+            if (line == "" or 
+                "INFO -" in line or 
+                "ERROR -" in line or 
+                "WARNING -" in line or
+                "The above exception was the direct cause of the following exception:" in line):
+                
+                # Process current traceback before ending
+                if current_traceback_lines:
+                    exception = _extract_exception_from_traceback_lines(current_traceback_lines)
+                    if exception:
+                        exceptions.append(exception)
+                
+                # Reset for potential next traceback
+                if "The above exception was the direct cause of the following exception:" in line:
+                    # This indicates chained exceptions, stay in traceback mode
+                    current_traceback_lines = []
+                else:
+                    # End of traceback section
+                    in_traceback = False
+                    current_traceback_lines = []
+            else:
+                # Add line to current traceback
+                current_traceback_lines.append(line)
     
+    # Process final traceback if we ended while in one
+    if in_traceback and current_traceback_lines:
+        exception = _extract_exception_from_traceback_lines(current_traceback_lines)
+        if exception:
+            exceptions.append(exception)
+    
+    print("Found exceptions: ", exceptions)
     return exceptions if exceptions else [(None, None)]
+
+
+def _extract_exception_from_traceback_lines(traceback_lines):
+    import re
+    
+    # Look for the exception line (usually the last non-empty line)
+    for line in reversed(traceback_lines):
+        line = line.strip()
+        if line and not line.startswith('File ') and not line.startswith('Traceback'):
+            # Try to match exception pattern: ExceptionType: message
+            match = re.match(r'^([\w.]+):\s*(.*)', line)
+            if match:
+                return (match.group(1), match.group(2))
+            
+            # Sometimes exceptions don't have messages, just the type
+            match = re.match(r'^([\w.]+)$', line)
+            if match:
+                return (match.group(1), "")
+    
+    return None
 
 
 def task_fail_slack_alert(context):
@@ -156,21 +205,25 @@ def task_fail_slack_alert(context):
 
     # Extract all exceptions from logs if available
     all_exceptions = []
+    
+    # First, get exceptions from Docker container logs if available
     if exception and hasattr(exception, "logs") and exception.logs:
         logs = exception.logs
-        all_exceptions = extract_all_exceptions_from_log("\n".join(logs))
+        container_exceptions = extract_all_exceptions_from_log("\n".join(logs))
         
-        # If we found exceptions in logs, use them; otherwise keep the original exception
-        if all_exceptions and all_exceptions[0][0] is not None:
-            # Use the last exception as the primary one for backward compatibility
-            exception_type = all_exceptions[-1][0]
-            exception_message = all_exceptions[-1][1]
-        else:
-            # Fallback to original exception if no parsed exceptions found
-            all_exceptions = [(exception_type, exception_message)]
-    else:
-        # No logs available, use the original exception
-        all_exceptions = [(exception_type, exception_message)]
+        # Add container exceptions (filter out None entries)
+        for exc in container_exceptions:
+            if exc[0] is not None:
+                all_exceptions.append(exc)
+    
+    # Always add the Airflow-level exception as well
+    airflow_exception = (exception_type, exception_message)
+    all_exceptions.append(airflow_exception)
+    
+    # Use the last exception (Airflow-level) as primary for backward compatibility
+    if all_exceptions:
+        exception_type = all_exceptions[-1][0]
+        exception_message = all_exceptions[-1][1]
 
     # Extract additional information
     dag = context.get("dag")
