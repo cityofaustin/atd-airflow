@@ -3,7 +3,7 @@ from os import getenv
 from cron_descriptor import get_description
 from airflow.hooks.base import BaseHook
 from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
-from utils.log_parsing import extract_all_exceptions_from_log
+from utils.log_parsing import extract_all_exceptions_from_log, extract_all_exceptions
 
 # This is the Conn Id that we set when creating the connection in the Airflow dashboard
 # in Admin > Connections.
@@ -88,71 +88,7 @@ def get_central_time_exec_data(context):
     return local_tz.convert(execution_date_timestamp).format("MM/DD/YYYY hh:mm:ss A")
 
 
-def task_fail_slack_alert(context):
-
-    task_instance = context.get("task_instance")
-    exception = context.get("exception")
-    exception_type = type(exception).__name__ if exception else "Unknown"
-    exception_message = (
-        str(exception) if exception else "No exception message available"
-    )
-
-    # Extract all exceptions from logs if available
-    all_exceptions = []
-
-    # DEBUG: Set this to a string containing log text to test exception parsing
-    # When None, normal operation resumes
-    DEBUG_LOG_TEXT = None
-
-    # First, get exceptions from Docker container logs if available
-    if DEBUG_LOG_TEXT is not None:
-        # DEBUG MODE: Use the debug log text instead of actual logs
-        print(f"DEBUG MODE: Using debug log text for parsing")
-        parsed_exceptions = extract_all_exceptions_from_log(DEBUG_LOG_TEXT)
-
-        # Add parsed exceptions (filter out None entries)
-        for exc in parsed_exceptions:
-            if exc[0] is not None:
-                all_exceptions.append(exc)
-    elif exception and hasattr(exception, "logs") and exception.logs:
-        logs = exception.logs
-        parsed_exceptions = extract_all_exceptions_from_log("\n".join(logs))
-
-        # Add parsed exceptions (filter out None entries)
-        for exc in parsed_exceptions:
-            if exc[0] is not None:
-                all_exceptions.append(exc)
-
-    # Always add the Airflow-level exception as well if not already found
-    airflow_exception = (exception_type, exception_message, "Airflow")
-    # Check if we already have this exception from parsing
-    airflow_already_found = any(
-        exc[0] == exception_type and exc[1] == exception_message
-        for exc in all_exceptions
-    )
-    if not airflow_already_found:
-        all_exceptions.append(airflow_exception)
-
-    # Extract additional information
-    dag = context.get("dag")
-    dag_id = task_instance.dag_id
-    task_id = task_instance.task_id
-    exec_date = get_central_time_exec_data(context)
-    log_url = task_instance.log_url
-    duration = getattr(task_instance, "duration", "Not available")
-
-    schedule_interval = dag.schedule_interval if dag else None
-
-    schedule_description = format_schedule(schedule_interval)
-
-    byline = getattr(dag, "byline", "")
-    icon = getattr(dag, "icon", ":red_circle:")
-
-    # Add deployment environment indication if not production
-    env_indicator = ""
-    if DEPLOYMENT_ENVIRONMENT != "production":
-        env_indicator = f" *{DEPLOYMENT_ENVIRONMENT.capitalize()} Environment*"
-
+def build_exception_text(all_exceptions):
     # Format all exceptions for display
     exceptions_text = ""
     if len(all_exceptions) == 1:
@@ -171,6 +107,31 @@ def task_fail_slack_alert(context):
             exceptions_text += (
                 f"\n        {i}. *{exc_type}* _(from {source})_: `{exc_msg}`"
             )
+    return exceptions_text
+
+
+def task_fail_slack_alert(context):
+    task_instance = context.get("task_instance")
+    dag = context.get("dag")
+    dag_id = task_instance.dag_id
+    task_id = task_instance.task_id
+    exec_date = get_central_time_exec_data(context)
+    log_url = task_instance.log_url
+    duration = getattr(task_instance, "duration", "Not available")
+
+    schedule_interval = dag.schedule_interval if dag else None
+    schedule_description = format_schedule(schedule_interval)
+
+    all_exceptions = extract_all_exceptions(context)
+    exceptions_text = build_exception_text(all_exceptions)
+
+    byline = getattr(dag, "byline", "")
+    icon = getattr(dag, "icon", ":red_circle:")
+
+    # Add deployment environment indication if not production
+    env_indicator = ""
+    if DEPLOYMENT_ENVIRONMENT != "production":
+        env_indicator = f" *{DEPLOYMENT_ENVIRONMENT.capitalize()} Environment*"
 
     slack_msg = f"""
         {icon}{env_indicator} *Task failure* 

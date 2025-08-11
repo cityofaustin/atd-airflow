@@ -1,3 +1,49 @@
+def extract_all_exceptions(context):
+    exception = context.get("exception")
+    exception_type = type(exception).__name__ if exception else "Unknown"
+    exception_message = (
+        str(exception) if exception else "No exception message available"
+    )
+
+    # Extract all exceptions from logs if available
+    all_exceptions = []
+
+    # DEBUG: Set this to a string containing log text to test exception parsing
+    # When None, normal operation resumes
+    DEBUG_LOG_TEXT = None
+
+    # First, get exceptions from Docker container logs if available
+    if DEBUG_LOG_TEXT is not None:
+        # DEBUG MODE: Use the debug log text instead of actual logs
+        print(f"DEBUG MODE: Using debug log text for parsing")
+        parsed_exceptions = extract_all_exceptions_from_log(DEBUG_LOG_TEXT)
+
+        # Add parsed exceptions (filter out None entries)
+        for exc in parsed_exceptions:
+            if exc[0] is not None:
+                all_exceptions.append(exc)
+    elif exception and hasattr(exception, "logs") and exception.logs:
+        logs = exception.logs
+        parsed_exceptions = extract_all_exceptions_from_log("\n".join(logs))
+
+        # Add parsed exceptions (filter out None entries)
+        for exc in parsed_exceptions:
+            if exc[0] is not None:
+                all_exceptions.append(exc)
+
+    # Always add the Airflow-level exception as well if not already found
+    airflow_exception = (exception_type, exception_message, "Airflow")
+    # Check if we already have this exception from parsing
+    airflow_already_found = any(
+        exc[0] == exception_type and exc[1] == exception_message
+        for exc in all_exceptions
+    )
+    if not airflow_already_found:
+        all_exceptions.append(airflow_exception)
+
+    return all_exceptions
+
+
 def extract_exception_from_log(log_text):
     import re
 
