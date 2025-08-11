@@ -115,28 +115,28 @@ def extract_exception_from_log(log_text):
 
 def extract_all_exceptions_from_log(log_text):
     """
-    Extract all Python exceptions from raw Airflow logs. 
+    Extract all Python exceptions from raw Airflow logs.
     Returns list of tuples (exception_type, exception_message, source).
     Source is "ETL" for exceptions before "Task failed with exception" line,
     "Airflow" for exceptions after that line.
     """
-    
+
     exceptions = []
-    lines = log_text.split('\n')
-    
+    lines = log_text.split("\n")
+
     # Find the "Task failed with exception" dividing line
     task_failed_line_idx = None
     for i, line in enumerate(lines):
         if "Task failed with exception" in line:
             task_failed_line_idx = i
             break
-    
+
     # Look for all traceback sections
     traceback_starts = []
     for i, line in enumerate(lines):
         if "Traceback (most recent call last):" in line:
             traceback_starts.append(i)
-    
+
     # Process each traceback section
     for start_idx in traceback_starts:
         # Determine source based on position relative to "Task failed with exception"
@@ -146,15 +146,15 @@ def extract_all_exceptions_from_log(log_text):
             source = "ETL"
         else:
             source = "Airflow"
-        
+
         # Find the exception line for this traceback
         exception_line = _find_exception_line_in_traceback(lines, start_idx)
-        
+
         if exception_line:
             exc_type, exc_msg = _parse_exception_line(exception_line)
             if exc_type:
                 exceptions.append((exc_type, exc_msg, source))
-    
+
     return exceptions if exceptions else [(None, None, "Unknown")]
 
 
@@ -164,68 +164,73 @@ def _find_exception_line_in_traceback(lines, traceback_start_idx):
     """
     # Start from the traceback line and look forward
     i = traceback_start_idx + 1
-    
+
     while i < len(lines):
         line = lines[i].strip()
-        
+
         # Stop if we hit another traceback
         if "Traceback (most recent call last):" in line:
             break
-            
+
         # Stop if we hit certain log markers that indicate end of traceback
-        if (line.startswith('During handling of the above exception') or
-            line.startswith('The above exception was the direct cause')):
+        if line.startswith("During handling of the above exception") or line.startswith(
+            "The above exception was the direct cause"
+        ):
             i += 1
             continue
-            
+
         # Check if this is an exception line
         if _is_exception_line(line):
             return line
-            
+
         i += 1
-    
+
     return None
 
 
 def _is_exception_line(line):
     """Check if a line contains a Python exception"""
     import re
-    
+
     line = line.strip()
-    
+
     # Skip obvious non-exception lines
-    if (not line or
-        line.startswith('File ') or 
-        line.startswith('    ') or 
-        line.startswith('^') or
-        'Traceback' in line or
-        line.startswith('During handling') or
-        line.startswith('The above exception')):
+    if (
+        not line
+        or line.startswith("File ")
+        or line.startswith("    ")
+        or line.startswith("^")
+        or "Traceback" in line
+        or line.startswith("During handling")
+        or line.startswith("The above exception")
+    ):
         return False
-    
+
     # Look for Python exception patterns
     # Must start with a capital letter followed by word characters, dots, underscores
     # Common exception endings but not required
-    exception_pattern = r'^[A-Z][A-Za-z0-9_.]*(?:Error|Exception|Warning|Timeout)?(?::\s|$)'
+    exception_pattern = (
+        r"^[A-Z][A-Za-z0-9_.]*(?:Error|Exception|Warning|Timeout)?(?::\s|$)"
+    )
     return re.match(exception_pattern, line) is not None
 
 
 def _parse_exception_line(line):
     """Parse an exception line into (type, message)"""
     import re
-    
+
     line = line.strip()
-    
+
     # Pattern for ExceptionType: message
-    match = re.match(r'^([A-Z][A-Za-z0-9_.]*)\s*:\s*(.*)', line)
+    match = re.match(r"^([A-Z][A-Za-z0-9_.]*)\s*:\s*(.*)", line)
     if match:
         return match.group(1), match.group(2)
-    
+
     # Pattern for just ExceptionType (no colon/message)
-    match = re.match(r'^([A-Z][A-Za-z0-9_.]*)$', line)
+    match = re.match(r"^([A-Z][A-Za-z0-9_.]*)$", line)
     if match:
         return match.group(1), ""
-    
+
     return None, None
 
 
@@ -241,13 +246,13 @@ def task_fail_slack_alert(context):
 
     # Extract all exceptions from logs if available
     all_exceptions = []
-    
+
     # First, get exceptions from Docker container logs if available
     if DEBUG_LOG_TEXT is not None:
         # DEBUG MODE: Use the debug log text instead of actual logs
         print(f"DEBUG MODE: Using debug log text for parsing")
         parsed_exceptions = extract_all_exceptions_from_log(DEBUG_LOG_TEXT)
-        
+
         # Add parsed exceptions (filter out None entries)
         for exc in parsed_exceptions:
             if exc[0] is not None:
@@ -255,20 +260,22 @@ def task_fail_slack_alert(context):
     elif exception and hasattr(exception, "logs") and exception.logs:
         logs = exception.logs
         parsed_exceptions = extract_all_exceptions_from_log("\n".join(logs))
-        
+
         # Add parsed exceptions (filter out None entries)
         for exc in parsed_exceptions:
             if exc[0] is not None:
                 all_exceptions.append(exc)
-    
+
     # Always add the Airflow-level exception as well if not already found
     airflow_exception = (exception_type, exception_message, "Airflow")
     # Check if we already have this exception from parsing
-    airflow_already_found = any(exc[0] == exception_type and exc[1] == exception_message 
-                                for exc in all_exceptions)
+    airflow_already_found = any(
+        exc[0] == exception_type and exc[1] == exception_message
+        for exc in all_exceptions
+    )
     if not airflow_already_found:
         all_exceptions.append(airflow_exception)
-    
+
     # Use the last exception as primary for backward compatibility
     if all_exceptions:
         exception_type = all_exceptions[-1][0]
@@ -305,9 +312,11 @@ def task_fail_slack_alert(context):
         exceptions_text = f"*Exceptions Found ({len(all_exceptions)} total)*:"
         for i, exc_tuple in enumerate(all_exceptions, 1):
             exc_type = exc_tuple[0]
-            exc_msg = exc_tuple[1] 
+            exc_msg = exc_tuple[1]
             source = exc_tuple[2] if len(exc_tuple) > 2 else "Unknown"
-            exceptions_text += f"\n        {i}. *{exc_type}* _(from {source})_: `{exc_msg}`"
+            exceptions_text += (
+                f"\n        {i}. *{exc_type}* _(from {source})_: `{exc_msg}`"
+            )
 
     slack_msg = f"""
         {icon}{env_indicator} *Task failure* 
