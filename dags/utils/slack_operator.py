@@ -91,7 +91,6 @@ def get_central_time_exec_data(context):
 def task_fail_slack_alert(context):
 
     task_instance = context.get("task_instance")
-    task = context.get("task")
     exception = context.get("exception")
     exception_type = type(exception).__name__ if exception else "Unknown"
     exception_message = (
