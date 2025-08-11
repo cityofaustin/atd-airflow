@@ -184,7 +184,7 @@ with DAG(
 
 ### Slack operator utility
 
-The Slack operator utility makes use of the integration between the Airflow and a Slack app webhook. The purpose of the utility is to add Slack notifications to DAGs using the [callback](https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/callbacks.html#callback-types) parameters. Failure, critical failure, and success notifications are implemented.
+The Slack operator utility makes use of the integration between Airflow and a Slack app webhook. The purpose of the utility is to add Slack notifications to DAGs using the [callback](https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/callbacks.html#callback-types) parameters. Failure and success notifications are implemented.
 
 To configure the Slack operator in your local instance, from the Airflow UI go to **Admin** > **Connections** and choose **Slack API** as the **connection type**. You can find the remaining settings in 1Password under the **Airflow - Slack Bot** item.
 
@@ -208,7 +208,7 @@ with DAG(
     <snip>
 ```
 
-**To test the Slack operator locally**, see the DAG named `test_slack_notifier`.
+**To test the Slack operator locally**, see the DAGs `test_slack_notifier` and `test_docker_failure`.
 
 ## Useful Commands
 
