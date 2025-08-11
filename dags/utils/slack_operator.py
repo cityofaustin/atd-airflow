@@ -276,11 +276,6 @@ def task_fail_slack_alert(context):
     if not airflow_already_found:
         all_exceptions.append(airflow_exception)
 
-    # Use the last exception as primary for backward compatibility
-    if all_exceptions:
-        exception_type = all_exceptions[-1][0]
-        exception_message = all_exceptions[-1][1]
-
     # Extract additional information
     dag = context.get("dag")
     dag_id = task_instance.dag_id
@@ -305,6 +300,8 @@ def task_fail_slack_alert(context):
     exceptions_text = ""
     if len(all_exceptions) == 1:
         # Single exception - use original format with source
+        exception_type = all_exceptions[-1][0]
+        exception_message = all_exceptions[-1][1]
         source = all_exceptions[0][2] if len(all_exceptions[0]) > 2 else "Unknown"
         exceptions_text = f"*Exception Type*: `{exception_type}` _(from {source})_\n        *Exception Message*: `{exception_message}`"
     else:
