@@ -1,4 +1,4 @@
-# test locally with: docker compose run --rm airflow-cli dags test dts_maximo_reporting_workorders
+# test locally with: docker compose run --rm airflow-cli dags test dts_maximo_reporting
 
 from os import getenv
 
@@ -18,7 +18,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "execution_timeout": duration(minutes=15),
+    "execution_timeout": duration(minutes=30),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -113,4 +113,42 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t1 >> t2 >> t3
+    t4 = DockerOperator(
+        task_id="work_order_time_logs_to_socrata",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove="force",
+        command=f"python etl/maximo_to_socrata.py --query work_order_time_logs",
+        environment=env_vars,
+        tty=True,
+        force_pull=False,
+        mount_tmp_dir=False,
+    )
+
+    t5 = DockerOperator(
+        task_id="work_order_materials_to_socrata",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove="force",
+        command=f"python etl/maximo_to_socrata.py --query work_order_materials",
+        environment=env_vars,
+        tty=True,
+        force_pull=False,
+        mount_tmp_dir=False,
+    )
+
+    t6 = DockerOperator(
+        task_id="work_order_specifications_to_socrata",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove="force",
+        command=f"python etl/maximo_to_socrata.py --query work_order_specifications",
+        environment=env_vars,
+        tty=True,
+        force_pull=False,
+        mount_tmp_dir=False,
+    )
+
+
+
+    t1 >> t2 >> t3 >> t4 >> t5 >> t6
