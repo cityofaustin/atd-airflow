@@ -159,6 +159,14 @@ with DAG(
             "task_id": "tia_determinations_to_socrata",
             "command": f"./atd-knack-services/services/records_to_socrata.py -a development-services -c view_2923 {date_filter_arg}",
         },
+        {
+            "task_id": "sif_encumbrance_projects_to_postgrest",
+            "command": f"./atd-knack-services/services/records_to_postgrest.py -a development-services -c view_3187 {date_filter_arg}",
+        },
+        {
+            "task_id": "sif_encumbrance_projects_to_socrata",
+            "command": f"./atd-knack-services/services/records_to_socrata.py -a development-services -c view_3187 {date_filter_arg}",
+        },
     ]
 
     tasks = []
