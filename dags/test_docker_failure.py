@@ -21,19 +21,52 @@ DEFAULT_ARGS = {
 
 with DAG(
     dag_id=f"test_docker_failure",
-    description="Throws a python exception from within a docker container",
+    description="Throws stacked python exceptions from within a docker container",
     default_args=DEFAULT_ARGS,
     schedule_interval=None,
     tags=["repo:atd-airflow", "slack"],
     catchup=False,
 ) as dag:
-    dag.byline = f"Test failure in a docker container"
+    dag.byline = f"Test stacked exceptions in a docker container"
     dag.icon = ":test_tube:"
 
     t1 = DockerOperator(
         task_id="docker_failure",
         image="atddocker/atd-airflow:production",
-        command="python -c \"raise Exception('This is a test exception')\"",
+        command=[
+            "python",
+            "-c",
+            """
+import sys
+import traceback
+
+def outer_function():
+    try:
+        middle_function()
+    except Exception as e:
+        print("Caught exception in outer_function: " + str(e))
+        raise RuntimeError("Failed in outer function") from e
+
+def middle_function():
+    try:
+        inner_function()
+    except Exception as e:
+        print("Caught exception in middle_function: " + str(e))
+        raise ValueError("Failed in middle function") from e
+
+def inner_function():
+    print("About to raise ConnectionError")
+    raise ConnectionError("Connection failed")
+
+if __name__ == "__main__":
+    try:
+        outer_function()
+    except Exception as e:
+        print("Final exception caught at top level:")
+        traceback.print_exc()
+        sys.exit(1)
+""",
+        ],
         docker_conn_id="docker_default",
         auto_remove="force",
         tty=True,

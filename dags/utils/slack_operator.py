@@ -3,13 +3,14 @@ from os import getenv
 from cron_descriptor import get_description
 from airflow.hooks.base import BaseHook
 from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
-
+from utils.log_parsing import extract_all_exceptions_from_log, extract_all_exceptions
 
 # This is the Conn Id that we set when creating the connection in the Airflow dashboard
 # in Admin > Connections.
 SLACK_CONN_ID = "slack"
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
+
 
 slack_member_ids = {
     "Frank": "<@UMS32US1E>",
@@ -87,70 +88,30 @@ def get_central_time_exec_data(context):
     return local_tz.convert(execution_date_timestamp).format("MM/DD/YYYY hh:mm:ss A")
 
 
-def task_fail_slack_alert_critical(context):
-    slack_msg = """
-            <!channel> :red_circle: Critical Failure
-            *Task*: {task}  
-            *DAG*: {dag} 
-            *Execution Time*: {exec_date}  
-            *Log URL*: {log_url} 
-            """.format(
-        task=context.get("task_instance").task_id,
-        dag=context.get("task_instance").dag_id,
-        exec_date=get_central_time_exec_data(context),
-        log_url=context.get("task_instance").log_url,
-    )
-    failed_alert = SlackWebhookOperator(
-        task_id="slack_critical_failure",
-        slack_webhook_conn_id=SLACK_CONN_ID,
-        message=slack_msg,
-        username="airflow",
-    )
-    return failed_alert.execute(context=context)
-
-
-def extract_exception_from_log(log_text):
-    import re
-
-    # Find the last occurrence of 'Traceback (most recent call last):'
-    traceback_start = log_text.rfind("Traceback (most recent call last):")
-    if traceback_start == -1:
-        return None, None  # No traceback found
-
-    # Extract the traceback portion
-    traceback_text = log_text[traceback_start:]
-
-    # Find the last line (which usually contains the exception type and message)
-    last_line = traceback_text.strip().split("\n")[-1]
-
-    # Extract exception type and message
-    match = re.match(r"([\w.]+): (.*)", last_line)
-    if match:
-        return match.group(1), match.group(2)
-
-    return None, None
+def build_exception_text(all_exceptions):
+    # Format all exceptions for display
+    exceptions_text = ""
+    if len(all_exceptions) == 1:
+        # Single exception - use original format with source
+        exception_type = all_exceptions[-1][0]
+        exception_message = all_exceptions[-1][1]
+        source = all_exceptions[0][2] if len(all_exceptions[0]) > 2 else "Unknown"
+        exceptions_text = f"*Exception Type*: `{exception_type}` _(from {source})_\n        *Exception Message*: `{exception_message}`"
+    else:
+        # Multiple exceptions - list them all with sources
+        exceptions_text = f"*Exceptions Found ({len(all_exceptions)} total)*:"
+        for i, exc_tuple in enumerate(all_exceptions, 1):
+            exc_type = exc_tuple[0]
+            exc_msg = exc_tuple[1]
+            source = exc_tuple[2] if len(exc_tuple) > 2 else "Unknown"
+            exceptions_text += (
+                f"\n        {i}. *{exc_type}* _(from {source})_: `{exc_msg}`"
+            )
+    return exceptions_text
 
 
 def task_fail_slack_alert(context):
-
     task_instance = context.get("task_instance")
-    task = context.get("task")
-    exception = context.get("exception")
-    exception_type = type(exception).__name__ if exception else "Unknown"
-    exception_message = (
-        str(exception) if exception else "No exception message available"
-    )
-
-    if exception and hasattr(exception, "logs") and exception.logs:
-        logs = exception.logs
-        parsed_exception_type, parsed_exception_message = extract_exception_from_log(
-            "\n".join(logs)
-        )
-        if parsed_exception_message and parsed_exception_type:
-            exception_type = parsed_exception_type
-            exception_message = parsed_exception_message
-
-    # Extract additional information
     dag = context.get("dag")
     dag_id = task_instance.dag_id
     task_id = task_instance.task_id
@@ -159,8 +120,10 @@ def task_fail_slack_alert(context):
     duration = getattr(task_instance, "duration", "Not available")
 
     schedule_interval = dag.schedule_interval if dag else None
-
     schedule_description = format_schedule(schedule_interval)
+
+    all_exceptions = extract_all_exceptions(context)
+    exceptions_text = build_exception_text(all_exceptions)
 
     byline = getattr(dag, "byline", "")
     icon = getattr(dag, "icon", ":red_circle:")
@@ -178,8 +141,7 @@ def task_fail_slack_alert(context):
         *Execution Time*: `{exec_date}`
         *Schedule*: `{schedule_description}`
         *Duration*: `{duration} seconds`
-        *Exception Type*: `{exception_type}`
-        *Exception Message*: `{exception_message}`
+        {exceptions_text}
         <{log_url}|*View Task Log*>
     """
 
