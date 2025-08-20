@@ -142,7 +142,29 @@ def _find_exception_line_in_traceback(lines, traceback_start_idx):
 
 
 def _is_exception_line(line):
-    """Check if a line contains a Python exception"""
+    """Determine whether a single log line is the exception line of a traceback.
+
+    This aims to capture the final line of a Python traceback which typically
+    contains the exception class (optionally prefixed by module paths) and an
+    optional message. We purposely skip stack frames, caret markers, and other
+    traceback metadata lines.
+
+    Matches (examples we want to catch):
+    - "ValueError: invalid literal for int() with base 10: 'abc'"
+    - "KeyError: 'foo'"
+    - "mypkg.errors.CustomError: something went wrong"
+    - "package.subpackage.Timeout"  (class name without a message)
+    - "RuntimeError:"  (class name with a trailing colon but empty message)
+
+    Non-matches (examples we want to ignore):
+    - "Traceback (most recent call last):"
+    - "  File \"/usr/local/lib/python3.10/site-packages/foo.py\", line 10, in bar"
+    - "    raise ValueError('bad')"  (indented code line inside stack frame)
+    - "^"  (caret lines from SyntaxError displays)
+    - "During handling of the above exception, another exception occurred:"
+    - "The above exception was the direct cause of the following exception:"
+    - ""  (empty/whitespace-only lines)
+    """
     import re
 
     line = line.strip()
@@ -159,12 +181,7 @@ def _is_exception_line(line):
     ):
         return False
 
-    # Look for Python exception patterns
     # Allow optional lowercase/dotted module path segments before a capitalized class name
-    # Example matches:
-    #   ValueError: message
-    #   mypkg.errors.CustomError: message
-    #   package.subpackage.Timeout
     exception_pattern = r"^(?:[a-z][a-z0-9_]*\.)*[A-Z][A-Za-z0-9_]*(?:Error|Exception|Warning|Timeout)?(?::\s|$)"
     return re.match(exception_pattern, line) is not None
 
