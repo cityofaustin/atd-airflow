@@ -126,8 +126,8 @@ git pull;
 # pull the fresh production image
 docker compose pull;
 
-# stop the Docker stack
-docker compose stop;
+# tear down the docker stack
+docker compose down;
 
 # start the Docker stack
 docker compose -f docker-compose.yaml -f docker-compose-production.yaml up -d;
