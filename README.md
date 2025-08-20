@@ -126,7 +126,7 @@ git pull;
 # pull the fresh production image
 docker compose pull;
 
-# down the Docker stack
+# tear down the docker stack
 docker compose down;
 
 # start the Docker stack
