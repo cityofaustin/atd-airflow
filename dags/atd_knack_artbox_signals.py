@@ -97,7 +97,7 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name_dest} -c {container_dest} {date_filter_arg}",
+        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name_dest} -c {container_dest}",
         environment=env_vars_t1,
         tty=True,
         force_pull=True,
