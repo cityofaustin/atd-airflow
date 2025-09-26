@@ -149,6 +149,18 @@ with DAG(
         mount_tmp_dir=False,
     )
 
+    t7 = DockerOperator(
+        task_id="maximo_locations_to_socrata",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove="force",
+        command=f"python etl/maximo_to_socrata.py --query locations",
+        environment=env_vars,
+        tty=True,
+        force_pull=False,
+        mount_tmp_dir=False,
+    )
 
 
-    t1 >> t2 >> t3 >> t4 >> t5 >> t6
+
+    t1 >> t2 >> t3 >> t4 >> t5 >> t6 >> t7
