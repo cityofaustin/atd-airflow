@@ -119,8 +119,9 @@ def task_fail_slack_alert(context):
     log_url = task_instance.log_url
     duration = getattr(task_instance, "duration", "Not available")
 
-    schedule_interval = dag.schedule_interval if dag else None
-    schedule_description = format_schedule(schedule_interval)
+    schedule_description = (
+        dag.timetable.summary if dag and hasattr(dag, "timetable") else "Not available"
+    )
 
     all_exceptions = extract_all_exceptions(context)
     exceptions_text = build_exception_text(all_exceptions)
@@ -144,6 +145,7 @@ def task_fail_slack_alert(context):
         {exceptions_text}
         <{log_url}|*View Task Log*>
     """
+    return True
 
     failed_alert = SlackWebhookOperator(
         task_id="slack_failure",
@@ -154,23 +156,23 @@ def task_fail_slack_alert(context):
     return failed_alert.execute(context=context)
 
 
-def task_success_slack_alert(context):
-    slack_msg = """
-            :white_check_mark: Task Successfully Completed.
-            *Task*: {task}
-            *DAG*: {dag}
-            *Execution Time*: {exec_date}
-            *Log URL*: {log_url}
-            """.format(
-        task=context.get("task_instance").task_id,
-        dag=context.get("task_instance").dag_id,
-        exec_date=get_central_time_exec_data(context),
-        log_url=context.get("task_instance").log_url,
-    )
-    success_alert = SlackWebhookOperator(
-        task_id="slack_success",
-        slack_webhook_conn_id=SLACK_CONN_ID,
-        message=slack_msg,
-        username="airflow",
-    )
-    return success_alert.execute(context=context)
+# def task_success_slack_alert(context):
+#     slack_msg = """
+#             :white_check_mark: Task Successfully Completed.
+#             *Task*: {task}
+#             *DAG*: {dag}
+#             *Execution Time*: {exec_date}
+#             *Log URL*: {log_url}
+#             """.format(
+#         task=context.get("task_instance").task_id,
+#         dag=context.get("task_instance").dag_id,
+#         exec_date=get_central_time_exec_data(context),
+#         log_url=context.get("task_instance").log_url,
+#     )
+#     success_alert = SlackWebhookOperator(
+#         task_id="slack_success",
+#         slack_webhook_conn_id=SLACK_CONN_ID,
+#         message=slack_msg,
+#         username="airflow",
+#     )
+#     return success_alert.execute(context=context)

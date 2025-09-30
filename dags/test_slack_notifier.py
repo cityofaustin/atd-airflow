@@ -1,48 +1,51 @@
-from os import getenv
-from pendulum import datetime, duration
+from __future__ import annotations
 
-from airflow.models import DAG
-from airflow.operators.python_operator import PythonOperator
+from os import getenv
+
+import pendulum
+
+from airflow.decorators import dag, task
 
 from utils.slack_operator import task_fail_slack_alert, slack_member_ids
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
-default_args = {
-    "owner": "airflow",
-    "description": "Test if the Slack notifier is working",
-    "depends_on_past": False,
-    "start_date": datetime(2015, 12, 1, tz="America/Chicago"),
-    "email_on_failure": False,
-    "email_on_retry": False,
-    "retries": 0,
-    "execution_timeout": duration(minutes=5),
-    "on_failure_callback": task_fail_slack_alert,
-}
 
-
-def task_fail():
-    raise Exception("Task failure test successfully triggered")
-
-
-with DAG(
+@dag(
     dag_id=f"test_slack_notifier_{DEPLOYMENT_ENVIRONMENT}",
-    default_args=default_args,
-    schedule_interval=None,
-    tags=["slack"],
+    schedule=None,
+    start_date=pendulum.datetime(2015, 12, 1, tz="America/Chicago"),
     catchup=False,
-) as dag:
+    tags=["slack"],
+    default_args={
+        "owner": "airflow",
+        "retries": 0,
+        "execution_timeout": pendulum.duration(minutes=5),
+        "on_failure_callback": task_fail_slack_alert,
+    },
+    doc_md="Test if the Slack notifier is working",
+)
+def test_slack_notifier():
+    """Test Slack notification on task failure."""
     # The usual suspects' slack IDs can be found in the slack_member_ids dictionary,
     # and one-off mentions can be done using the syntax <@UMS32US1E> where the ID can be
     # found in a member's profile, under the hamburger menu > Copy member ID.
-    dag.byline = (
+
+    @task(
+        task_id="task_fail",
+    )
+    def task_fail():
+        """Deliberately fail to test Slack alert."""
+        raise Exception("Task failure test successfully triggered")
+
+    task_fail()
+
+
+dag_instance = test_slack_notifier()
+
+# Set custom DAG attributes for Slack notifications
+if dag_instance:
+    dag_instance.byline = (
         f"Example optional byline, which supports mentions: {slack_member_ids['Frank']}"
     )
-    dag.icon = ":test_tube:"
-
-    t1 = PythonOperator(
-        task_id="task_fail",
-        python_callable=task_fail,
-    )
-
-    t1
+    dag_instance.icon = ":test_tube:"
