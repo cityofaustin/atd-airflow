@@ -3,7 +3,7 @@
 from os import getenv
 
 from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
 from airflow.decorators import task
 from airflow.models import Param
 from pendulum import datetime, duration, parse
@@ -96,7 +96,7 @@ with DAG(
     dag_id="atd_moped_components_to_agol",
     description="publish component record data to ArcGIS Online (AGOL)",
     default_args=DEFAULT_ARGS,
-    schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-moped", "moped", "agol"],
     catchup=False,
     params={"full_replace": Param(default=False, type="boolean")},
