@@ -10,7 +10,7 @@ removes those dangling images.
 from os import getenv
 
 from airflow.models import DAG
-from airflow.operators.bash_operator import BashOperator
+from airflow.providers.standard.operators.bash import BashOperator
 from pendulum import datetime, duration
 
 from utils.slack_operator import task_fail_slack_alert
@@ -33,7 +33,7 @@ default_args = {
 with DAG(
     dag_id=f"atd_airflow_docker_image_prune",
     default_args=default_args,
-    schedule_interval="1 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="1 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-airflow"],
     catchup=False,
 ) as dag:
