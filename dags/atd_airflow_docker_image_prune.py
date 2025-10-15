@@ -3,7 +3,7 @@ Prunes docker images by running `docker image prune`.
 
 Dangling docker images are common with our dockerized ETLs, because the top-most image
 layers contain ETL code. When that code changes, the previous layer is discarded,
-resulting in dangling docker images that can consume signficant disk space. This DAG
+resulting in dangling docker images that can consume significant disk space. This DAG
 removes those dangling images.
 """
 
