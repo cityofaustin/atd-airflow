@@ -71,7 +71,7 @@ with DAG(
     docker_image = "atddocker/dts-311-reporting:production"
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
-    date_arg = get_previous_run_date(fallback_date="2025-10-13")
+    date_arg = get_previous_run_date(fallback_date="2025-10-22")
 
     t1 = DockerOperator(
         task_id="open311_to_socrata",
