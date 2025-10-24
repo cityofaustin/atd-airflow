@@ -164,7 +164,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
-        command=f"python etl/csr_to_socrata.py",
+        command="python -m etl.csv_reporting.csr_to_socrata",
         environment=cur_year_env,
         tty=True,
         force_pull=True,
@@ -176,7 +176,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
-        command=f"python etl/flex_notes_to_socrata.py",
+        command="python -m etl.csv_reporting.flex_notes_to_socrata",
         environment=cur_year_env,
         tty=True,
     )
@@ -187,7 +187,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
-        command=f"python etl/activities_to_socrata.py",
+        command="python -m etl.csv_reporting.activities_to_socrata",
         environment=cur_year_env,
         tty=True,
     )
@@ -198,7 +198,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
-        command=f"python etl/csr_to_socrata.py",
+        command="python -m etl.csv_reporting.csr_to_socrata",
         environment=prev_year_env,
         tty=True,
     )
@@ -209,7 +209,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
-        command=f"python etl/flex_notes_to_socrata.py",
+        command="python -m etl.csv_reporting.flex_notes_to_socrata",
         environment=prev_year_env,
         tty=True,
     )
@@ -220,7 +220,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
-        command=f"python etl/activities_to_socrata.py",
+        command="python -m etl.csv_reporting.activities_to_socrata",
         environment=prev_year_env,
         tty=True,
     )
@@ -231,7 +231,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
-        command=f"python etl/csr_to_socrata.py",
+        command="python -m etl.csv_reporting.csr_to_socrata",
         environment=two_years_env,
         tty=True,
     )
@@ -242,7 +242,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
-        command=f"python etl/flex_notes_to_socrata.py",
+        command="python -m etl.csv_reporting.flex_notes_to_socrata",
         environment=two_years_env,
         tty=True,
     )
@@ -253,7 +253,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
-        command=f"python etl/activities_to_socrata.py",
+        command="python -m etl.csv_reporting.activities_to_socrata",
         environment=two_years_env,
         tty=True,
     )
