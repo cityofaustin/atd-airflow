@@ -22,4 +22,3 @@ def get_previous_run_date(fallback_date="1970-01-01", **context):
         "last_run_datetime": last_run_datetime,
         "last_run_datetime_iso": last_run_datetime.isoformat(),
     }
-
