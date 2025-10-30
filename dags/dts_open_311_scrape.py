@@ -65,7 +65,7 @@ with DAG(
         "*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
     ),
     dagrun_timeout=timedelta(minutes=5),
-    tags=["repo:dts-311-reporting", "socrata", "csr", "open311"],
+    tags=["repo:dts-311-reporting", "socrata", "311", "open311"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/dts-311-reporting:production"

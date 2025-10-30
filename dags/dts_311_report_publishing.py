@@ -49,7 +49,7 @@ OTHER_SECRETS = {
         "opitem": "Executive Dashboard",
         "opfield": "datasets.Revenue",
     },
-    "CSR_DATASET": {
+    "REQUESTS_DATASET": {
         "opitem": "Executive Dashboard",
         "opfield": "datasets.CSR",
     },
@@ -92,7 +92,7 @@ OTHER_SECRETS = {
 }
 
 CUR_YEAR_SECRETS = {
-    "CSR_ENDPOINT": {
+    "REQUESTS_ENDPOINT": {
         "opitem": "Executive Dashboard",
         "opfield": "csr.Current FY Endpoint",
     },
@@ -107,7 +107,7 @@ CUR_YEAR_SECRETS = {
 }
 
 PREV_YEAR_SECRETS = {
-    "CSR_ENDPOINT": {
+    "REQUESTS_ENDPOINT": {
         "opitem": "Executive Dashboard",
         "opfield": "csr.Previous FY Endpoint",
     },
@@ -122,7 +122,7 @@ PREV_YEAR_SECRETS = {
 }
 
 TWO_YEARS_AGO_SECRETS = {
-    "CSR_ENDPOINT": {
+    "REQUESTS_ENDPOINT": {
         "opitem": "Executive Dashboard",
         "opfield": "csr.Two Years Ago FY Endpoint",
     },
@@ -159,7 +159,7 @@ with DAG(
     two_years_env = get_env_vars_task(TWO_YEARS_AGO_SECRETS)
 
     t1 = DockerOperator(
-        task_id="cur_year_csr_report_to_socrata",
+        task_id="cur_year_requests_report_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
         api_version="auto",
@@ -193,7 +193,7 @@ with DAG(
     )
 
     t4 = DockerOperator(
-        task_id="prev_year_csr_report_to_socrata",
+        task_id="prev_year_requests_report_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
         api_version="auto",
@@ -226,7 +226,7 @@ with DAG(
     )
 
     t7 = DockerOperator(
-        task_id="two_years_ago_csr_report_to_socrata",
+        task_id="two_years_ago_requests_report_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
         api_version="auto",
