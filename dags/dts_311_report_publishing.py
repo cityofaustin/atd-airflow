@@ -1,4 +1,4 @@
-# test locally with: docker compose run --rm airflow-cli dags test dts_csr_report_publishing
+# test locally with: docker compose run --rm airflow-cli dags test dts_311_report_publishing
 
 from os import getenv
 
@@ -142,14 +142,14 @@ PREV_YEAR_SECRETS.update(OTHER_SECRETS)
 TWO_YEARS_AGO_SECRETS.update(OTHER_SECRETS)
 
 with DAG(
-    dag_id="dts_csr_report_publishing",
+    dag_id="dts_311_report_publishing",
     description="Downloads reports of 311 service requests for TPW and publishes it in a Socrata dataset.",
     default_args=default_args,
     schedule_interval=(
         "36 2,13 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
     ),
     dagrun_timeout=timedelta(minutes=60),
-    tags=["repo:dts-311-reporting", "socrata", "csr"],
+    tags=["repo:dts-311-reporting", "socrata", "311"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/dts-311-reporting:production"
@@ -164,7 +164,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
-        command="python -m etl.csv_reporting.csr_to_socrata",
+        command="python -m etl.csv_reporting.requests_to_socrata",
         environment=cur_year_env,
         tty=True,
         force_pull=True,
@@ -198,7 +198,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
-        command="python -m etl.csv_reporting.csr_to_socrata",
+        command="python -m etl.csv_reporting.requests_to_socrata",
         environment=prev_year_env,
         tty=True,
     )
@@ -231,7 +231,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
-        command="python -m etl.csv_reporting.csr_to_socrata",
+        command="python -m etl.csv_reporting.requests_to_socrata",
         environment=two_years_env,
         tty=True,
     )
