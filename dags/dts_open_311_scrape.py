@@ -7,7 +7,7 @@ from datetime import timedelta
 from airflow.decorators import task
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
-from pendulum import datetime, duration
+from pendulum import datetime, duration, now
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
@@ -71,7 +71,8 @@ with DAG(
     docker_image = "atddocker/dts-311-reporting:production"
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
-    date_arg = get_previous_run_date(fallback_date="2025-10-22")
+    one_day_ago = now("America/Chicago").subtract(days=1)
+    date_arg = get_previous_run_date(fallback_date=one_day_ago.to_iso8601_string())
 
     t1 = DockerOperator(
         task_id="open311_to_socrata",
