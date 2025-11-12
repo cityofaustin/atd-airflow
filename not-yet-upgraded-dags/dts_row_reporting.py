@@ -261,6 +261,18 @@ with DAG(
             "image": docker_image,
             "env": env_vars,
         },
+        {
+            "task_id": "sif_payment_details_s3",
+            "command": "python amanda/amanda_to_s3.py --query sif_payment_details",
+            "image": docker_image,
+            "env": env_vars,
+        },
+        {
+            "task_id": "sif_payment_details_socrata",
+            "command": "python metrics/s3_to_socrata.py --dataset sif_payment_details",
+            "image": docker_image,
+            "env": env_vars,
+        },
     ]
 
     tasks = []

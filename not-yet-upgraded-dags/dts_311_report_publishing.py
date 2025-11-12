@@ -1,4 +1,4 @@
-# test locally with: docker compose run --rm airflow-cli dags test dts_csr_report_publishing
+# test locally with: docker compose run --rm airflow-cli dags test dts_311_report_publishing
 
 from os import getenv
 
@@ -49,7 +49,7 @@ OTHER_SECRETS = {
         "opitem": "Executive Dashboard",
         "opfield": "datasets.Revenue",
     },
-    "CSR_DATASET": {
+    "REQUESTS_DATASET": {
         "opitem": "Executive Dashboard",
         "opfield": "datasets.CSR",
     },
@@ -92,7 +92,7 @@ OTHER_SECRETS = {
 }
 
 CUR_YEAR_SECRETS = {
-    "CSR_ENDPOINT": {
+    "REQUESTS_ENDPOINT": {
         "opitem": "Executive Dashboard",
         "opfield": "csr.Current FY Endpoint",
     },
@@ -107,7 +107,7 @@ CUR_YEAR_SECRETS = {
 }
 
 PREV_YEAR_SECRETS = {
-    "CSR_ENDPOINT": {
+    "REQUESTS_ENDPOINT": {
         "opitem": "Executive Dashboard",
         "opfield": "csr.Previous FY Endpoint",
     },
@@ -122,7 +122,7 @@ PREV_YEAR_SECRETS = {
 }
 
 TWO_YEARS_AGO_SECRETS = {
-    "CSR_ENDPOINT": {
+    "REQUESTS_ENDPOINT": {
         "opitem": "Executive Dashboard",
         "opfield": "csr.Two Years Ago FY Endpoint",
     },
@@ -142,14 +142,14 @@ PREV_YEAR_SECRETS.update(OTHER_SECRETS)
 TWO_YEARS_AGO_SECRETS.update(OTHER_SECRETS)
 
 with DAG(
-    dag_id="dts_csr_report_publishing",
+    dag_id="dts_311_report_publishing",
     description="Downloads reports of 311 service requests for TPW and publishes it in a Socrata dataset.",
     default_args=default_args,
     schedule_interval=(
         "36 2,13 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
     ),
     dagrun_timeout=timedelta(minutes=60),
-    tags=["repo:dts-311-reporting", "socrata", "csr"],
+    tags=["repo:dts-311-reporting", "socrata", "311"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/dts-311-reporting:production"
@@ -159,12 +159,12 @@ with DAG(
     two_years_env = get_env_vars_task(TWO_YEARS_AGO_SECRETS)
 
     t1 = DockerOperator(
-        task_id="cur_year_csr_report_to_socrata",
+        task_id="cur_year_requests_report_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
-        command=f"python etl/csr_to_socrata.py",
+        command="python -m etl.csv_reporting.requests_to_socrata",
         environment=cur_year_env,
         tty=True,
         force_pull=True,
@@ -176,7 +176,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
-        command=f"python etl/flex_notes_to_socrata.py",
+        command="python -m etl.csv_reporting.flex_notes_to_socrata",
         environment=cur_year_env,
         tty=True,
     )
@@ -187,18 +187,18 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
-        command=f"python etl/activities_to_socrata.py",
+        command="python -m etl.csv_reporting.activities_to_socrata",
         environment=cur_year_env,
         tty=True,
     )
 
     t4 = DockerOperator(
-        task_id="prev_year_csr_report_to_socrata",
+        task_id="prev_year_requests_report_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
-        command=f"python etl/csr_to_socrata.py",
+        command="python -m etl.csv_reporting.requests_to_socrata",
         environment=prev_year_env,
         tty=True,
     )
@@ -209,7 +209,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
-        command=f"python etl/flex_notes_to_socrata.py",
+        command="python -m etl.csv_reporting.flex_notes_to_socrata",
         environment=prev_year_env,
         tty=True,
     )
@@ -220,18 +220,18 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
-        command=f"python etl/activities_to_socrata.py",
+        command="python -m etl.csv_reporting.activities_to_socrata",
         environment=prev_year_env,
         tty=True,
     )
 
     t7 = DockerOperator(
-        task_id="two_years_ago_csr_report_to_socrata",
+        task_id="two_years_ago_requests_report_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
-        command=f"python etl/csr_to_socrata.py",
+        command="python -m etl.csv_reporting.requests_to_socrata",
         environment=two_years_env,
         tty=True,
     )
@@ -242,7 +242,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
-        command=f"python etl/flex_notes_to_socrata.py",
+        command="python -m etl.csv_reporting.flex_notes_to_socrata",
         environment=two_years_env,
         tty=True,
     )
@@ -253,7 +253,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
-        command=f"python etl/activities_to_socrata.py",
+        command="python -m etl.csv_reporting.activities_to_socrata",
         environment=two_years_env,
         tty=True,
     )
