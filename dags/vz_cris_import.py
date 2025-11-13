@@ -64,8 +64,8 @@ REQUIRED_SECRETS = {
     },
 }
 
-docker_image = f"atddocker/vz-cris-import:{'production' if DEPLOYMENT_ENVIRONMENT == 'production' else 'latest'}"
-
+docker_image_cris_import = f"atddocker/vz-cris-import:{'production' if DEPLOYMENT_ENVIRONMENT == 'production' else 'latest'}"
+docker_image_ems_match = f"atddocker/vz-ems-person-match:{'production' if DEPLOYMENT_ENVIRONMENT == 'production' else 'latest'}"
 
 DEFAULT_ARGS = {
     "depends_on_past": False,
@@ -93,7 +93,7 @@ with DAG(
     cris_import = DockerOperator(
         task_id="run_cris_import",
         docker_conn_id="docker_default",
-        image=docker_image,
+        image=docker_image_cris_import,
         command=f"./cris_import.py --csv --pdf --s3-download --s3-upload --s3-archive --workers 2",
         environment=env_vars,
         auto_remove="force",
@@ -104,11 +104,21 @@ with DAG(
     ocr_crash_narratives = DockerOperator(
         task_id="ocr_crash_narratives",
         docker_conn_id="docker_default",
-        image=docker_image,
+        image=docker_image_cris_import,
         command=f"./cr3_ocr_narrative.py --workers 2",
         environment=env_vars,
         auto_remove="force",
         tty=True,
     )
 
-    cris_import >> ocr_crash_narratives
+    match_ems_to_people = DockerOperator(
+        task_id="match_ems_to_people",
+        docker_conn_id="docker_default",
+        image=docker_image_ems_match,
+        command=f"./match_ems_to_people.py",
+        environment=env_vars,
+        auto_remove="force",
+        tty=True,
+    )
+
+    cris_import >> ocr_crash_narratives >> match_ems_to_people
