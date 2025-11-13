@@ -65,7 +65,7 @@ REQUIRED_SECRETS = {
 }
 
 docker_image_cris_import = f"atddocker/vz-cris-import:{'production' if DEPLOYMENT_ENVIRONMENT == 'production' else 'latest'}"
-docker_image_ems_match = f"atddocker/vz-ems-person-match:{'production' if DEPLOYMENT_ENVIRONMENT == 'production' else 'latest'}"
+docker_image_ems_match = f"atddocker/vz-ems-person-match:{'production' if DEPLOYMENT_ENVIRONMENT == 'production' else 'development'}"
 
 DEFAULT_ARGS = {
     "depends_on_past": False,
@@ -73,7 +73,9 @@ DEFAULT_ARGS = {
     "email_on_retry": False,
     "retries": 0,
     "execution_timeout": duration(minutes=60),
-    "on_failure_callback": task_fail_slack_alert,
+    "on_failure_callback": (
+        task_fail_slack_alert if DEPLOYMENT_ENVIRONMENT != "development" else None
+    ),
 }
 
 
@@ -119,6 +121,7 @@ with DAG(
         environment=env_vars,
         auto_remove="force",
         tty=True,
+        mount_tmp_dir=False, 
     )
 
-    cris_import >> ocr_crash_narratives >> match_ems_to_people
+    match_ems_to_people
