@@ -57,7 +57,7 @@ services:
       POSTGRES_PASSWORD: airflow
       POSTGRES_DB: airflow
     volumes:
-      - postgres-db-volume:/var/lib/postgresql/data
+      - v3-postgres-db-volume:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 10s
@@ -82,8 +82,7 @@ services:
   airflow-apiserver:
     <<: *airflow-common
     command: api-server
-    ports:
-      - "8080:8080"
+
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/version"]
       interval: 30s
@@ -283,7 +282,7 @@ services:
         condition: service_completed_successfully
 
 volumes:
-  postgres-db-volume:
+  v3-postgres-db-volume:
   # volume for Knack SSL certs which will be mounted to DockerOperator tasks for 311 integration
   knack-certs:
     driver: local
