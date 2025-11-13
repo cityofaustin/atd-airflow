@@ -117,11 +117,11 @@ with DAG(
         task_id="match_ems_to_people",
         docker_conn_id="docker_default",
         image=docker_image_ems_match,
-        command=f"./match_ems_to_people.py",
+        command=f"python match_ems_to_people.py",
         environment=env_vars,
         auto_remove="force",
         tty=True,
-        mount_tmp_dir=False, 
+        force_pull=True,
     )
 
-    match_ems_to_people
+    cris_import >> ocr_crash_narratives >> match_ems_to_people
