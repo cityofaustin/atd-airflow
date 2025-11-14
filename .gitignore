@@ -25,3 +25,4 @@ logs/*
 db/*
 
 .vscode/*
+simple_auth_manager_passwords.json
