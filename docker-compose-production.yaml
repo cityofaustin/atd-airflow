@@ -1,5 +1,6 @@
 services:
   haproxy:
+    image: haproxy:2.6
     ports:
       - 8443:8443
     volumes:
@@ -7,4 +8,3 @@ services:
       - ${AIRFLOW_PROJ_DIR}/haproxy/haproxy-production.cfg:/usr/local/etc/haproxy/haproxy.cfg
     depends_on:
       - airflow-apiserver
-      
