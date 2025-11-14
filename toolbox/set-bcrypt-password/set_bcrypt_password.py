@@ -50,7 +50,7 @@ if __name__ == "__main__":
     password_file = os.environ.get(
         "AIRFLOW_HOME",
         "."
-    ) + "/simple_auth_manager_passwords.json"
+    ) + "/users/simple_auth_manager_passwords.json.generated"
     
     # Allow override via command line arguments
     if len(sys.argv) > 1:
