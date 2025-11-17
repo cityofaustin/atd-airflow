@@ -1,1 +1,5 @@
 onepasswordconnectsdk==1.*
+apache-airflow-providers-fab==3.0.*
+connexion[flask]>=2.14.2,<3.0
+flask-appbuilder==5.*
+Flask-Session==0.*
