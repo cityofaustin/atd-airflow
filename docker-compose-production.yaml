@@ -1,5 +1,5 @@
 services:
-  haproxy:
+  haproxy-airflow-three:
     image: haproxy:2.6
     ports:
       - 8443:8443
