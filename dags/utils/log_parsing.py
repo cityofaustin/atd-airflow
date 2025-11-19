@@ -182,7 +182,7 @@ def _is_exception_line(line):
         return False
 
     # Allow optional lowercase/dotted module path segments before a capitalized class name
-    exception_pattern = r"^(?:[a-z][a-z0-9_]*\.)*[A-Z][A-Za-z0-9_]*(?:Error|Exception|Warning|Timeout)?(?::\s|$)"
+    exception_pattern = r"^(?:[a-z_][a-z0-9_]*\.)*[A-Z][A-Za-z0-9_]*(?:Error|Exception|Warning|Timeout)?(?::\s|$)"
     return re.match(exception_pattern, line) is not None
 
 
@@ -195,7 +195,7 @@ def _parse_exception_line(line):
     # Pattern for optional module path + ExceptionType: message
     # Capture only the bare class name as the type
     match = re.match(
-        r"^(?:[a-z][a-z0-9_]*\.)*([A-Z][A-Za-z0-9_]*(?:Error|Exception|Warning|Timeout)?)\s*:\s*(.*)",
+        r"^(?:[a-z_][a-z0-9_]*\.)*([A-Z][A-Za-z0-9_]*(?:Error|Exception|Warning|Timeout)?)\s*:\s*(.*)",
         line,
     )
     if match:
@@ -203,7 +203,7 @@ def _parse_exception_line(line):
 
     # Pattern for optional module path + just ExceptionType (no colon/message)
     match = re.match(
-        r"^(?:[a-z][a-z0-9_]*\.)*([A-Z][A-Za-z0-9_]*(?:Error|Exception|Warning|Timeout)?)$",
+        r"^(?:[a-z_][a-z0-9_]*\.)*([A-Z][A-Za-z0-9_]*(?:Error|Exception|Warning|Timeout)?)$",
         line,
     )
     if match:
