@@ -1,4 +1,4 @@
-# Test locally with: docker compose run --rm airflow-cli dags test atd_moped_ecapris_status_sync
+# Test locally with: docker compose run --rm airflow-cli dags test atd_moped_ecapris_funding_sync
 
 from os import getenv
 
