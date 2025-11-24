@@ -4,6 +4,7 @@ from os import getenv
 
 from airflow.decorators import dag, task
 from airflow.operators.docker_operator import DockerOperator
+from airflow.models import Param
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -19,7 +20,7 @@ DEFAULT_ARGS = {
     "email_on_retry": False,
     "retries": 0,
     "retry_delay": duration(minutes=5),
-    # "on_failure_callback": task_fail_slack_alert,
+    "on_failure_callback": task_fail_slack_alert,
 }
 
 REQUIRED_SECRETS = {
@@ -93,7 +94,7 @@ def sync_ecapris_funding():
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    branch = branch()
+    branch_task = branch()
 
     ecapris_funding_sync_dry_run = DockerOperator(
         task_id="ecapris_funding_sync_dry_run",
@@ -119,7 +120,7 @@ def sync_ecapris_funding():
         mount_tmp_dir=False,
     )
 
-    env_vars >> branch >> [ecapris_funding_sync_dry_run, ecapris_funding_sync]
+    env_vars >> branch_task >> [ecapris_funding_sync_dry_run, ecapris_funding_sync]
 
 
 sync_ecapris_funding()
