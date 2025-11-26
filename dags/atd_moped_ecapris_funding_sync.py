@@ -20,7 +20,7 @@ DEFAULT_ARGS = {
     "email_on_retry": False,
     "retries": 0,
     "retry_delay": duration(minutes=5),
-    "on_failure_callback": task_fail_slack_alert,
+    # "on_failure_callback": task_fail_slack_alert,
 }
 
 REQUIRED_SECRETS = {
@@ -96,28 +96,26 @@ def sync_ecapris_funding():
 
     branch_task = branch()
 
+    common_docker_config = {
+        "image": docker_image,
+        "docker_conn_id": "docker_default",
+        "auto_remove": "force",
+        "environment": env_vars,
+        "tty": True,
+        "force_pull": True,
+        "mount_tmp_dir": False,
+    }
+
     ecapris_funding_sync_dry_run = DockerOperator(
         task_id="ecapris_funding_sync_dry_run",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command=f"python3.14 ecapris_funding_sync.py -n",
-        environment=env_vars,
-        tty=True,
-        force_pull=True,
-        mount_tmp_dir=False,
+        command="python3.14 ecapris_funding_sync.py -n",
+        **common_docker_config,
     )
 
     ecapris_funding_sync = DockerOperator(
         task_id="ecapris_funding_sync",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
         command=f"python3.14 ecapris_funding_sync.py",
-        environment=env_vars,
-        tty=True,
-        force_pull=True,
-        mount_tmp_dir=False,
+        **common_docker_config,
     )
 
     env_vars >> branch_task >> [ecapris_funding_sync_dry_run, ecapris_funding_sync]
