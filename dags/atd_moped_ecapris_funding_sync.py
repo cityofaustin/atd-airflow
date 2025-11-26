@@ -20,7 +20,7 @@ DEFAULT_ARGS = {
     "email_on_retry": False,
     "retries": 0,
     "retry_delay": duration(minutes=5),
-    # "on_failure_callback": task_fail_slack_alert,
+    "on_failure_callback": task_fail_slack_alert,
 }
 
 REQUIRED_SECRETS = {
