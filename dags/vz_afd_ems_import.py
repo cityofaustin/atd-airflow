@@ -53,7 +53,9 @@ REQUIRED_SECRETS = {
 @dag(
     dag_id="vz-afd-ems-incident-import",
     description="A DAG which imports EMS and AFD data into the Vision Zero database.",
-    schedule="45 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    # todo: we are currently skipping weekends
+    # https://github.com/cityofaustin/atd-data-tech/issues/25781
+    schedule="45 7 * * 1-5" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     start_date=datetime(2023, 1, 1, tz="America/Chicago"),
     catchup=False,
     tags=["repo:atd-vz-data", "vision-zero", "ems", "afd", "import"],
