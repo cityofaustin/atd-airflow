@@ -51,6 +51,10 @@ REQUIRED_SECRETS = {
         "opitem": "Work Zone Data Feed",
         "opfield": "production.flat dataset ID",
     },
+    "SEGMENT_DATASET": {
+        "opitem": "Work Zone Data Feed",
+        "opfield": "production.segment dataset ID",
+    },
     # AMANDA
     "HOST": {
         "opitem": "Amanda Read-Only (RO) replica database",
