@@ -81,6 +81,19 @@ REQUIRED_SECRETS = {
         "opitem": "Work Zone Data Feed",
         "opfield": "production.contact email",
     },
+    # Coordinate
+    "COORDINATE_USER": {
+        "opitem": "Work Zone Data Feed",
+        "opfield": "coordinate.coordinate username",
+    },
+    "COORDINATE_BASE_URL": {
+        "opitem": "Work Zone Data Feed",
+        "opfield": "coordinate.base url",
+    },
+    "COORDINATE_PASSWORD": {
+        "opitem": "Work Zone Data Feed",
+        "opfield": "coordinate.coordinate password",
+    },
 }
 
 with DAG(
