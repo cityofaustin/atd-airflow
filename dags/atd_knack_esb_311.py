@@ -36,6 +36,10 @@ REQUIRED_SECRETS_DATA_TRACKER = {
         "opitem": "CTM Enterprise Service Bus - ESB - 311 Interface",
         "opfield": f"production.endpoint",
     },
+    "ESB_API_KEY": {
+        "opitem": "CTM Enterprise Service Bus - ESB - 311 Interface",
+        "opfield": f"production.api_key",
+    },
 }
 
 REQUIRED_SECRETS_SIGNS_MARKINGS = {
@@ -50,6 +54,10 @@ REQUIRED_SECRETS_SIGNS_MARKINGS = {
     "ESB_ENDPOINT": {
         "opitem": "CTM Enterprise Service Bus - ESB - 311 Interface",
         "opfield": f"production.endpoint",
+    },
+    "ESB_API_KEY": {
+        "opitem": "CTM Enterprise Service Bus - ESB - 311 Interface",
+        "opfield": f"production.api_key",
     },
 }
 
