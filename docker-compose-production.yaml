@@ -2,7 +2,8 @@ services:
   haproxy-airflow-three:
     image: haproxy:2.6
     ports:
-      - 8443:8443
+      - 80:8080
+      - 443:8443
     volumes:
       - ${AIRFLOW_PROJ_DIR}/haproxy/ssl:/usr/local/etc/haproxy/ssl
       - ${AIRFLOW_PROJ_DIR}/haproxy/haproxy-production.cfg:/usr/local/etc/haproxy/haproxy.cfg
