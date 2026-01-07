@@ -196,8 +196,14 @@ with DAG(
             "env": env_vars,
         },
         {
-            "task_id": "amanda_review_time",
+            "task_id": "review_time_to_s3",
             "command": "python amanda/amanda_to_s3.py --query review_time",
+            "image": docker_image,
+            "env": env_vars,
+        },
+                {
+            "task_id": "review_time_to_socrata",
+            "command": "python metrics/s3_to_socrata.py --dataset review_time",
             "image": docker_image,
             "env": env_vars,
         },

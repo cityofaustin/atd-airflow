@@ -51,6 +51,10 @@ REQUIRED_SECRETS = {
         "opitem": "Work Zone Data Feed",
         "opfield": "production.flat dataset ID",
     },
+    "SEGMENT_DATASET": {
+        "opitem": "Work Zone Data Feed",
+        "opfield": "production.segment dataset ID",
+    },
     # AMANDA
     "HOST": {
         "opitem": "Amanda Read-Only (RO) replica database",
@@ -76,6 +80,19 @@ REQUIRED_SECRETS = {
     "CONTACT_EMAIL": {
         "opitem": "Work Zone Data Feed",
         "opfield": "production.contact email",
+    },
+    # Coordinate
+    "COORDINATE_USER": {
+        "opitem": "Work Zone Data Feed",
+        "opfield": "coordinate.coordinate username",
+    },
+    "COORDINATE_BASE_URL": {
+        "opitem": "Work Zone Data Feed",
+        "opfield": "coordinate.base url",
+    },
+    "COORDINATE_PASSWORD": {
+        "opitem": "Work Zone Data Feed",
+        "opfield": "coordinate.coordinate password",
     },
 }
 

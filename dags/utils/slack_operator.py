@@ -145,7 +145,7 @@ def task_fail_slack_alert(context):
         {exceptions_text}
         <{log_url}|*View Task Log*>
     """
-    return True
+    # return True
 
     failed_alert = SlackWebhookOperator(
         task_id="slack_failure",
