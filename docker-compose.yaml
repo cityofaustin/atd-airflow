@@ -148,10 +148,6 @@ services:
       airflow-init:
         condition: service_completed_successfully
 
-  airflow-eyes:
-    <<: *airflow-common
-    entrypoint: /bin/bash
-
   airflow-init:
     <<: *airflow-common
     entrypoint: /bin/bash
