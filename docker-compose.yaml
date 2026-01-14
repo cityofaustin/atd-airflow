@@ -86,7 +86,7 @@ services:
       - 8080:8080
     volumes:
       - ${AIRFLOW_PROJ_DIR}/haproxy/ssl:/usr/local/etc/haproxy/ssl
-      - ${AIRFLOW_PROJ_DIR}/haproxy/haproxy-production.cfg:/usr/local/etc/haproxy/haproxy.cfg
+      - ${AIRFLOW_PROJ_DIR}/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
     depends_on:
       - airflow-apiserver
 
