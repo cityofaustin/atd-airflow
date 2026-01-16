@@ -4,14 +4,6 @@ This directory contains utility scripts and tools for managing and configuring t
 
 ## Available Tools
 
-### [set-bcrypt-password](./set-bcrypt-password/)
-
-Sets or updates passwords for users in Airflow's Simple Auth Manager using bcrypt hashing. Provides secure password management for authentication.
-
-See the [set-bcrypt-password README](./set-bcrypt-password/README.md) for detailed documentation.
-
----
-
 ### [certbot](./certbot/)
 
 SSL certificate management tools for Let's Encrypt certificates using certbot with AWS Route53 DNS validation. Handles certificate renewal and account management for Airflow domains.
