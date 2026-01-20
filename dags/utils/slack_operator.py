@@ -110,6 +110,19 @@ def build_exception_text(all_exceptions):
     return exceptions_text
 
 
+def get_task_duration_seconds(task_instance):
+    duration = getattr(task_instance, "duration", None)
+    if duration is not None:
+        return duration
+
+    start_date = getattr(task_instance, "start_date", None)
+    end_date = getattr(task_instance, "end_date", None)
+    if start_date and end_date:
+        return (end_date - start_date).total_seconds()
+
+    return None
+
+
 def task_fail_slack_alert(context):
     logger = logging.getLogger(__name__)
     task_instance = context.get("task_instance")
@@ -118,7 +131,10 @@ def task_fail_slack_alert(context):
     task_id = task_instance.task_id
     exec_date = get_central_time_exec_data(context)
     log_url = task_instance.log_url
-    duration = getattr(task_instance, "duration", "Not available")
+    duration_seconds = get_task_duration_seconds(task_instance)
+    duration = (
+        f"{duration_seconds:.1f}" if duration_seconds is not None else "Not available"
+    )
 
     schedule_description = (
         format_schedule(dag.timetable.summary)
