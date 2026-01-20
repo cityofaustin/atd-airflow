@@ -1,8 +1,9 @@
 from os import getenv
+import logging
 
 from cron_descriptor import get_description
-from airflow.hooks.base import BaseHook
-from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
+from airflow.exceptions import AirflowException
+from airflow.providers.slack.hooks.slack_webhook import SlackWebhookHook
 from utils.log_parsing import extract_all_exceptions_from_log, extract_all_exceptions
 
 # This is the Conn Id that we set when creating the connection in the Airflow dashboard
@@ -48,7 +49,6 @@ def format_schedule(schedule_interval):
         str: A human-readable description of the schedule interval.
     """
 
-    from cron_descriptor import get_description
     import datetime
 
     if schedule_interval is None:
@@ -111,6 +111,7 @@ def build_exception_text(all_exceptions):
 
 
 def task_fail_slack_alert(context):
+    logger = logging.getLogger(__name__)
     task_instance = context.get("task_instance")
     dag = context.get("dag")
     dag_id = task_instance.dag_id
@@ -147,13 +148,14 @@ def task_fail_slack_alert(context):
     """
     # return True
 
-    failed_alert = SlackWebhookOperator(
-        task_id="slack_failure",
+    failed_alert = SlackWebhookHook(
         slack_webhook_conn_id=SLACK_CONN_ID,
-        message=slack_msg,
-        username="Airflow Alert",
     )
-    return failed_alert.execute(context=context)
+    try:
+        return failed_alert.send(text=slack_msg)
+    except AirflowException as exc:
+        logger.warning("Slack failure alert failed: %s", exc)
+        return False
 
 
 # def task_success_slack_alert(context):
