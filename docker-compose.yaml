@@ -17,7 +17,6 @@ x-airflow-common: &airflow-common
     AIRFLOW_CONN_DOCKER_DEFAULT: "docker://${DOCKER_HUB_USERNAME}:${DOCKER_HUB_TOKEN}@https%3A%2F%2Findex.docker.io%2Fv1%2F:80"
 
     # Airflow stock suggested environment variables
-    #AIRFLOW__CORE__EXECUTOR: CeleryExecutor
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
