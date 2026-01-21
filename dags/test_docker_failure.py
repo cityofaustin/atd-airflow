@@ -4,7 +4,7 @@ from os import getenv
 
 import pendulum
 
-from airflow.decorators import dag
+from airflow.sdk import dag
 from airflow.providers.docker.operators.docker import DockerOperator
 
 from utils.slack_operator import task_fail_slack_alert, slack_member_ids
