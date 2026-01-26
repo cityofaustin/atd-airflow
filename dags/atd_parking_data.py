@@ -106,7 +106,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id="atd_parking_data",
-    description="Scripts that download and process parking data for finance reporting.",
+    description="Scripts that download and process parking data.",
     default_args=default_args,
     schedule_interval="35 8 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-parking-data", "parking", "socrata", "postgrest"],
