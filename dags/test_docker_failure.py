@@ -4,7 +4,7 @@ from os import getenv
 
 import pendulum
 
-from airflow.decorators import dag
+from airflow.sdk import dag
 from airflow.providers.docker.operators.docker import DockerOperator
 
 from utils.slack_operator import task_fail_slack_alert, slack_member_ids
@@ -66,7 +66,7 @@ if __name__ == "__main__":
         sys.exit(1)
 """,
         ],
-        # docker_conn_id="docker_default",
+        docker_conn_id="docker_default",
         auto_remove="force",
         tty=True,
         mount_tmp_dir=False,
