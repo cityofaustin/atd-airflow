@@ -50,18 +50,6 @@ REQUIRED_SECRETS = {
         "opitem": "Parking Data ETL",
         "opfield": "socrata.Transactions Dataset",
     },
-    "FISERV_DATASET": {
-        "opitem": "Parking Data ETL",
-        "opfield": "socrata.Fiserv Payments Dataset",
-    },
-    "METERS_DATASET": {
-        "opitem": "Parking Data ETL",
-        "opfield": "socrata.Parking Meters Dataset",
-    },
-    "PAYMENTS_DATASET": {
-        "opitem": "Parking Data ETL",
-        "opfield": "socrata.Parking Meter Credit Card Payments Dataset",
-    },
     # PostgREST
     "POSTGREST_TOKEN": {
         "opitem": "Parking Data ETL",
@@ -70,24 +58,6 @@ REQUIRED_SECRETS = {
     "POSTGREST_ENDPOINT": {
         "opitem": "Parking Data ETL",
         "opfield": "postgrest.Endpoint",
-    },
-    # Passport
-    "OPS_MAN_USER": {
-        "opitem": "Parking Data ETL",
-        "opfield": "passport.Username",
-    },
-    "OPS_MAN_PASS": {
-        "opitem": "Parking Data ETL",
-        "opfield": "passport.Password",
-    },
-    # Fiserv
-    "FSRV_EMAIL": {
-        "opitem": "Parking Data ETL",
-        "opfield": "fiserv.Expected Email Address",
-    },
-    "FSRV_ENCRYPTION": {
-        "opitem": "Parking Data ETL",
-        "opfield": "fiserv.Encryption Key",
     },
     # AWS S3
     "AWS_ACCESS_ID": {
@@ -131,20 +101,12 @@ REQUIRED_SECRETS = {
         "opitem": "Parking Data ETL",
         "opfield": "flowbird.ATD Password",
     },
-    "USER_PARD": {
-        "opitem": "Parking Data ETL",
-        "opfield": "flowbird.PARD Username",
-    },
-    "PASSWORD_PARD": {
-        "opitem": "Parking Data ETL",
-        "opfield": "flowbird.PARD Password",
-    },
 }
 
 
 with DAG(
     dag_id="atd_parking_data",
-    description="Scripts that download and process parking data for finance reporting.",
+    description="Scripts that download and process parking data.",
     default_args=default_args,
     schedule_interval="35 8 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-parking-data", "parking", "socrata", "postgrest"],
@@ -175,154 +137,10 @@ with DAG(
 
     docker_tasks.append(
         DockerOperator(
-            task_id="smartfolio_payments",
-            image=docker_image,
-            docker_conn_id="docker_default",
-            command=f"python txn_history.py -v --report payments --env prod --start {prev_exec}",
-            api_version="auto",
-            auto_remove="force",
-            environment=env_vars,
-            tty=True,
-            force_pull=False,
-            retries=3,
-            retry_delay=duration(seconds=60),
-        )
-    )
-
-    docker_tasks.append(
-        DockerOperator(
-            task_id="passport_transactions",
-            image=docker_image,
-            docker_conn_id="docker_default",
-            command=f"python passport_txns.py -v --env prod --start {prev_exec}",
-            api_version="auto",
-            auto_remove="force",
-            environment=env_vars,
-            tty=True,
-            force_pull=False,
-            retries=3,
-            retry_delay=duration(seconds=60),
-        )
-    )
-
-    docker_tasks.append(
-        DockerOperator(
-            task_id="process_fiserv_emails",
-            image=docker_image,
-            docker_conn_id="docker_default",
-            command=f"python fiserv_email_pub.py",
-            api_version="auto",
-            auto_remove="force",
-            environment=env_vars,
-            tty=True,
-            force_pull=False,
-            retries=3,
-            retry_delay=duration(seconds=60),
-        )
-    )
-
-    docker_tasks.append(
-        DockerOperator(
-            task_id="process_fiserv_attachments",
-            image=docker_image,
-            docker_conn_id="docker_default",
-            command=f"python fiserv_DB.py --lastmonth True",
-            api_version="auto",
-            auto_remove="force",
-            environment=env_vars,
-            tty=True,
-            force_pull=False,
-            retries=3,
-            retry_delay=duration(seconds=60),
-        )
-    )
-
-    docker_tasks.append(
-        DockerOperator(
-            task_id="process_smartfolio_payments",
-            image=docker_image,
-            docker_conn_id="docker_default",
-            command=f"python payments_s3.py --lastmonth True",
-            api_version="auto",
-            auto_remove="force",
-            environment=env_vars,
-            tty=True,
-            force_pull=False,
-            retries=3,
-            retry_delay=duration(seconds=60),
-        )
-    )
-
-    docker_tasks.append(
-        DockerOperator(
-            task_id="process_passport_transactions",
-            image=docker_image,
-            docker_conn_id="docker_default",
-            command=f"python passport_DB.py --lastmonth True",
-            api_version="auto",
-            auto_remove="force",
-            environment=env_vars,
-            tty=True,
-            force_pull=False,
-            retries=3,
-            retry_delay=duration(seconds=60),
-        )
-    )
-
-    docker_tasks.append(
-        DockerOperator(
             task_id="process_smartfolio_transactions",
             image=docker_image,
             docker_conn_id="docker_default",
             command=f"python smartfolio_s3.py --lastmonth True",
-            api_version="auto",
-            auto_remove="force",
-            environment=env_vars,
-            tty=True,
-            force_pull=False,
-            retries=3,
-            retry_delay=duration(seconds=60),
-        )
-    )
-
-    docker_tasks.append(
-        DockerOperator(
-            task_id="match_fiserv_and_smartfolio_payments",
-            image=docker_image,
-            docker_conn_id="docker_default",
-            command=f"python match_field_processing.py",
-            api_version="auto",
-            auto_remove="force",
-            environment=env_vars,
-            tty=True,
-            force_pull=False,
-            retries=3,
-            retry_delay=duration(seconds=60),
-        )
-    )
-
-    docker_tasks.append(
-        DockerOperator(
-            task_id="payments_to_socrata",
-            image=docker_image,
-            docker_conn_id="docker_default",
-            command=f"python parking_socrata.py --dataset payments",
-            api_version="auto",
-            auto_remove="force",
-            environment=env_vars,
-            tty=True,
-            force_pull=False,
-            retries=3,
-            retry_delay=duration(seconds=60),
-        )
-    )
-
-    docker_tasks.append(
-        DockerOperator(
-            task_id="fiserv_to_socrata",
-            image=docker_image,
-            docker_conn_id="docker_default",
-            command=f"python parking_socrata.py --dataset fiserv",
             api_version="auto",
             auto_remove="force",
             environment=env_vars,
