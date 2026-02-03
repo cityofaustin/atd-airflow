@@ -13,7 +13,7 @@ from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
 # TODO: Check this carefully when re-installed in the `dag-refactor` collection branch.
-# This is a function rename that came out of the airflow 3 upgrade.
+# This is a function rename that came out of the airflow 3 upgrade and this has not been tested yet
 from utils.time import get_previous_success_end_time as get_previous_run_date
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
