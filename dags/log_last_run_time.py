@@ -6,6 +6,7 @@ import pendulum
 
 from airflow.sdk import dag, task
 
+from utils.knack import get_date_filter_arg
 from utils.time import (
     get_current_time,
     get_previous_success_end_time,
@@ -30,7 +31,7 @@ DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 )
 def log_last_run_time():
 
-    @task
+    @task(task_id="log_previous_success_age")
     def log_prev_success_age(
         prev_success_start: str | None,
         prev_success_end: str | None,
@@ -56,10 +57,27 @@ def log_last_run_time():
 
         print(f"Now: {now_dt.to_iso8601_string()}")
 
+    @task(task_id="log_date_filter_value")
+    def log_date_filter(label: str, date_filter_arg: str | None) -> None:
+        print(f"{label}: {date_filter_arg}")
+
     # TaskFlow return values are passed via XCom automatically.
     prev_success_start = get_previous_success_end_time()
     prev_success_end = get_previous_success_start_time()
     now_cst = get_current_time("America/Chicago")
     log_prev_success_age(prev_success_start, prev_success_end, now_cst)
+
+    date_filter_default = get_date_filter_arg.override(
+        task_id="get_date_filter_default",
+    )()
+    date_filter_monthly = get_date_filter_arg.override(
+        task_id="get_date_filter_monthly_replace",
+    )(should_replace_monthly=True)
+    log_date_filter.override(task_id="log_date_filter_default")(
+        "Date filter (default)", date_filter_default
+    )
+    log_date_filter.override(task_id="log_date_filter_monthly_replace")(
+        "Date filter (monthly replace)", date_filter_monthly
+    )
 
 dag_instance = log_last_run_time()
