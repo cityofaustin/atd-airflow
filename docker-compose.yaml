@@ -65,6 +65,7 @@ services:
 
   haproxy:
     image: haproxy:lts
+    restart: unless-stopped
     ports:
       - 8080:80
     volumes:
