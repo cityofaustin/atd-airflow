@@ -1,4 +1,4 @@
-from airflow.decorators import task
+from airflow.sdk import task
 from pendulum import now
 
 
