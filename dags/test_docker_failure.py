@@ -32,6 +32,7 @@ def test_docker_failure():
     docker_failure = DockerOperator(
         task_id="docker_failure",
         image="atddocker/atd-airflow:production",
+        doc_md="This is an example of task specific documentation",
         command=[
             "python",
             "-c",
