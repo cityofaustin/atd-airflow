@@ -23,36 +23,38 @@ DEFAULT_ARGS = {
     "on_failure_callback": task_fail_slack_alert,
 }
 
-REQUIRED_SECRETS = {
-    "SOCRATA_API_KEY_ID": {
-        "opitem": "Socrata Key ID, Secret, and Token",
-        "opfield": "socrata.apiKeyId",
-    },
-    "SOCRATA_API_KEY_SECRET": {
-        "opitem": "Socrata Key ID, Secret, and Token",
-        "opfield": "socrata.apiKeySecret",
-    },
-    "SOCRATA_TOKEN": {
-        "opitem": "Socrata Key ID, Secret, and Token",
-        "opfield": "socrata.appToken",
-    },
-    "SOCRATA_ENDPOINT": {
-        "opitem": "Socrata Key ID, Secret, and Token",
-        "opfield": "socrata.endpoint",
-    },
-    "HASURA_ENDPOINT": {
-        "opitem": "Moped Hasura Admin",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.Endpoint",
-    },
-    "HASURA_ADMIN_SECRET": {
-        "opitem": "Moped Hasura Admin",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.Admin Secret",
-    },
-    "FUNDING_DATASET_IDENTIFIER": {
-        "opitem": "Moped ETLs",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.FUNDING_DATASET_IDENTIFIER",
-    },
-}
+
+def get_required_secrets(environment):
+    return {
+        "HASURA_ENDPOINT": {
+            "opitem": "Moped Hasura Admin",
+            "opfield": f"{environment}.Endpoint",
+        },
+        "HASURA_ADMIN_SECRET": {
+            "opitem": "Moped Hasura Admin",
+            "opfield": f"{environment}.Admin Secret",
+        },
+        "ORACLE_USER": {
+            "opitem": "Finance Data Warehouse Oracle DB",
+            "opfield": "production.Username",
+        },
+        "ORACLE_PASSWORD": {
+            "opitem": "Finance Data Warehouse Oracle DB",
+            "opfield": "production.Password",
+        },
+        "ORACLE_HOST": {
+            "opitem": "Finance Data Warehouse Oracle DB",
+            "opfield": "production.Host",
+        },
+        "ORACLE_PORT": {
+            "opitem": "Finance Data Warehouse Oracle DB",
+            "opfield": "production.Port",
+        },
+        "ORACLE_SERVICE": {
+            "opitem": "Finance Data Warehouse Oracle DB",
+            "opfield": "production.Service",
+        },
+    }
 
 
 @task.branch(task_id="branch")
@@ -86,12 +88,22 @@ def branch(params):
     dagrun_timeout=duration(minutes=30),
     tags=["repo:atd-moped", "moped", "ecapris"],
     catchup=False,
-    params={"dry_run": Param(default=False, type="boolean")},
+    params={
+        "dry_run": Param(default=False, type="boolean"),
+        "target_environment": Param(
+            default=DEPLOYMENT_ENVIRONMENT,
+            enum=["production", "staging"],
+            description="Target Moped environment. Defaults to the current deployment environment. Override to target staging manually.",
+        ),
+    },
     max_active_runs=1,  # Block schedule while DAG with params is triggered
 )
 def sync_ecapris_funding():
+    # There is no staging tag for this image. Test locally with development or run production code against staging or production environments.
     docker_image = f"atddocker/atd-moped-etl-ecapris-funding:{DEPLOYMENT_ENVIRONMENT}"
 
+    target_environment = "{{ params.target_environment }}"
+    REQUIRED_SECRETS = get_required_secrets(target_environment)
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     branch_task = branch()
