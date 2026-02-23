@@ -68,7 +68,7 @@ with DAG(
     tags=["repo:atd-moped", "moped", "ecapris"],
     catchup=False,
     params={
-        "target_environment": Param(
+        "target_database": Param(
             default=DEPLOYMENT_ENVIRONMENT,
             enum=["production", "staging"],
             description="Target Moped environment. Defaults to the current deployment environment. Override to target staging manually.",
@@ -78,8 +78,8 @@ with DAG(
     # There is no staging tag for this image. Test locally with development or run production code against staging or production environments.
     docker_image = f"atddocker/atd-moped-etl-ecapris-statuses:{DEPLOYMENT_ENVIRONMENT}"
 
-    target_environment = "{{ params.target_environment }}"
-    REQUIRED_SECRETS = get_required_secrets(target_environment)
+    target_database = "{{ params.target_database }}"
+    REQUIRED_SECRETS = get_required_secrets(target_database)
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(

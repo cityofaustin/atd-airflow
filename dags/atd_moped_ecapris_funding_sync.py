@@ -90,9 +90,9 @@ def branch(params):
     catchup=False,
     params={
         "dry_run": Param(default=False, type="boolean"),
-        "target_environment": Param(
+        "target_database": Param(
             default=DEPLOYMENT_ENVIRONMENT,
-            enum=["production", "staging"],
+            enum=["production", "staging", "development"],
             description="Target Moped environment. Defaults to the current deployment environment. Override to target staging manually.",
         ),
     },
@@ -102,8 +102,8 @@ def sync_ecapris_funding():
     # There is no staging tag for this image. Test locally with development or run production code against staging or production environments.
     docker_image = f"atddocker/atd-moped-etl-ecapris-funding:{DEPLOYMENT_ENVIRONMENT}"
 
-    target_environment = "{{ params.target_environment }}"
-    REQUIRED_SECRETS = get_required_secrets(target_environment)
+    target_database = "{{ params.target_database }}"
+    REQUIRED_SECRETS = get_required_secrets(target_database)
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     branch_task = branch()
