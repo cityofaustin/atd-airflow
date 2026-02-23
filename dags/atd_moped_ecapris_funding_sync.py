@@ -99,7 +99,7 @@ def branch(params):
     max_active_runs=1,  # Block schedule while DAG with params is triggered
 )
 def sync_ecapris_funding():
-    # There is no staging tag for this image. Test locally with development or run production code against staging or production environments.
+    # No staging tag for this image. Push test code to development image or run production image against staging or production environments.
     docker_image = f"atddocker/atd-moped-etl-ecapris-funding:{DEPLOYMENT_ENVIRONMENT}"
 
     target_database = "{{ params.target_database }}"

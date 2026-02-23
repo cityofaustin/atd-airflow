@@ -70,12 +70,12 @@ with DAG(
     params={
         "target_database": Param(
             default=DEPLOYMENT_ENVIRONMENT,
-            enum=["production", "staging"],
+            enum=["production", "staging", "development"],
             description="Target Moped environment. Defaults to the current deployment environment. Override to target staging manually.",
         )
     },
 ) as dag:
-    # There is no staging tag for this image. Test locally with development or run production code against staging or production environments.
+    # No staging tag for this image. Push test code to development image or run production image against staging or production environments.
     docker_image = f"atddocker/atd-moped-etl-ecapris-statuses:{DEPLOYMENT_ENVIRONMENT}"
 
     target_database = "{{ params.target_database }}"
