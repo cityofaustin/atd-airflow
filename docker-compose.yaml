@@ -1,82 +1,60 @@
-# Docker compose based on official Airflow example, available here:
-# https://github.com/apache/airflow/blob/2.10.5/docs/apache-airflow/howto/docker-compose/docker-compose.yaml
+# Derived from https://airflow.apache.org/docs/apache-airflow/3.1.0/docker-compose.yaml
+# Please review above file for license and copyright information.
 
-# And which is documented here:
-# https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#running-airflow-in-docker
-
+---
 x-airflow-common: &airflow-common
-  # the `image:` key here is used in production to pull our published, production airflow image.
-  # the `build:` key is used in development to build the image locally.
-  # build: .
-  image: atddocker/atd-airflow:production
+  # In order to add custom dependencies or upgrade provider distributions you can use your extended image.
+  # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
+  # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
 
-  environment: &airflow-common-env
-    AIRFLOW__CORE__FERNET_KEY: ${_AIRFLOW__CORE__FERNET_KEY}
-    AIRFLOW__WEBSERVER__BASE_URL: ${_AIRFLOW__WEBSERVER__BASE_URL:-http://localhost:8080}
-    # You need to explicitly allow .env vars into the airflow containers's environments here
+  build: .
+  #image: atddocker/atd-airflow:production
+
+  environment: &airflow-common-env # Some DTS specific environment variables
     OP_API_TOKEN: ${OP_API_TOKEN}
     OP_CONNECT: ${OP_CONNECT}
     OP_VAULT_ID: ${OP_VAULT_ID}
-    ENVIRONMENT: ${ENVIRONMENT}
-    FLOWER_AUTH_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME}
-    FLOWER_AUTH_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD}
-    AIRFLOW_CHECKOUT_PATH: ${AIRFLOW_PROJ_DIR}
     AIRFLOW_CONN_DOCKER_DEFAULT: "docker://${DOCKER_HUB_USERNAME}:${DOCKER_HUB_TOKEN}@https%3A%2F%2Findex.docker.io%2Fv1%2F:80"
-    # Quiet SQLAlchemy warnings
-    SQLALCHEMY_SILENCE_UBER_WARNING: 1
 
-    AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+    # Airflow stock suggested environment variables
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
-    AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
-    AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
+    AIRFLOW__CORE__FERNET_KEY: ${_AIRFLOW__CORE__FERNET_KEY}
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-    AIRFLOW__API__AUTH_BACKENDS: "airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session"
-
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: "http://airflow-apiserver:8080/execution/"
+    # yamllint disable rule:line-length
+    # Use simple http server on scheduler for health checks
+    # See https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/check-health.html#scheduler-health-check-server
+    # yamllint enable rule:line-length
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: "true"
     # WARNING: Use _PIP_ADDITIONAL_REQUIREMENTS option ONLY for a quick checks
     # for other purpose (development, test and especially production usage) build/extend Airflow image.
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
-
+    # The following line can be used to set a custom config file, stored in the local config folder
+    AIRFLOW_CONFIG: "/opt/airflow/config/airflow.cfg"
   volumes:
-    - ${AIRFLOW_PROJ_DIR}/dags:/opt/airflow/dags
-    - ${AIRFLOW_PROJ_DIR}/logs:/opt/airflow/logs
-    - ${AIRFLOW_PROJ_DIR}/plugins:/opt/airflow/plugins
-    - ${AIRFLOW_PROJ_DIR}/airflow.cfg:/opt/airflow/airflow.cfg
-    - knack-certs:/opt/airflow/certs/knack
+    - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
+    - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
+    - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
+    - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
+    - ${AIRFLOW_PROJ_DIR:-.}/users:/opt/airflow/users
     - /var/run/docker.sock:/var/run/docker.sock
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on: &airflow-common-depends-on
-    redis:
-      condition: service_healthy
     postgres:
       condition: service_healthy
 
 services:
-  haproxy:
-    restart: unless-stopped
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    environment:
-      <<: *airflow-common-env
-    image: haproxy:2.6
-    ports:
-      - 8080:80
-      - 8081:81
-    depends_on:
-      - airflow-webserver
-    volumes:
-      - ${AIRFLOW_PROJ_DIR}/haproxy/ssl:/usr/local/etc/haproxy/ssl
-      - ${AIRFLOW_PROJ_DIR}/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
-
   postgres:
-    image: postgres:13
+    image: postgres:18
     environment:
       POSTGRES_USER: airflow
       POSTGRES_PASSWORD: airflow
       POSTGRES_DB: airflow
     volumes:
-      - postgres-db-volume:/var/lib/postgresql/data
+      - v3-postgres-db-volume:/var/lib/postgresql
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 10s
@@ -84,25 +62,22 @@ services:
       start_period: 5s
     restart: unless-stopped
 
-  redis:
-    # Redis is limited to 7.2-bookworm due to licensing change
-    # https://redis.io/blog/redis-adopts-dual-source-available-licensing/
-    image: redis:7.2-bookworm
-    expose:
-      - 6379
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 30s
-      retries: 50
-      start_period: 30s
+  haproxy:
+    image: haproxy:lts
     restart: unless-stopped
+    ports:
+      - 8080:80
+    volumes:
+      - ${AIRFLOW_PROJ_DIR}/haproxy/ssl:/usr/local/etc/haproxy/ssl
+      - ${AIRFLOW_PROJ_DIR}/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+    depends_on:
+      - airflow-apiserver
 
-  airflow-webserver:
+  airflow-apiserver:
     <<: *airflow-common
-    command: webserver
+    command: api-server
     healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/version"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -128,22 +103,19 @@ services:
       airflow-init:
         condition: service_completed_successfully
 
-  airflow-worker:
+  airflow-dag-processor:
     <<: *airflow-common
-    command: celery worker
+    command: dag-processor
     healthcheck:
       test:
-        - "CMD-SHELL"
-        - 'celery --app airflow.providers.celery.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}" || celery --app airflow.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}"'
+        [
+          "CMD-SHELL",
+          'airflow jobs check --job-type DagProcessorJob --hostname "$${HOSTNAME}"',
+        ]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 30s
-    environment:
-      <<: *airflow-common-env
-      # Required to handle warm shutdown of the celery workers properly
-      # See https://airflow.apache.org/docs/docker-stack/entrypoint.html#signal-propagation
-      DUMB_INIT_SETSID: "0"
     restart: unless-stopped
     depends_on:
       <<: *airflow-common-depends-on
@@ -184,6 +156,7 @@ services:
           echo "For other operating systems you can get rid of the warning with manually created .env file:"
           echo "    See: https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#setting-the-right-airflow-user"
           echo
+          export AIRFLOW_UID=$$(id -u)
         fi
         one_meg=1048576
         mem_available=$$(($$(getconf _PHYS_PAGES) * $$(getconf PAGE_SIZE) / one_meg))
@@ -218,9 +191,38 @@ services:
           echo "   https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#before-you-begin"
           echo
         fi
-        mkdir -p /sources/logs /sources/dags /sources/plugins
-        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins}
-        exec /entrypoint airflow version
+        echo
+        echo "Creating missing opt dirs if missing:"
+        echo
+        mkdir -v -p /opt/airflow/{logs,dags,plugins,config}
+        echo
+        echo "Airflow version:"
+        /entrypoint airflow version
+        echo
+        echo "Files in shared volumes:"
+        echo
+        ls -la /opt/airflow/{logs,dags,plugins,config}
+        echo
+        echo "Running airflow config list to create default config file if missing."
+        echo
+        /entrypoint airflow config list >/dev/null
+        echo
+        echo "Files in shared volumes:"
+        echo
+        ls -la /opt/airflow/{logs,dags,plugins,config}
+        echo
+        echo "Change ownership of files in /opt/airflow to ${AIRFLOW_UID}:0"
+        echo
+        chown -R "${AIRFLOW_UID}:0" /opt/airflow/
+        echo
+        echo "Change ownership of files in shared volumes to ${AIRFLOW_UID}:0"
+        echo
+        chown -v -R "${AIRFLOW_UID}:0" /opt/airflow/{logs,dags,plugins,config}
+        echo
+        echo "Files in shared volumes:"
+        echo
+        ls -la /opt/airflow/{logs,dags,plugins,config}
+
     # yamllint enable rule:line-length
     environment:
       <<: *airflow-common-env
@@ -228,10 +230,8 @@ services:
       _AIRFLOW_WWW_USER_CREATE: "true"
       _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-airflow}
       _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
+      _PIP_ADDITIONAL_REQUIREMENTS: ""
     user: "0:0"
-    volumes:
-      - ${AIRFLOW_PROJ_DIR}:/sources
-      - ${AIRFLOW_PROJ_DIR}/airflow.cfg:/opt/airflow/airflow.cfg
 
   airflow-cli:
     <<: *airflow-common
@@ -245,31 +245,9 @@ services:
       - bash
       - -c
       - airflow
-
-  flower:
-    <<: *airflow-common
-    command: celery flower
-    ports:
-      - "5555:5555"
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:5555/"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
-    restart: unless-stopped
     depends_on:
       <<: *airflow-common-depends-on
-      airflow-init:
-        condition: service_completed_successfully
+
 
 volumes:
-  # postgres db data persisted here
-  postgres-db-volume:
-  # volume for Knack SSL certs which will be mounted to DockerOperator tasks for 311 integration
-  knack-certs:
-    driver: local
-    driver_opts:
-      type: "none"
-      o: "bind"
-      device: ${AIRFLOW_PROJ_DIR}/certs/knack
+  v3-postgres-db-volume:

@@ -1,38 +1,38 @@
+from __future__ import annotations
+
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
-from pendulum import datetime, duration, now
+import pendulum
+
+from airflow.sdk import dag
+from airflow.providers.docker.operators.docker import DockerOperator
 
 from utils.slack_operator import task_fail_slack_alert, slack_member_ids
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
-DEFAULT_ARGS = {
-    "owner": "airflow",
-    "depends_on_past": False,
-    "start_date": datetime(2015, 1, 1, tz="America/Chicago"),
-    "email_on_failure": False,
-    "email_on_retry": False,
-    "retries": 0,
-    "execution_timeout": duration(minutes=5),
-    "on_failure_callback": task_fail_slack_alert,
-}
 
-with DAG(
-    dag_id=f"test_docker_failure",
-    description="Throws stacked python exceptions from within a docker container",
-    default_args=DEFAULT_ARGS,
-    schedule_interval=None,
-    tags=["repo:atd-airflow", "slack"],
+@dag(
+    dag_id="test_docker_failure",
+    schedule=None,
+    start_date=pendulum.datetime(2015, 1, 1, tz="America/Chicago"),
     catchup=False,
-) as dag:
-    dag.byline = f"Test stacked exceptions in a docker container"
-    dag.icon = ":test_tube:"
+    tags=["repo:atd-airflow", "slack"],
+    default_args={
+        "owner": "airflow",
+        "retries": 0,
+        "execution_timeout": pendulum.duration(minutes=5),
+        "on_failure_callback": task_fail_slack_alert,
+    },
+    doc_md="Throws stacked python exceptions from within a docker container",
+)
+def test_docker_failure():
+    """Test stacked exception handling in Docker container."""
 
-    t1 = DockerOperator(
+    docker_failure = DockerOperator(
         task_id="docker_failure",
         image="atddocker/atd-airflow:production",
+        doc_md="This is an example of task specific documentation",
         command=[
             "python",
             "-c",
@@ -73,4 +73,12 @@ if __name__ == "__main__":
         mount_tmp_dir=False,
     )
 
-    t1
+    docker_failure
+
+
+dag_instance = test_docker_failure()
+
+# Set custom DAG attributes for Slack notifications
+if dag_instance:
+    dag_instance.byline = "Test stacked exceptions in a docker container"
+    dag_instance.icon = ":test_tube:"
