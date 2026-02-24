@@ -94,7 +94,7 @@ def branch(params):
         "target_database": Param(
             default=DEPLOYMENT_ENVIRONMENT,
             enum=(
-                ["production", "staging", "development"]
+                ["production", "staging"]
                 if DEPLOYMENT_ENVIRONMENT == "production"
                 else ["staging", "development"]
             ),
