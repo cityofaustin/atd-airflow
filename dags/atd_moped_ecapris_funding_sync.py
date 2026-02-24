@@ -2,9 +2,8 @@
 
 from os import getenv
 
-from airflow.decorators import dag, task
-from airflow.operators.docker_operator import DockerOperator
-from airflow.models import Param
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import dag, Param, task
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -24,35 +23,37 @@ DEFAULT_ARGS = {
 }
 
 
-def get_required_secrets(environment):
+@task
+def get_required_secrets(params):
+    target_database = params["target_database"]
     return {
+        "SOCRATA_API_KEY_ID": {
+            "opitem": "Socrata Key ID, Secret, and Token",
+            "opfield": "socrata.apiKeyId",
+        },
+        "SOCRATA_API_KEY_SECRET": {
+            "opitem": "Socrata Key ID, Secret, and Token",
+            "opfield": "socrata.apiKeySecret",
+        },
+        "SOCRATA_TOKEN": {
+            "opitem": "Socrata Key ID, Secret, and Token",
+            "opfield": "socrata.appToken",
+        },
+        "SOCRATA_ENDPOINT": {
+            "opitem": "Socrata Key ID, Secret, and Token",
+            "opfield": "socrata.endpoint",
+        },
         "HASURA_ENDPOINT": {
             "opitem": "Moped Hasura Admin",
-            "opfield": f"{environment}.Endpoint",
+            "opfield": f"{target_database}.Endpoint",
         },
         "HASURA_ADMIN_SECRET": {
             "opitem": "Moped Hasura Admin",
-            "opfield": f"{environment}.Admin Secret",
+            "opfield": f"{target_database}.Admin Secret",
         },
-        "ORACLE_USER": {
-            "opitem": "Finance Data Warehouse Oracle DB",
-            "opfield": "production.Username",
-        },
-        "ORACLE_PASSWORD": {
-            "opitem": "Finance Data Warehouse Oracle DB",
-            "opfield": "production.Password",
-        },
-        "ORACLE_HOST": {
-            "opitem": "Finance Data Warehouse Oracle DB",
-            "opfield": "production.Host",
-        },
-        "ORACLE_PORT": {
-            "opitem": "Finance Data Warehouse Oracle DB",
-            "opfield": "production.Port",
-        },
-        "ORACLE_SERVICE": {
-            "opitem": "Finance Data Warehouse Oracle DB",
-            "opfield": "production.Service",
+        "FUNDING_DATASET_IDENTIFIER": {
+            "opitem": "Moped ETLs",
+            "opfield": f"{target_database}.FUNDING_DATASET_IDENTIFIER",
         },
     }
 
@@ -92,8 +93,8 @@ def branch(params):
         "dry_run": Param(default=False, type="boolean"),
         "target_database": Param(
             default=DEPLOYMENT_ENVIRONMENT,
-            enum=["production", "staging", "development"],
-            description="Target Moped environment. Defaults to the current deployment environment. Override to target staging manually.",
+            enum=["staging", "development"],
+            description="Target Moped database. Defaults to the current deployment environment.",
         ),
     },
     max_active_runs=1,  # Block schedule while DAG with params is triggered
@@ -102,8 +103,7 @@ def sync_ecapris_funding():
     # No staging tag for this image. Push test code to development image or run production image against staging or production environments.
     docker_image = f"atddocker/atd-moped-etl-ecapris-funding:{DEPLOYMENT_ENVIRONMENT}"
 
-    target_database = "{{ params.target_database }}"
-    REQUIRED_SECRETS = get_required_secrets(target_database)
+    REQUIRED_SECRETS = get_required_secrets()
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     branch_task = branch()

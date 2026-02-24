@@ -2,9 +2,8 @@
 
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
-from airflow.models.param import Param
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import dag, Param, task
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -24,15 +23,18 @@ DEFAULT_ARGS = {
 }
 
 
-def get_required_secrets(environment):
+@task
+def get_required_secrets(params):
+    target_database = params["target_database"]
+
     return {
         "HASURA_ENDPOINT": {
             "opitem": "Moped Hasura Admin",
-            "opfield": f"{environment}.Endpoint",
+            "opfield": f"{target_database}.Endpoint",
         },
         "HASURA_ADMIN_SECRET": {
             "opitem": "Moped Hasura Admin",
-            "opfield": f"{environment}.Admin Secret",
+            "opfield": f"{target_database}.Admin Secret",
         },
         "ORACLE_USER": {
             "opitem": "Finance Data Warehouse Oracle DB",
@@ -57,32 +59,30 @@ def get_required_secrets(environment):
     }
 
 
-with DAG(
+@dag(
     dag_id="atd_moped_ecapris_status_sync",
     description="sync eCapris statuses to Moped database",
     default_args=DEFAULT_ARGS,
-    schedule_interval=(
-        "*/30 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
-    ),
+    schedule=("*/30 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None),
     dagrun_timeout=duration(minutes=30),
     tags=["repo:atd-moped", "moped", "ecapris"],
     catchup=False,
     params={
         "target_database": Param(
             default=DEPLOYMENT_ENVIRONMENT,
-            enum=["production", "staging", "development"],
-            description="Target Moped environment. Defaults to the current deployment environment. Override to target staging manually.",
+            enum=["staging", "development"],
+            description="Target Moped database. Defaults to the current deployment environment.",
         )
     },
-) as dag:
+)
+def sync_ecapris_statuses():
     # No staging tag for this image. Push test code to development image or run production image against staging or production environments.
     docker_image = f"atddocker/atd-moped-etl-ecapris-statuses:{DEPLOYMENT_ENVIRONMENT}"
 
-    target_database = "{{ params.target_database }}"
-    REQUIRED_SECRETS = get_required_secrets(target_database)
+    REQUIRED_SECRETS = get_required_secrets()
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperator(
+    ecapris_statuses_to_moped = DockerOperator(
         task_id="ecapris_statuses_to_moped",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -94,4 +94,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t1
+    ecapris_statuses_to_moped
+
+
+sync_ecapris_statuses()
