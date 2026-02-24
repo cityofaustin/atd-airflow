@@ -93,7 +93,11 @@ def branch(params):
         "dry_run": Param(default=False, type="boolean"),
         "target_database": Param(
             default=DEPLOYMENT_ENVIRONMENT,
-            enum=["staging", "development"],
+            enum=(
+                ["production", "staging", "development"]
+                if DEPLOYMENT_ENVIRONMENT == "production"
+                else ["staging", "development"]
+            ),
             description="Target Moped database. Defaults to the current deployment environment.",
         ),
     },
