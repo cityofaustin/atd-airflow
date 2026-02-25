@@ -1,12 +1,11 @@
-# test locally with: docker compose run --rm airflow-cli dags test atd_knack_dms
-
 from os import getenv
 
 from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
+from utils.knack import get_date_filter_arg
 from utils.slack_operator import task_fail_slack_alert
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
@@ -18,7 +17,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "execution_timeout": duration(minutes=10),
+    "execution_timeout": duration(minutes=30),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -30,18 +29,6 @@ REQUIRED_SECRETS = {
     "KNACK_API_KEY": {
         "opitem": "Knack AMD Data Tracker",
         "opfield": f"production.apiKey",
-    },
-    "SOCRATA_API_KEY_ID": {
-        "opitem": "Socrata Key ID, Secret, and Token",
-        "opfield": "socrata.apiKeyId",
-    },
-    "SOCRATA_API_KEY_SECRET": {
-        "opitem": "Socrata Key ID, Secret, and Token",
-        "opfield": "socrata.apiKeySecret",
-    },
-    "SOCRATA_APP_TOKEN": {
-        "opitem": "Socrata Key ID, Secret, and Token",
-        "opfield": "socrata.appToken",
     },
     "PGREST_ENDPOINT": {
         "opitem": "atd-knack-services PostgREST",
@@ -59,29 +46,43 @@ REQUIRED_SECRETS = {
         "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
         "opfield": "production.password",
     },
+    "SOCRATA_API_KEY_ID": {
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "socrata.apiKeyId",
+    },
+    "SOCRATA_API_KEY_SECRET": {
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "socrata.apiKeySecret",
+    },
+    "SOCRATA_APP_TOKEN": {
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "socrata.appToken",
+    },
 }
 
 
 with DAG(
-    dag_id="atd_knack_dms",
+    dag_id="atd_knack_school_beacons",
+    description="Load school beacons (view_3086) records from Knack to Postgrest to AGOL and Socrata",
     default_args=DEFAULT_ARGS,
-    description="Load dms (view_1564) records from Knack to Postgrest to AGOL and Socrata",
-    schedule_interval="24 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    tags=["repo:atd-knack-services", "knack", "socrata", "agol", "data-tracker"],
+    schedule="25 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    tags=["repo:atd-knack-services", "knack", "agol", "data-tracker", "socrata"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/atd-knack-services:production"
     app_name = "data-tracker"
-    container = "view_1564"
+    container = "view_3086"
+
+    date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
-        task_id="atd_knack_dms_to_postgrest",
-        docker_conn_id="docker_default",
+        task_id="atd_knack_school_beacons_to_postgrest",
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container}",
+        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
         force_pull=True,
@@ -89,25 +90,25 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id="atd_knack_dms_to_socrata",
+        task_id="atd_knack_school_beacons_to_agol",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container}",
+        command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
     )
 
     t3 = DockerOperator(
-        task_id="atd_knack_dms_to_agol",
+        task_id="atd_knack_school_beacons_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container}",
+        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
     )
 
-    t1 >> t2 >> t3
+    date_filter_arg >> t1 >> t2 >> t3
