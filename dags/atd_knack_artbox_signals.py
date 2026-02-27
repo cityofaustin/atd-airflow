@@ -2,7 +2,7 @@ from os import getenv
 
 from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
-from pendulum import datetime, duration, now
+from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
@@ -78,7 +78,7 @@ with DAG(
     dag_id=f"atd_knack_artbox_signals",
     description="Load signals (view_197) records from Knack data tracker to smart mobility",
     default_args=DEFAULT_ARGS,
-    schedule_interval="30 0 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="30 0 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "data-tracker", "smart-mobility"],
     catchup=False,
 ) as dag:
