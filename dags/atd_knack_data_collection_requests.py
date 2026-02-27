@@ -54,7 +54,7 @@ REQUIRED_SECRETS = {
 
 
 with DAG(
-    dag_id="atd_knack_inventory_transactions",
+    dag_id="atd_knack_data_collection_requests",
     description="Updates a socrata dataset of TED traffic count and data collection requests",
     default_args=DEFAULT_ARGS,
     schedule_interval="44 22 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
@@ -82,7 +82,7 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id="atd_knack_inventory_transactions_to_socrata",
+        task_id="atd_knack_data_collection_requests_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
