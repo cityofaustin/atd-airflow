@@ -3,7 +3,7 @@ from pendulum import datetime, duration
 
 from airflow.decorators import task
 from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
 
 from utils.slack_operator import task_fail_slack_alert
 from utils.onepassword import get_env_vars_task
