@@ -141,7 +141,7 @@ with DAG(
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
-        execution_timeout=duration(minutes=10),
+        execution_timeout=duration(minutes=5),
     )
 
     args >> branch >> [full, incremental]
