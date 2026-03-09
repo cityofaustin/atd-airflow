@@ -1,7 +1,9 @@
+# test locally: docker compose run --rm airflow-cli dags test atd_knack_markings_attachments
+
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -17,7 +19,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "execution_timeout": duration(minutes=5),
+    "execution_timeout": duration(minutes=60),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -38,39 +40,35 @@ REQUIRED_SECRETS = {
         "opitem": "atd-knack-services PostgREST",
         "opfield": "production.jwt",
     },
-    "SOCRATA_API_KEY_ID": {
-        "opitem": "Socrata Key ID, Secret, and Token",
-        "opfield": "socrata.apiKeyId",
+    "AGOL_USERNAME": {
+        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
+        "opfield": "production.username",
     },
-    "SOCRATA_API_KEY_SECRET": {
-        "opitem": "Socrata Key ID, Secret, and Token",
-        "opfield": "socrata.apiKeySecret",
-    },
-    "SOCRATA_APP_TOKEN": {
-        "opitem": "Socrata Key ID, Secret, and Token",
-        "opfield": "socrata.appToken",
+    "AGOL_PASSWORD": {
+        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
+        "opfield": "production.password",
     },
 }
 
 
 with DAG(
-    dag_id="atd_knack_signs_markings_reimbursements",
-    description="Load signs and markings (view_3527) reimbursement records from Knack to Postgrest to Socrata",
+    dag_id="atd_knack_markings_attachments",
+    description="Loads markings attachments records from Knack to Postgrest to AGOL",
     default_args=DEFAULT_ARGS,
-    schedule_interval="35 3 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    tags=["repo:atd-knack-services", "knack", "socrata", "signs-markings"],
+    schedule=("05 12,14 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None),
+    tags=["repo:atd-knack-services", "knack", "agol", "signs-markings"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/atd-knack-services:production"
     app_name = "signs-markings"
-    container = "view_3527"
+    container = "view_3096"
 
     date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
-        task_id="atd_knack_signs_markings_reimbursements_to_postgrest",
+        task_id="atd_knack_markings_attachments_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
@@ -82,11 +80,11 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id="atd_knack_signs_markings_reimbursements_to_socrata",
+        task_id="atd_knack_markings_attachments_to_agol",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}",
+        command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,

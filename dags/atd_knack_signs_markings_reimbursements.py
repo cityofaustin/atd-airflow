@@ -1,7 +1,7 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -17,7 +17,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "execution_timeout": duration(minutes=30),
+    "execution_timeout": duration(minutes=5),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -54,31 +54,27 @@ REQUIRED_SECRETS = {
 
 
 with DAG(
-    dag_id="atd_knack_signs_markings_time_logs",
-    description="Load signs markings time logs (view_3516) records from Knack to Postgrest to Socrata",
+    dag_id="atd_knack_signs_markings_reimbursements",
+    description="Load signs and markings (view_3527) reimbursement records from Knack to Postgrest to Socrata",
     default_args=DEFAULT_ARGS,
-    # runs once at 950a cst and again at 150pm cst
-    schedule_interval=(
-        "50 9,13 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
-    ),
+    schedule="35 3 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "signs-markings"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/atd-knack-services:production"
     app_name = "signs-markings"
-    container_markings = "view_3307"
-    container_signs = "view_3528"
+    container = "view_3527"
 
     date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
-        task_id="atd_knack_signs_time_logs_to_postgrest",
+        task_id="atd_knack_signs_markings_reimbursements_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container_signs} {date_filter_arg}",
+        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
         force_pull=True,
@@ -86,36 +82,14 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id="atd_knack_markings_time_logs_to_postgrest",
+        task_id="atd_knack_signs_markings_reimbursements_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container_markings} {date_filter_arg}",
+        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
     )
 
-    t3 = DockerOperator(
-        task_id="atd_knack_signs_time_logs_to_socrata",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container_signs} {date_filter_arg}",
-        environment=env_vars,
-        tty=True,
-        mount_tmp_dir=False,
-    )
-
-    t4 = DockerOperator(
-        task_id="atd_knack_markings_time_logs_to_socrata",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container_markings} {date_filter_arg}",
-        environment=env_vars,
-        tty=True,
-        mount_tmp_dir=False,
-    )
-
-    date_filter_arg >> t1 >> t2 >> t3 >> t4
+    date_filter_arg >> t1 >> t2
