@@ -144,9 +144,7 @@ with DAG(
     dag_id="dts_311_report_publishing",
     description="Downloads reports of 311 service requests for TPW and publishes it in a Socrata dataset.",
     default_args=default_args,
-    schedule=(
-        "36 2,13 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
-    ),
+    schedule=("36 2,13 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None),
     dagrun_timeout=timedelta(minutes=60),
     tags=["repo:dts-311-reporting", "socrata", "311"],
     catchup=False,

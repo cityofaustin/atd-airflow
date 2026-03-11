@@ -199,7 +199,7 @@ with DAG(
             "image": docker_image,
             "env": env_vars,
         },
-                {
+        {
             "task_id": "review_time_to_socrata",
             "command": "python metrics/s3_to_socrata.py --dataset review_time",
             "image": docker_image,

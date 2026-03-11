@@ -24,6 +24,7 @@ def get_current_time(tz: str = "UTC") -> str:
 
     return pendulum.now(tz).to_iso8601_string()
 
+
 @task
 def get_previous_success_end_time(
     context: dict[str, Any] | None = None,
@@ -49,6 +50,7 @@ def get_previous_success_end_time(
         fallback_date = pendulum.parse(fallback_date)
         return fallback_date.isoformat()
 
+
 @task
 def get_previous_success_start_time(
     context: dict[str, Any] | None = None,
@@ -63,7 +65,9 @@ def get_previous_success_start_time(
     """
 
     ctx = context or get_current_context()
-    prev = ctx.get("prev_data_interval_start_success") or ctx.get("prev_start_date_success")
+    prev = ctx.get("prev_data_interval_start_success") or ctx.get(
+        "prev_start_date_success"
+    )
     if prev is None:
         fallback_date = pendulum.parse(fallback_date)
         return fallback_date.isoformat()

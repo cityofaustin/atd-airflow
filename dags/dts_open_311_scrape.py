@@ -61,9 +61,7 @@ with DAG(
     dag_id="dts_open_311_scrape",
     description="Downloads CSRs from Open311 API and publishes them in a Socrata dataset",
     default_args=default_args,
-    schedule=(
-        "*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
-    ),
+    schedule=("*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None),
     dagrun_timeout=timedelta(minutes=5),
     tags=["repo:dts-311-reporting", "socrata", "311", "open311"],
     catchup=False,
@@ -72,7 +70,9 @@ with DAG(
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
     one_day_ago = now("America/Chicago").subtract(days=1)
-    prev_run_time = get_previous_success_start_time(fallback_date=one_day_ago.to_iso8601_string())
+    prev_run_time = get_previous_success_start_time(
+        fallback_date=one_day_ago.to_iso8601_string()
+    )
 
     t1 = DockerOperator(
         task_id="open311_to_socrata",

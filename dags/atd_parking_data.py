@@ -102,9 +102,11 @@ REQUIRED_SECRETS = {
     },
 }
 
+
 @task
 def format_start_date(prev) -> str:
     return parse(prev).format("YYYY-MM-DD")
+
 
 with DAG(
     dag_id="atd_parking_data",
@@ -116,7 +118,9 @@ with DAG(
 ) as dag:
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
     three_days_ago = now("America/Chicago").subtract(days=3)
-    prev = get_previous_success_start_time(fallback_date=three_days_ago.to_iso8601_string())
+    prev = get_previous_success_start_time(
+        fallback_date=three_days_ago.to_iso8601_string()
+    )
     prev_exec = format_start_date(prev)
 
     docker_tasks = []
