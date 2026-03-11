@@ -2,9 +2,8 @@
 
 from os import getenv
 
-from airflow.decorators import task
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import task, DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -122,7 +121,7 @@ with DAG(
     dag_id="atd_finance_data_subprojects",
     description="Gets Finance data from a database, places it in an S3 bucket, then moves it along to Knack and socrata.",
     default_args=DEFAULT_ARGS,
-    schedule_interval="13 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="13 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-finance-data", "knack", "data-tracker", "socrata"],
     catchup=False,
 ) as dag:

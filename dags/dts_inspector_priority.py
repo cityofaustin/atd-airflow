@@ -2,8 +2,8 @@
 
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -97,7 +97,7 @@ with DAG(
     dag_id="dts_inspector_priority",
     description="Downloads permits and road segment data from AMANDA and scores permits based on several metrics",
     default_args=DEFAULT_ARGS,
-    schedule_interval="0 3 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="0 3 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:dts-right-of-way-reporting", "amanda", "socrata", "permits"],
     catchup=False,
 ) as dag:

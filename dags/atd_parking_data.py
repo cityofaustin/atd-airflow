@@ -2,12 +2,10 @@
 from os import getenv
 from datetime import timedelta
 
-from airflow.decorators import task
-from airflow.models import DAG
+from airflow.sdk import task, DAG, Param
 from airflow.models.dagrun import DagRun
-from airflow.models.param import Param
 from airflow.models.taskinstance import TaskInstance
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -108,7 +106,7 @@ with DAG(
     dag_id="atd_parking_data",
     description="Scripts that download and process parking data.",
     default_args=default_args,
-    schedule_interval="35 8 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="35 8 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-parking-data", "parking", "socrata", "postgrest"],
     catchup=False,
 ) as dag:

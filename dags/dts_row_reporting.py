@@ -2,10 +2,8 @@
 
 from os import getenv
 
-from airflow.decorators import task
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
-from airflow.utils.helpers import chain
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import chain, task, DAG
 from pendulum import datetime, duration, now
 
 from utils.onepassword import get_env_vars_task
@@ -145,7 +143,7 @@ with DAG(
     dag_id="dts_row_reporting",
     description="Downloads ROW data from AMANDA and Smartsheet and publishes the weekly summary results in a Socrata Dataset.",
     default_args=DEFAULT_ARGS,
-    schedule_interval="0 2 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="0 2 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:dts-right-of-way-reporting", "amanda", "socrata", "smartsheet"],
     catchup=False,
 ) as dag:

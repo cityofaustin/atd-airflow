@@ -1,7 +1,7 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration, now
 
 from utils.onepassword import get_env_vars_task
@@ -80,7 +80,7 @@ with DAG(
     dag_id="dts_public_safety_incident_reports",
     description="wrapper etl for atd-traffic-incident-reports docker image connects to oracle db and updates postrgrest and socrata with fire and traffic incidents",
     default_args=DEFAULT_ARGS,
-    schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-traffic-incident-reports", "postgrest", "socrata"],
     catchup=False,
 ) as dag:

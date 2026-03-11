@@ -2,9 +2,8 @@
 
 from os import getenv
 
-from airflow.decorators import task
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import task, DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration, now
 
 from utils.onepassword import get_env_vars_task
@@ -100,7 +99,7 @@ with DAG(
     dag_id="dts_work_zone_data_feed",
     description="Publishing AMANDA work zone data to Socrata.",
     default_args=DEFAULT_ARGS,
-    schedule_interval="0 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="0 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:dts-work-zone-data-feed", "amanda", "socrata", "work zone", "wzdx"],
     catchup=False,
 ) as dag:

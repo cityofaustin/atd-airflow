@@ -1,10 +1,9 @@
-# test locally with: docker compose run --rm airflow-cli dags test atd_finance_data_units
+# test locally with: docker compose run --rm airflow-cli dags test atd_finance_data_master_agreements
 
 from os import getenv
 
-from airflow.decorators import task
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import task, DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -119,10 +118,10 @@ DATA_TRACKER_SECRETS.update(OTHER_SECRETS)
 FINANCE_PURCHASING_SECRETS.update(OTHER_SECRETS)
 
 with DAG(
-    dag_id="atd_finance_data_units",
+    dag_id="atd_finance_data_master_agreements",
     description="Gets Finance data from a database, places it in an S3 bucket, then moves it along to Knack and socrata.",
     default_args=DEFAULT_ARGS,
-    schedule_interval="18 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="28 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-finance-data", "knack", "data-tracker", "socrata"],
     catchup=False,
 ) as dag:
@@ -130,11 +129,11 @@ with DAG(
     finance_purchasing_env = get_env_vars_task(FINANCE_PURCHASING_SECRETS)
 
     t1 = DockerOperator(
-        task_id="units_orders_to_s3",
+        task_id="master_agreements_to_s3",
         image="atddocker/atd-finance-data:production",
         docker_conn_id="docker_default",
         auto_remove="force",
-        command="python3 upload_to_s3.py units",
+        command="python3 upload_to_s3.py master_agreements",
         environment=data_tracker_env,
         tty=True,
         force_pull=True,
@@ -142,39 +141,15 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id="units_to_data_tracker",
+        task_id="master_agreements_to_finance_purchasing",
         image="atddocker/atd-finance-data:production",
         docker_conn_id="docker_default",
         auto_remove="force",
-        command="python3 s3_to_knack.py units data-tracker",
-        environment=data_tracker_env,
-        tty=True,
-        force_pull=False,
-        mount_tmp_dir=False,
-    )
-
-    t3 = DockerOperator(
-        task_id="units_to_socrata",
-        image="atddocker/atd-finance-data:production",
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command="python3 s3_to_socrata.py --dataset dept_units",
+        command="python3 s3_to_knack.py master_agreements finance-purchasing",
         environment=finance_purchasing_env,
         tty=True,
         force_pull=False,
         mount_tmp_dir=False,
     )
 
-    t4 = DockerOperator(
-        task_id="units_to_finance_purchasing",
-        image="atddocker/atd-finance-data:production",
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command="python3 s3_to_knack.py units finance-purchasing",
-        environment=finance_purchasing_env,
-        tty=True,
-        force_pull=False,
-        mount_tmp_dir=False,
-    )
-
-    t1 >> t2 >> t3 >> t4
+    t1 >> t2

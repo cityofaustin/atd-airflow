@@ -4,9 +4,8 @@ from os import getenv
 
 from datetime import timedelta
 
-from airflow.decorators import task
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import task, DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -145,7 +144,7 @@ with DAG(
     dag_id="dts_311_report_publishing",
     description="Downloads reports of 311 service requests for TPW and publishes it in a Socrata dataset.",
     default_args=default_args,
-    schedule_interval=(
+    schedule=(
         "36 2,13 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
     ),
     dagrun_timeout=timedelta(minutes=60),

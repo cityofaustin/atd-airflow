@@ -4,17 +4,14 @@ from os import getenv
 
 from datetime import timedelta
 
-from airflow.decorators import task
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import task, DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration, now
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
-# TODO: Check this carefully when re-installed in the `dag-refactor` collection branch.
-# This is a function rename that came out of the airflow 3 upgrade and this has not been tested yet
-from utils.time import get_previous_success_end_time as get_previous_run_date
+from utils.time import get_previous_run_date
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -64,7 +61,7 @@ with DAG(
     dag_id="dts_open_311_scrape",
     description="Downloads CSRs from Open311 API and publishes them in a Socrata dataset",
     default_args=default_args,
-    schedule_interval=(
+    schedule=(
         "*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
     ),
     dagrun_timeout=timedelta(minutes=5),

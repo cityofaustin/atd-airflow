@@ -4,9 +4,8 @@ from os import getenv
 
 from datetime import timedelta
 
-from airflow.decorators import task
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import task, DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -85,7 +84,7 @@ with DAG(
     Places the results as a CSV in a S3 bucket. \
     Then publishes the data to a Socrata dataset",
     default_args=default_args,
-    schedule_interval="00 11 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="00 11 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=timedelta(minutes=120),
     tags=["repo:dts-finance-reporting", "socrata", "microstrategy"],
     catchup=False,
