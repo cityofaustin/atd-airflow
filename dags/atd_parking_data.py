@@ -1,4 +1,3 @@
-# test locally with: docker compose run --rm airflow-cli dags test atd_parking_data
 from os import getenv
 from datetime import timedelta
 

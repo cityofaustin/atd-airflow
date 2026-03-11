@@ -1,5 +1,3 @@
-# test locally with: docker compose run --rm airflow-cli dags test atd_finance_data_fdu_program_tagging
-
 from os import getenv
 
 from airflow.sdk import task, DAG

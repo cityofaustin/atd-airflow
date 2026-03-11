@@ -1,5 +1,3 @@
-# Test locally with: docker compose run --rm airflow-cli dags test atd_moped_components_to_agol
-
 from os import getenv
 
 from airflow.models import DAG

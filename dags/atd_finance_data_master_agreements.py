@@ -1,5 +1,3 @@
-# test locally with: docker compose run --rm airflow-cli dags test atd_finance_data_master_agreements
-
 from os import getenv
 
 from airflow.sdk import task, DAG

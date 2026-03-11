@@ -1,5 +1,3 @@
-# test locally with: docker compose run --rm airflow-cli dags test dts_finances_report_publishing
-
 from os import getenv
 
 from datetime import timedelta

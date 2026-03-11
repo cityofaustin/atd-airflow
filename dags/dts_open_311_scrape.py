@@ -1,5 +1,3 @@
-# test locally with: docker compose run --rm airflow-cli dags test dts_open_311_scrape
-
 from os import getenv
 
 from datetime import timedelta

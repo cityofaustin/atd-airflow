@@ -1,5 +1,3 @@
-# test locally with: docker compose run --rm airflow-cli dags test dts_row_reporting
-
 from os import getenv
 
 from airflow.providers.docker.operators.docker import DockerOperator

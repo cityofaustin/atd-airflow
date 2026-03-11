@@ -1,5 +1,3 @@
-# test locally with: docker compose run --rm airflow-cli dags test dts_work_zone_data_feed
-
 from os import getenv
 
 from airflow.sdk import task, DAG
