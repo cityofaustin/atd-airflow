@@ -11,7 +11,7 @@ from pendulum import datetime, duration, now
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
-from utils.time import get_previous_run_date
+from utils.time import get_previous_success_start_time
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -72,7 +72,7 @@ with DAG(
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
     one_day_ago = now("America/Chicago").subtract(days=1)
-    date_arg = get_previous_run_date(fallback_date=one_day_ago.to_iso8601_string())
+    prev_run_time = get_previous_success_start_time(fallback_date=one_day_ago.to_iso8601_string())
 
     t1 = DockerOperator(
         task_id="open311_to_socrata",
@@ -80,7 +80,7 @@ with DAG(
         docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
-        command=f"python -m etl.open311.open311_to_socrata -d {date_arg["last_run_datetime_iso"]}",
+        command=f"python -m etl.open311.open311_to_socrata -d {prev_run_time}",
         environment=env_vars,
         tty=True,
         force_pull=True,

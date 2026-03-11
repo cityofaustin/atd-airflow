@@ -6,10 +6,11 @@ from airflow.sdk import task, DAG, Param
 from airflow.models.dagrun import DagRun
 from airflow.models.taskinstance import TaskInstance
 from airflow.providers.docker.operators.docker import DockerOperator
-from pendulum import datetime, duration
+from pendulum import datetime, duration, parse, now
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
+from utils.time import get_previous_success_start_time
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -101,6 +102,9 @@ REQUIRED_SECRETS = {
     },
 }
 
+@task
+def format_start_date(prev) -> str:
+    return parse(prev).format("YYYY-MM-DD")
 
 with DAG(
     dag_id="atd_parking_data",
@@ -111,12 +115,11 @@ with DAG(
     catchup=False,
 ) as dag:
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
-
-    # default to the last 14 days of transactions
-    prev_exec = "{{ (prev_start_date_success - macros.timedelta(days=14)).strftime('%Y-%m-%d') if prev_start_date_success else (execution_date - macros.timedelta(days=14)).strftime('%Y-%m-%d')}}"
+    three_days_ago = now("America/Chicago").subtract(days=3)
+    prev = get_previous_success_start_time(fallback_date=three_days_ago.to_iso8601_string())
+    prev_exec = format_start_date(prev)
 
     docker_tasks = []
-
     docker_tasks.append(
         DockerOperator(
             task_id="smartfolio_transactions",

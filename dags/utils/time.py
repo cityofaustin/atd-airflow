@@ -34,22 +34,20 @@ def get_previous_success_end_time(
     TaskFlow task: previous successful run end time (ISO-8601) or a fallback date.
 
     If the task instance context doesn't contain a previous-success end time, return
-    `fallback_date` (expected format: "YYYY-MM-DD"). Defaults to the Unix epoch date.
+    `fallback_date`. Defaults to the Unix epoch date.
     """
 
     ctx = context or get_current_context()
     prev = ctx.get("prev_data_interval_end_success") or ctx.get("prev_end_date_success")
-
     if prev is None:
-        # Validate strict date format (e.g. "1981-03-27") and return as-is.
-        pendulum.from_format(fallback_date, "YYYY-MM-DD")
-        return fallback_date
+        fallback_date = pendulum.parse(fallback_date)
+        return fallback_date.isoformat()
 
     try:
-        return prev.in_timezone(tz).to_iso8601_string()
+        return prev.isoformat()
     except Exception:
-        pendulum.from_format(fallback_date, "YYYY-MM-DD")
-        return fallback_date
+        fallback_date = pendulum.parse(fallback_date)
+        return fallback_date.isoformat()
 
 @task
 def get_previous_success_start_time(
@@ -61,39 +59,17 @@ def get_previous_success_start_time(
     TaskFlow task: previous successful run start time (ISO-8601) or a fallback date.
 
     If the task instance context doesn't contain a previous-success start time, return
-    `fallback_date` (expected format: "YYYY-MM-DD"). Defaults to the Unix epoch date.
+    `fallback_date`. Defaults to the Unix epoch date.
     """
 
     ctx = context or get_current_context()
     prev = ctx.get("prev_data_interval_start_success") or ctx.get("prev_start_date_success")
     if prev is None:
-        pendulum.from_format(fallback_date, "YYYY-MM-DD")
-        return fallback_date
+        fallback_date = pendulum.parse(fallback_date)
+        return fallback_date.isoformat()
 
     try:
-        return prev.in_timezone(tz).to_iso8601_string()
+        return prev.isoformat()
     except Exception:
-        pendulum.from_format(fallback_date, "YYYY-MM-DD")
-        return fallback_date
-
-
-@task(
-    task_id="get_previous_run_date",
-    multiple_outputs=True,
-)
-def get_previous_run_date(fallback_date="1970-01-01", **context):
-    """Task to return the last successful run date in UTC datetime format.
-
-    Args:
-        context (dict): Airflow task context, which contains the prev_start_date_success
-            variable.
-
-    Returns:
-        Dict: dict containing the last run datetime and other future formats
-    """
-    last_run_datetime = context.get("prev_start_date_success") or pendulum.parse(fallback_date)
-
-    return {
-        "last_run_datetime": last_run_datetime,
-        "last_run_datetime_iso": last_run_datetime.isoformat(),
-    }
+        fallback_date = pendulum.parse(fallback_date)
+        return fallback_date.isoformat()
