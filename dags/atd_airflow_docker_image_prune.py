@@ -27,7 +27,7 @@ DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT")
         "owner": "airflow",
         "retries": 0,
         "on_failure_callback": task_fail_slack_alert,
-        "execution_timeout": duration(minutes=5),
+        "execution_timeout": duration(minutes=10),
     },
     description="Prune dangling docker images from system",
 )
