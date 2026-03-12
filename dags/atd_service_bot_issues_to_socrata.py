@@ -3,14 +3,15 @@ from pendulum import datetime, duration
 
 from airflow.decorators import task
 from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
 
 from utils.slack_operator import task_fail_slack_alert
+from utils.onepassword import get_env_vars_task
 
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
-default_args = {
+DEFAULT_ARGS = {
     "owner": "airflow",
     "description": "Publish atd-data-tech Github issues to Socrata",
     "depends_on_past": False,
@@ -27,10 +28,6 @@ docker_image = "atddocker/atd-service-bot:production"
 REQUIRED_SECRETS = {
     "GITHUB_ACCESS_TOKEN": {
         "opitem": "Github Access Token Service Bot",
-        "opfield": ".password",
-    },
-    "ZENHUB_ACCESS_TOKEN": {
-        "opitem": "Zenhub Access Token",
         "opfield": ".password",
     },
     "SOCRATA_API_KEY_ID": {
@@ -58,23 +55,13 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id=f"atd_service_bot_github_to_socrata_{DEPLOYMENT_ENVIRONMENT}",
-    default_args=default_args,
-    schedule_interval="0 22 * * *",
+    default_args=DEFAULT_ARGS,
+    schedule="0 22 * * *",
     tags=["repo:atd-service-bot", "socrata", "github"],
     catchup=False,
 ) as dag:
 
-    @task(
-        task_id="get_env_vars",
-        execution_timeout=duration(seconds=30),
-    )
-    def get_env_vars():
-        from utils.onepassword import load_dict
-
-        env_vars = load_dict(REQUIRED_SECRETS)
-        return env_vars
-
-    env_vars = get_env_vars()
+    env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     DockerOperator(
         task_id="dts_github_to_socrata",

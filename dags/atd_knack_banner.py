@@ -1,7 +1,7 @@
 from os import getenv
 
 from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -45,7 +45,7 @@ with DAG(
     dag_id=f"atd_knack_banner",
     description="Update knack HR app based on records in Banner and CTM",
     default_args=DEFAULT_ARGS,
-    schedule_interval="45 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="45 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=30),
     tags=["repo:atd-knack-banner", "knack", "hr"],
     catchup=False,
