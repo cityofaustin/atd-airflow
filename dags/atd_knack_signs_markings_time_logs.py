@@ -8,6 +8,11 @@ from utils.onepassword import get_env_vars_task
 from utils.knack import get_date_filter_arg
 from utils.slack_operator import task_fail_slack_alert
 
+doc_md = """
+## Testing and troubleshooting
+Can run on production with previous successful run or 1 hour look-back window if missing
+"""
+
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 DEFAULT_ARGS = {
@@ -56,6 +61,7 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id="atd_knack_signs_markings_time_logs",
     description="Load signs markings time logs (view_3516) records from Knack to Postgrest to Socrata",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
     # runs once at 950a cst and again at 150pm cst
     schedule=("50 9,13 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None),

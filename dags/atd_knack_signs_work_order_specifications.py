@@ -8,6 +8,11 @@ from utils.onepassword import get_env_vars_task
 from utils.knack import get_date_filter_arg
 from utils.slack_operator import task_fail_slack_alert
 
+doc_md = """
+## Testing and troubleshooting
+Can run on production with previous successful run or 1 hour look-back window if missing
+"""
+
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 DEFAULT_ARGS = {
@@ -64,6 +69,7 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id="atd_knack_signs_work_order_specifications",
     description="Publish sign work order specifications (view_3106) to Postgres, AGOL",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
     schedule="35 1 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "agol", "signs-markings", "socrata"],

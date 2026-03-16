@@ -8,6 +8,11 @@ from utils.onepassword import get_env_vars_task
 from utils.knack import get_date_filter_arg
 from utils.slack_operator import task_fail_slack_alert
 
+doc_md = """
+## Testing and troubleshooting
+Can run on production with previous successful run or 1 hour look-back window if missing
+"""
+
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 DEFAULT_ARGS = {
@@ -56,6 +61,7 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id="atd_knack_signs_markings_reimbursements",
     description="Load signs and markings (view_3527) reimbursement records from Knack to Postgrest to Socrata",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
     schedule="35 3 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "signs-markings"],
