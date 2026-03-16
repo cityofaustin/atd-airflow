@@ -9,6 +9,11 @@ from pendulum import datetime, duration
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
+doc_md = """
+## Testing and troubleshooting
+Can run on production over and over because it upserts records
+"""
+
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 DEFAULT_ARGS = {
@@ -62,6 +67,7 @@ def get_required_secrets(params):
 @dag(
     dag_id="atd_moped_ecapris_status_sync",
     description="sync eCapris statuses to Moped database",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
     schedule=("*/30 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None),
     dagrun_timeout=duration(minutes=30),
