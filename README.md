@@ -25,10 +25,13 @@ The stack is composed of:
   - [Utilities](#utilities)
     - [1Password utility](#1password-utility)
     - [Slack operator utility](#slack-operator-utility)
+      - [Byline support](#byline-support)
+      - [Custom icon/emoji support](#custom-iconemoji-support)
   - [Useful Commands](#useful-commands)
   - [Updating the stack](#updating-the-stack)
     - [Update Process](#update-process)
       - [Testing a new Airflow version](#testing-a-new-airflow-version)
+      - [Inserting a previous DAG run to resume incremental runs using a look-back window](#inserting-a-previous-dag-run-to-resume-incremental-runs-using-a-look-back-window)
   - [HAProxy and SSL](#haproxy-and-ssl)
     - [HAProxy operation](#haproxy-operation)
   - [Ideas](#ideas)
@@ -271,6 +274,56 @@ docker compose down
 - In the [docker-compose.yaml](./docker-compose.yaml), switch `build: .` back to `image: atddocker/atd-airflow:production`
 - Push your branch and create a PR for review
 - After approval, merge and update the stack using the instructions in the [Moving to production section](#moving-to-production)
+
+#### Inserting a previous DAG run to resume incremental runs using a look-back window
+
+1. Get into a psql shell in the Airflow v3 container
+```shell
+docker compose exec --user airflow airflow-dag-processor airflow db shell;
+```
+2. Run the following statement on the Airflow v3 DB to backfill successful DAG runs:
+```sql
+-- Insert successful DAG runs by ids that completed one hour ago
+-- We probably can remove some of the columns in this insert but this works well enough
+INSERT INTO dag_run (
+  dag_id,
+  run_id,
+  logical_date,
+  data_interval_start,
+  data_interval_end,
+  run_after,
+  queued_at,
+  start_date,
+  end_date,
+  state,
+  run_type,
+  triggered_by,
+  triggering_user_name,
+  conf,
+  context_carrier,
+  span_status
+)
+SELECT
+  dag_id,
+  'manual__' || to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"+00:00"'),
+  (now() AT TIME ZONE 'UTC') - interval '1 hour',
+  (now() AT TIME ZONE 'UTC') - interval '1 hour',
+  (now() AT TIME ZONE 'UTC') - interval '1 hour',
+  (now() AT TIME ZONE 'UTC') - interval '1 hour',
+  (now() AT TIME ZONE 'UTC'),
+  (now() AT TIME ZONE 'UTC') - interval '1 hour',
+  (now() AT TIME ZONE 'UTC') - interval '1 hour',
+  'success',
+  'manual',
+  'UI',
+  'admin',
+  '{}'::jsonb,
+  '{"__var": {}, "__type": "dict"}'::jsonb,
+  'ended'
+FROM unnest(ARRAY[
+  '<you DAG ID pulled from the DAG definition dag_id parameter>'
+]) AS dag_id;
+```
 
 ## HAProxy and SSL
 
