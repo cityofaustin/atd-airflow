@@ -10,8 +10,13 @@ from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
 doc_md = """
-## Testing and troubleshooting
-Can run on production over and over because it upserts records
+## Troubleshooting
+Trigger the DAG again as needed since this one upserts records
+
+## Testing
+**Need VPN access to reach the FSD Data Warehouse (Oracle DB)**
+
+Trigger the DAG with the Moped local stack running to move records from Data Warehouse to local or staging Moped database Moped database
 """
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
