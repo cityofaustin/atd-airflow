@@ -3,12 +3,22 @@
 from os import getenv
 
 from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 from utils.knack import get_date_filter_arg
+
+doc_md = """
+⚠️ Warning: Running this DAG with no previous run history is not recommended since it will process many of records!
+
+## Troubleshooting
+Trigger the DAG again (as long as there is a previous successful run to pick back up on incremental updates) to address any connection errors or timeouts
+
+## Testing
+To insert a previous successful DAG run, see [README](./README.md#inserting-a-previous-dag-run-to-resume-incremental-runs-using-a-look-back-window)
+"""
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -47,7 +57,7 @@ with DAG(
     dag_id="atd_moped_data_tracker_sync",
     description="sync Moped project data to Knack Data Tracker projects table",
     default_args=DEFAULT_ARGS,
-    schedule_interval="0 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="0 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=30),
     tags=["repo:atd-moped", "moped", "data-tracker", "knack"],
     catchup=False,
