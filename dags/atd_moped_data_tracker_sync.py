@@ -2,7 +2,7 @@
 
 from os import getenv
 
-from airflow.models import DAG
+from airflow.sdk import DAG
 from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
@@ -11,7 +11,7 @@ from utils.slack_operator import task_fail_slack_alert
 from utils.knack import get_date_filter_arg
 
 doc_md = """
-⚠️ Warning: Running this DAG with no previous run history is not recommended since it will process many of records!
+⚠️ Warning: Running this DAG with no previous run history is not recommended since it will process many records!
 
 ## Troubleshooting
 Trigger the DAG again (as long as there is a previous successful run to pick back up on incremental updates) to address any connection errors or timeouts
