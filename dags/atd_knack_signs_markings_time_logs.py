@@ -1,12 +1,25 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.knack import get_date_filter_arg
 from utils.slack_operator import task_fail_slack_alert
+
+doc_md = """
+⚠️ Warning: Running this DAG with no previous run history is not recommended since it will replace thousands of records!
+
+## Troubleshooting
+Trigger the DAG again (as long as there is a previous successful run to pick back up on incremental updates) to address any connection errors or timeouts
+
+## Testing
+**Need VPN access or addition to security group allow list to reach Postgrest**
+
+To insert a previous successful DAG run, see [README](./README.md#inserting-a-previous-dag-run-to-resume-incremental-runs-using-a-look-back-window)
+
+"""
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -17,7 +30,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "execution_timeout": duration(minutes=120),
+    "execution_timeout": duration(minutes=30),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -38,14 +51,6 @@ REQUIRED_SECRETS = {
         "opitem": "atd-knack-services PostgREST",
         "opfield": "production.jwt",
     },
-    "AGOL_USERNAME": {
-        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
-        "opfield": "production.username",
-    },
-    "AGOL_PASSWORD": {
-        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
-        "opfield": "production.password",
-    },
     "SOCRATA_API_KEY_ID": {
         "opitem": "Socrata Key ID, Secret, and Token",
         "opfield": "socrata.apiKeyId",
@@ -62,27 +67,30 @@ REQUIRED_SECRETS = {
 
 
 with DAG(
-    dag_id="atd_knack_signs_work_order_specifications",
-    description="Publish sign work order specifications (view_3106) to Postgres, AGOL",
+    dag_id="atd_knack_signs_markings_time_logs",
+    description="Load signs markings time logs (view_3516) records from Knack to Postgrest to Socrata",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
-    schedule_interval="35 1 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    tags=["repo:atd-knack-services", "knack", "agol", "signs-markings", "socrata"],
+    # runs once at 950a cst and again at 150pm cst
+    schedule=("50 9,13 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None),
+    tags=["repo:atd-knack-services", "knack", "socrata", "signs-markings"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/atd-knack-services:production"
     app_name = "signs-markings"
-    container = "view_3106"
+    container_markings = "view_3307"
+    container_signs = "view_3528"
 
     date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
-        task_id="signs_asset_specs_to_postgrest",
+        task_id="atd_knack_signs_time_logs_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
+        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container_signs} {date_filter_arg}",
         environment=env_vars,
         tty=True,
         force_pull=True,
@@ -90,25 +98,36 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id="signs_asset_specs_to_agol",
+        task_id="atd_knack_markings_time_logs_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container} {date_filter_arg}",
+        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container_markings} {date_filter_arg}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
     )
 
     t3 = DockerOperator(
-        task_id="signs_asset_specs_to_socrata",
+        task_id="atd_knack_signs_time_logs_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}",
+        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container_signs} {date_filter_arg}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
     )
 
-    date_filter_arg >> t1 >> t2 >> t3
+    t4 = DockerOperator(
+        task_id="atd_knack_markings_time_logs_to_socrata",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove="force",
+        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container_markings} {date_filter_arg}",
+        environment=env_vars,
+        tty=True,
+        mount_tmp_dir=False,
+    )
+
+    date_filter_arg >> t1 >> t2 >> t3 >> t4
