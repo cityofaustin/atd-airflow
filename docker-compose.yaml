@@ -15,6 +15,8 @@ x-airflow-common: &airflow-common
     OP_CONNECT: ${OP_CONNECT}
     OP_VAULT_ID: ${OP_VAULT_ID}
     AIRFLOW_CONN_DOCKER_DEFAULT: "docker://${DOCKER_HUB_USERNAME}:${DOCKER_HUB_TOKEN}@https%3A%2F%2Findex.docker.io%2Fv1%2F:80"
+    ENVIRONMENT: ${ENVIRONMENT}
+    AIRFLOW__API__BASE_URL: ${_AIRFLOW__API__BASE_URL:-http://localhost:8080}
 
     # Airflow stock suggested environment variables
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
