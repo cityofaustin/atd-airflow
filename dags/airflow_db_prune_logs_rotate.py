@@ -131,19 +131,19 @@ This DAG prunes old Airflow metadata and rotates filesystem logs.
 #### Why a wrapper utility is used for DB cleanup
 
 In Airflow 3, task runtime is isolated from direct metadata DB access, and tasks
-may see a blocked URL such as `airflow-db-not-allowed:///`. Running
-`airflow db clean` directly in a normal task can therefore fail.
+may see a blocked URL such as 'airflow-db-not-allowed:///'. Running
+'airflow db clean' directly in a normal task can therefore fail.
 
-To avoid that, task `airflow_db_clean` runs:
+To avoid that, task 'airflow_db_clean' runs:
 
-`python3 /opt/airflow/toolbox/airflow_metadata_db/run_db_clean.py`
+'python3 /opt/airflow/toolbox/airflow_metadata_db/run_db_clean.py'
 
-That utility invokes `airflow db clean` with an explicit metadata DB URL via:
+That utility invokes 'airflow db clean' with an explicit metadata DB URL via:
 
-`AIRFLOW_DB_CLEAN_SQL_ALCHEMY_CONN`
+'AIRFLOW_DB_CLEAN_SQL_ALCHEMY_CONN'
 
 In compose, both DB env vars map to one source value
-(`AIRFLOW_METADATA_DB_SQL_ALCHEMY_CONN`) to keep configuration DRY.
+('AIRFLOW_METADATA_DB_SQL_ALCHEMY_CONN') to keep configuration DRY.
 """,
     params={
         "days_back_to_prune": Param(
