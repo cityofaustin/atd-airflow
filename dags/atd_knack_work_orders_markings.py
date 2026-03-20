@@ -76,6 +76,7 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id="atd_knack_work_orders_markings",
     description="Load work orders markings (view_3099) records from Knack to Postgrest to AGOL, Socrata",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
     # runs once at 1130a ct and again at 140pm ct
     schedule=("30 11,13 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None),

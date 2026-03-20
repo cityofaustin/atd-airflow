@@ -56,6 +56,7 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id="atd_moped_data_tracker_sync",
     description="sync Moped project data to Knack Data Tracker projects table",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
     schedule="0 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=30),
