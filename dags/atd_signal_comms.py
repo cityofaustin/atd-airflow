@@ -78,6 +78,7 @@ with DAG(
     dag_id=f"atd_signal_comms",
     description="Ping network devices and publish to S3, then socrata",
     default_args=DEFAULT_ARGS,
+    # Note below, `DEPLOYMENT_ENVIRONMENT` is /overwritten/ above, and is not `production` like in most other DAGs.
     schedule_interval="7 2 * * *" if DEPLOYMENT_ENVIRONMENT == "prod" else None,
     tags=["repo:atd-signal-comms", "socrata"],
     catchup=False,
