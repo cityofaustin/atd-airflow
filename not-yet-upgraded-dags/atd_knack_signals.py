@@ -1,8 +1,8 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
-from pendulum import datetime, duration, now
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import dag
+from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
@@ -61,14 +61,47 @@ REQUIRED_SECRETS = {
 }
 
 
-with DAG(
-    dag_id=f"atd_knack_signals",
+@dag(
+    dag_id="atd_knack_signals",
     description="Load signals (view_197) records from Knack to Postgrest to AGOL and Socrata",
     default_args=DEFAULT_ARGS,
-    schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "agol", "data-tracker"],
     catchup=False,
-) as dag:
+    doc_md="""
+## Signals (Knack to PostgREST, Socrata, and AGOL)
+
+Loads traffic signal records from Knack Data Tracker (app 'data-tracker', container
+'view_197') using the 'atddocker/atd-knack-services:production' image, then
+publishes them to PostgREST, Socrata, and ArcGIS Online ('AGOL').
+
+### Task flow
+
+1. 'get_date_filter_arg' — supplies an incremental date flag for the pipeline.
+2. 'get_env_vars' — loads API and service credentials from 1Password.
+3. 'atd_knack_signals_to_postgrest' — runs 'records_to_postgrest.py'.
+4. 'atd_knack_signals_to_socrata' — runs 'records_to_socrata.py'.
+5. 'atd_knack_signals_to_agol' — runs 'records_to_agol.py'.
+
+### Schedule
+
+Cron '*/5 * * * *' (every five minutes) in production; unscheduled in non-production environments.
+
+### New Airflow environments
+
+The 'get_date_filter_arg' task uses the previous successful run time
+('prev_start_date_success' in task context) to build the incremental date filter.
+A brand-new Airflow database has no prior successful runs for this DAG, so that
+value may not behave as expected until history exists. When moving this DAG to a
+new Airflow environment, add an artificial successful run (or otherwise seed
+the behavior you want) so the first real run uses an appropriate baseline date.
+
+### Docker
+
+Tasks use connection 'docker_default' and pull the image on the first task.
+""",
+)
+def atd_knack_signals():
     docker_image = "atddocker/atd-knack-services:production"
     app_name = "data-tracker"
     container = "view_197"
@@ -77,7 +110,7 @@ with DAG(
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperator(
+    to_postgrest = DockerOperator(
         task_id="atd_knack_signals_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -89,7 +122,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperator(
+    to_socrata = DockerOperator(
         task_id="atd_knack_signals_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -100,7 +133,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t3 = DockerOperator(
+    to_agol = DockerOperator(
         task_id="atd_knack_signals_to_agol",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -111,4 +144,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    date_filter_arg >> t1 >> t2 >> t3
+    date_filter_arg >> to_postgrest >> to_socrata >> to_agol
+
+
+atd_knack_signals()
