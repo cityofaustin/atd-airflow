@@ -49,7 +49,7 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id=f"atd_service_bot_issue_intake_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
-    schedule_interval="*/3 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,,
+    schedule_interval="*/3 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-service-bot", "knack", "github"],
     catchup=False,
 ) as dag:
