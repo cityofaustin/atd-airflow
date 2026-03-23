@@ -59,7 +59,7 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id=f"atd_service_bot_github_to_socrata_{DEPLOYMENT_ENVIRONMENT}",
     default_args=default_args,
-    schedule_interval="0 22 * * *",
+    schedule_interval="0 22 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-service-bot", "socrata", "github"],
     catchup=False,
 ) as dag:
