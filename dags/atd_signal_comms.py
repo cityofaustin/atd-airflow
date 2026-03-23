@@ -8,8 +8,9 @@ from pendulum import datetime, duration
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
-DEPLOYMENT_ENVIRONMENT = "prod" if getenv("ENVIRONMENT") == "production" else "dev"
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
+# Define a similar variable with an abreviated stage name for use in commands
 deployment_stage_abbreviation = "prod" if DEPLOYMENT_ENVIRONMENT == "production" else "dev"
 
 DEFAULT_ARGS = {
