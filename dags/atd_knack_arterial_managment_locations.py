@@ -1,7 +1,7 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -53,7 +53,7 @@ with DAG(
     dag_id="atd_knack_arterial_managment_locations",
     description="Publishes AMD location records to AGOL",
     default_args=DEFAULT_ARGS,
-    schedule_interval="30 21 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="30 21 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "agol", "data-tracker"],
     catchup=False,
 ) as dag:

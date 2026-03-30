@@ -2,9 +2,9 @@
 
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
-from pendulum import datetime, duration, now
+from airflow.sdk import DAG
+from airflow.providers.docker.operators import DockerOperator
+from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
@@ -59,7 +59,7 @@ with DAG(
     dag_id=f"atd_knack_amd_pm",
     description="Copies primary signal preventive maintenance records to secondary signals. Then, loads preventative maintenance work order (view_3887) records from Knack to Postgrest and Socrata.",
     default_args=DEFAULT_ARGS,
-    schedule_interval="15 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="15 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "data-tracker"],
     catchup=False,
 ) as dag:
