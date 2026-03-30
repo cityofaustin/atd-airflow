@@ -146,7 +146,7 @@ def task_fail_slack_alert(context):
     exceptions_text = build_exception_text(all_exceptions)
 
     byline = getattr(dag, "byline", "")
-    icon = getattr(dag, "icon", ":red_circle:")
+    icon = getattr(dag, "icon", ":three:")
 
     # Add deployment environment indication if not production
     env_indicator = ""

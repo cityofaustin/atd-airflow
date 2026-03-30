@@ -1,12 +1,24 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.knack import get_date_filter_arg
 from utils.slack_operator import task_fail_slack_alert
+
+doc_md = """
+⚠️ Warning: Running this DAG with no previous run history is not recommended since it will replace thousands of records!
+
+## Troubleshooting
+Trigger the DAG again (as long as there is a previous successful run to pick back up on incremental updates) to address any connection errors or timeouts
+
+## Testing
+**Need VPN access or addition to security group allow list to reach Postgrest**
+
+To insert a previous successful DAG run, see the "Inserting a previous DAG run to resume incremental runs using a look-back window" section in the README
+"""
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -17,7 +29,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "execution_timeout": duration(minutes=30),
+    "execution_timeout": duration(minutes=5),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -50,38 +62,28 @@ REQUIRED_SECRETS = {
         "opitem": "Socrata Key ID, Secret, and Token",
         "opfield": "socrata.appToken",
     },
-    "AGOL_USERNAME": {
-        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
-        "opfield": "production.username",
-    },
-    "AGOL_PASSWORD": {
-        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
-        "opfield": "production.password",
-    },
 }
 
 
 with DAG(
-    dag_id="atd_knack_markings_work_orders_jobs",
-    description="Load work orders markings jobs (view_3100) records from Knack to Postgrest to AGOL, Socrata",
+    dag_id="atd_knack_signs_markings_reimbursements",
+    description="Load signs and markings (view_3527) reimbursement records from Knack to Postgrest to Socrata",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
-    # runs once at 1130a ct and again at 140pm ct
-    schedule_interval=(
-        "40 11,13 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
-    ),
-    tags=["repo:atd-knack-services", "knack", "socrata", "agol", "signs-markings"],
+    schedule="35 3 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    tags=["repo:atd-knack-services", "knack", "socrata", "signs-markings"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/atd-knack-services:production"
     app_name = "signs-markings"
-    container = "view_3100"
+    container = "view_3527"
 
     date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
-        task_id="atd_knack_markings_work_orders_jobs_to_postgrest",
+        task_id="atd_knack_signs_markings_reimbursements_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
@@ -93,30 +95,7 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id="atd_knack_markings_work_orders_jobs_to_agol",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container} {date_filter_arg}",
-        environment=env_vars,
-        tty=True,
-        force_pull=True,
-        mount_tmp_dir=False,
-    )
-
-    t3 = DockerOperator(
-        task_id="atd_knack_markings_jobs_agol_build_markings_segment_geometries",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command=f"./atd-knack-services/services/agol_build_markings_segment_geometries.py -l markings_jobs  {date_filter_arg}",
-        environment=env_vars,
-        tty=True,
-        mount_tmp_dir=False,
-    )
-
-    t4 = DockerOperator(
-        task_id="atd_knack_markings_work_orders_jobs_to_socrata",
+        task_id="atd_knack_signs_markings_reimbursements_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
@@ -126,4 +105,4 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    date_filter_arg >> t1 >> t2 >> t3 >> t4
+    date_filter_arg >> t1 >> t2
