@@ -2,10 +2,8 @@
 
 from os import getenv
 
-from airflow.models import DAG
+from airflow.sdk import DAG, task, Param
 from airflow.providers.docker.operators.docker import DockerOperator
-from airflow.decorators import task
-from airflow.models import Param
 from pendulum import datetime, duration, parse
 
 from utils.onepassword import get_env_vars_task

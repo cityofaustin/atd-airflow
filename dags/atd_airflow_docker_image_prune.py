@@ -9,7 +9,7 @@ removes those dangling images.
 
 from os import getenv
 
-from airflow.decorators import dag, task
+from airflow.sdk import dag, task
 from pendulum import datetime, duration
 
 from utils.slack_operator import task_fail_slack_alert
