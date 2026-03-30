@@ -1,7 +1,7 @@
 from os import getenv
 
 from airflow.sdk import DAG
-from airflow.providers.docker.operators import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
