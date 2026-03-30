@@ -5,20 +5,8 @@ from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
-from utils.knack import get_date_filter_arg
+from utils.knack import get_date_filter_arg, atd_knack_services_doc_md
 from utils.slack_operator import task_fail_slack_alert
-
-doc_md = """
-⚠️ Warning: Running this DAG with no previous run history is not recommended since it will replace thousands of records!
-
-## Troubleshooting
-Trigger the DAG again (as long as there is a previous successful run to pick back up on incremental updates) to address any connection errors or timeouts
-
-## Testing
-**Need VPN access or addition to security group allow list to reach Postgrest**
-
-To insert a previous successful DAG run, see the "Inserting a previous DAG run to resume incremental runs using a look-back window" section in the README
-"""
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -68,7 +56,7 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id="atd_knack_signs_markings_reimbursements",
     description="Load signs and markings (view_3527) reimbursement records from Knack to Postgrest to Socrata",
-    doc_md=doc_md,
+    doc_md=atd_knack_services_doc_md,
     default_args=DEFAULT_ARGS,
     schedule="35 3 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "signs-markings"],
