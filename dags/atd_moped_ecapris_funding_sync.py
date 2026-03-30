@@ -2,13 +2,20 @@
 
 from os import getenv
 
-from airflow.decorators import dag, task
-from airflow.operators.docker_operator import DockerOperator
-from airflow.models import Param
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import dag, Param, task
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
+
+doc_md = """
+## Troubleshooting
+Trigger the DAG again as needed since this one upserts records
+
+## Testing
+Trigger the DAG with the Moped local stack running to move records from ODP to local or staging Moped database
+"""
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -23,36 +30,40 @@ DEFAULT_ARGS = {
     "on_failure_callback": task_fail_slack_alert,
 }
 
-REQUIRED_SECRETS = {
-    "SOCRATA_API_KEY_ID": {
-        "opitem": "Socrata Key ID, Secret, and Token",
-        "opfield": "socrata.apiKeyId",
-    },
-    "SOCRATA_API_KEY_SECRET": {
-        "opitem": "Socrata Key ID, Secret, and Token",
-        "opfield": "socrata.apiKeySecret",
-    },
-    "SOCRATA_TOKEN": {
-        "opitem": "Socrata Key ID, Secret, and Token",
-        "opfield": "socrata.appToken",
-    },
-    "SOCRATA_ENDPOINT": {
-        "opitem": "Socrata Key ID, Secret, and Token",
-        "opfield": "socrata.endpoint",
-    },
-    "HASURA_ENDPOINT": {
-        "opitem": "Moped Hasura Admin",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.Endpoint",
-    },
-    "HASURA_ADMIN_SECRET": {
-        "opitem": "Moped Hasura Admin",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.Admin Secret",
-    },
-    "FUNDING_DATASET_IDENTIFIER": {
-        "opitem": "Moped ETLs",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.FUNDING_DATASET_IDENTIFIER",
-    },
-}
+
+@task
+def get_required_secrets(params):
+    target_database = params["target_database"]
+    return {
+        "SOCRATA_API_KEY_ID": {
+            "opitem": "Socrata Key ID, Secret, and Token",
+            "opfield": "socrata.apiKeyId",
+        },
+        "SOCRATA_API_KEY_SECRET": {
+            "opitem": "Socrata Key ID, Secret, and Token",
+            "opfield": "socrata.apiKeySecret",
+        },
+        "SOCRATA_TOKEN": {
+            "opitem": "Socrata Key ID, Secret, and Token",
+            "opfield": "socrata.appToken",
+        },
+        "SOCRATA_ENDPOINT": {
+            "opitem": "Socrata Key ID, Secret, and Token",
+            "opfield": "socrata.endpoint",
+        },
+        "HASURA_ENDPOINT": {
+            "opitem": "Moped Hasura Admin",
+            "opfield": f"{target_database}.Endpoint",
+        },
+        "HASURA_ADMIN_SECRET": {
+            "opitem": "Moped Hasura Admin",
+            "opfield": f"{target_database}.Admin Secret",
+        },
+        "FUNDING_DATASET_IDENTIFIER": {
+            "opitem": "Moped ETLs",
+            "opfield": f"{target_database}.FUNDING_DATASET_IDENTIFIER",
+        },
+    }
 
 
 @task.branch(task_id="branch")
@@ -80,18 +91,32 @@ def branch(params):
 @dag(
     dag_id="atd_moped_ecapris_funding_sync",
     description="sync eCapris funding to Moped database",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
     # Scheduled to run after atd_finance_data_fdus DAG
     schedule=("33 8 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None),
     dagrun_timeout=duration(minutes=30),
     tags=["repo:atd-moped", "moped", "ecapris"],
     catchup=False,
-    params={"dry_run": Param(default=False, type="boolean")},
+    params={
+        "dry_run": Param(default=False, type="boolean"),
+        "target_database": Param(
+            default=DEPLOYMENT_ENVIRONMENT,
+            enum=(
+                ["production", "staging"]
+                if DEPLOYMENT_ENVIRONMENT == "production"
+                else ["staging", "development"]
+            ),
+            description="Target Moped database. Defaults to the current deployment environment.",
+        ),
+    },
     max_active_runs=1,  # Block schedule while DAG with params is triggered
 )
 def sync_ecapris_funding():
+    # No staging tag for this image. Push test code to development image or run production image against staging or production environments.
     docker_image = f"atddocker/atd-moped-etl-ecapris-funding:{DEPLOYMENT_ENVIRONMENT}"
 
+    REQUIRED_SECRETS = get_required_secrets()
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     branch_task = branch()
