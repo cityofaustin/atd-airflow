@@ -17,7 +17,7 @@ doc_md = """
 Trigger the DAG again (as long as there is a previous successful run to pick back up on incremental updates) to address any connection errors or timeouts
 
 ## Testing
-To insert a previous successful DAG run, see [README](./README.md#inserting-a-previous-dag-run-to-resume-incremental-runs-using-a-look-back-window)
+To insert a previous successful DAG run, see the "Inserting a previous DAG run to resume incremental runs using a look-back window" section in the README
 """
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
