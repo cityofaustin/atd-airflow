@@ -24,11 +24,11 @@ DEFAULT_ARGS = {
 REQUIRED_SECRETS = {
     "KNACK_APP_ID": {
         "opitem": "Knack AMD Data Tracker",
-        "opfield": f"production.appId",
+        "opfield": "production.appId",
     },
     "KNACK_API_KEY": {
         "opitem": "Knack AMD Data Tracker",
-        "opfield": f"production.apiKey",
+        "opfield": "production.apiKey",
     },
     "PGREST_ENDPOINT": {
         "opitem": "atd-knack-services PostgREST",
