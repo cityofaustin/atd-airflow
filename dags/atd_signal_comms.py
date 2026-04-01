@@ -1,8 +1,7 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
-from airflow.decorators import task
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import dag, task
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -62,30 +61,62 @@ REQUIRED_SECRETS = {
 }
 
 
-@task(
-    task_id="get_start_date",
-)
+@task(task_id="get_start_date")
 def get_start_date(**context):
-    """Get the --start date argument. Returns either the prev start date or today
-    if the DAG has no successful run history"""
+    """Return the '--start' date for Socrata publish tasks (previous successful run or today)."""
     from pendulum import now
 
     prev_start_date = context.get("prev_start_date_success") or now()
     return prev_start_date.strftime("%Y-%m-%d")
 
 
-with DAG(
-    dag_id=f"atd_signal_comms",
+@dag(
+    dag_id="atd_signal_comms",
     description="Ping network devices and publish to S3, then socrata",
     default_args=DEFAULT_ARGS,
-    schedule_interval="7 2 * * *" if DEPLOYMENT_ENVIRONMENT == "prod" else None,
+    schedule="7 2 * * *" if DEPLOYMENT_ENVIRONMENT == "prod" else None,
     tags=["repo:atd-signal-comms", "socrata"],
     catchup=False,
-) as dag:
+    doc_md="""
+## Signal communications (S3 and Socrata)
+
+Runs 'atddocker/atd-signal-comms:production' to check device communications,
+write results to S3, then publish incremental updates to Socrata.
+
+### Task flow
+
+1. 'get_start_date' — supplies the '--start' date for Socrata publish commands
+   from the previous successful DAG run (or today if there is no history).
+2. 'get_env_vars' — loads AWS, Knack, PostgREST, and Socrata credentials from 1Password.
+3. Comm check tasks — 'run_comm_check_*' run 'run_comm_check.py' per asset type (camera,
+   detector, digital message sign, cabinet battery backup, signal monitor).
+4. Socrata publish tasks — 'socrata_pub_*' run 'socrata_pub.py' for each asset type using
+   the start date from step 1.
+
+### Schedule
+
+Cron '7 2 * * *' (02:07 host time) when 'ENVIRONMENT' is 'production' (deployment treated
+as 'prod'); otherwise the DAG is not scheduled.
+
+### New Airflow environments
+
+The 'get_start_date' task uses 'prev_start_date_success' from the task context so Socrata
+publishes incrementally from the last successful run. A new Airflow metadata database has
+no prior successful runs, so the first run falls back to 'today' and may not match the
+incremental window you expect. When moving this DAG to a new environment, add an artificial
+successful run (or otherwise establish the baseline you want) before relying on incremental
+Socrata loads.
+
+### Docker
+
+Tasks use connection 'docker_default'. The first comm-check task force-pulls the image;
+later tasks reuse the local image.
+""",
+)
+def atd_signal_comms():
     docker_image = "atddocker/atd-signal-comms:production"
 
     start_date = get_start_date()
-
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     cameras_s3 = DockerOperator(
@@ -231,3 +262,6 @@ with DAG(
         >> battery_backup_socrata
         >> signal_monitors_socrata
     )
+
+
+atd_signal_comms()
