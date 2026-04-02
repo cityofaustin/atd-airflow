@@ -7,6 +7,21 @@ from pendulum import datetime, duration
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
+doc_md = """
+## Maximo Reporting DAG
+
+This DAG runs a series of queries on the maximo data warehouse then sends the results to datasets in Socrata.
+
+## Troubleshooting
+
+You will need to be on city VPN to run this locally.
+
+Re-triggering these DAGs is a good first step to troubleshoot potential issues.
+
+Make the Maximo team aware if there is an issue attempting to connect to the Maximo data warehouse.
+
+"""
+
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 DEFAULT_ARGS = {
@@ -66,6 +81,7 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id=f"dts_maximo_reporting",
     description="Uploads the last 7 days of Maximo work orders to Socrata from the Maximo data warehouse.",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
     schedule="00 6 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:dts-maximo-reporting", "socrata", "maximo"],

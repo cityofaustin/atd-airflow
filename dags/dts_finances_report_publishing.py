@@ -9,6 +9,22 @@ from pendulum import datetime, duration
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
+doc_md = """
+## Finances Report Publishing
+
+This DAG runs a microstrategy report for department finances and places the results in a socrata dataset.
+
+## Troubleshooting
+
+VPN access should not be required for running this DAG locally.
+
+This DAG supplies data for the TPW Finances dashboard in Power BI.
+
+It is not critical this is run daily, but long term or repeated issues should be investigated.
+
+Contact ATS for issues with microstrategy or the microstrategy users group in Teams.
+
+"""
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 default_args = {
@@ -81,6 +97,7 @@ with DAG(
     description="Downloads two Microstrategy Reports for Expenses and Revenue. \
     Places the results as a CSV in a S3 bucket. \
     Then publishes the data to a Socrata dataset",
+    doc_md=doc_md,
     default_args=default_args,
     schedule="00 11 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=timedelta(minutes=120),

@@ -11,6 +11,27 @@ from utils.slack_operator import task_fail_slack_alert
 
 from utils.time import get_previous_success_start_time
 
+doc_md = """
+## Open 311 scrape DAG
+
+This DAG scrapes service request data from the Austin [open311 site](https://311.austintexas.gov/) and sends it to Socrata
+
+This data is used during emergency events with high volumes of 311 requests for near real-time mapping in ArcGIS online.
+
+Note: If this DAG is run without any run history it will default to downloading the last 24 hours of open311 requests. 
+
+## Troubleshooting
+
+You do not need to be on VPN to run this locally.
+
+This DAG is run every 5 minutes, so most of the errors are transient and will be resolved after a few runs by themselves.
+
+Any long-term outage should be investigated especially if there is an EOC activation.
+
+This may require coordination with Austin 311 and the vendor for the open311 site.
+
+"""
+
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 default_args = {
@@ -58,6 +79,7 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id="dts_open_311_scrape",
     description="Downloads CSRs from Open311 API and publishes them in a Socrata dataset",
+    doc_md=doc_md,
     default_args=default_args,
     schedule=("*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None),
     dagrun_timeout=timedelta(minutes=5),

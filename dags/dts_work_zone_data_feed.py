@@ -7,6 +7,19 @@ from pendulum import datetime, duration, now
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
+doc_md = """
+## Work Zone Datafeed (WZDX)
+
+This DAG creates a json datafeed of road closures in Austin based on data retrieved from AMANDA and Coordinate.
+
+## Troubleshooting
+
+You need to be on city VPN to run this locally.
+
+Please investigate any long term outages of this DAG as the data informs the public about road closures and work zones.
+
+"""
+
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 DEFAULT_ARGS = {
@@ -96,6 +109,7 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id="dts_work_zone_data_feed",
     description="Publishing AMANDA work zone data to Socrata.",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
     schedule="0 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:dts-work-zone-data-feed", "amanda", "socrata", "work zone", "wzdx"],

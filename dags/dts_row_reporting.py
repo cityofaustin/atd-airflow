@@ -7,6 +7,17 @@ from pendulum import datetime, duration, now
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
+doc_md = """
+## Right of way Reporting DAG
+
+This DAG runs several queries against the AMANDA database primarily for reporting/performance dashboards.
+
+## Troubleshooting
+
+You need to be on VPN to run this DAG locally.
+
+"""
+
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 DEFAULT_ARGS = {
@@ -140,6 +151,7 @@ def knack_services_task_template(task_id, image, command, env_vars, pull=False):
 with DAG(
     dag_id="dts_row_reporting",
     description="Downloads ROW data from AMANDA and Smartsheet and publishes the weekly summary results in a Socrata Dataset.",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
     schedule="0 2 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:dts-right-of-way-reporting", "amanda", "socrata", "smartsheet"],

@@ -11,6 +11,28 @@ from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 from utils.time import get_previous_success_start_time
 
+doc_md = """
+## Parking Data ETL
+
+Stores parking kiosk transaction data from flowbird and pushes it to socrata.
+
+Warning ⚠️: This DAG uses the flowbird API with an onerous 1-request-per-minute limit. 
+If you try to run multiple instances of this DAG it will likely present API limit errors. 
+
+Note: Running this DAG with no run history will default to retrieving the last 3 days of parking data.
+
+## Troubleshooting
+
+You must have your IP whitelisted for postgrest or be on city VPN in order to run this DAG.
+
+Feel free to retry this DAG whenever it fails. 
+
+Nothing critical depends on this DAG, currently it is just for reporting, dashboards, and a public dataset.
+
+Diagnosing issues with the Flowbird "DR-direct" API will likely require consulting with them.
+
+"""
+
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 default_args = {
@@ -110,6 +132,7 @@ def format_start_date(prev) -> str:
 with DAG(
     dag_id="atd_parking_data",
     description="Scripts that download and process parking data.",
+    doc_md=doc_md,
     default_args=default_args,
     schedule="35 8 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-parking-data", "parking", "socrata", "postgrest"],

@@ -9,6 +9,27 @@ from pendulum import datetime, duration
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
+doc_md = """
+## 311 Report Publishing ETL
+
+This DAG downloads a bunch of csv reports from an endpoint set up by Austin 311. 
+We process these reports then publish them to socrata datasets.
+
+## Troubleshooting
+
+You must be on the city VPN in order to run these scripts. You will see this error if you aren't on the city network:
+
+> "Unexpected file type returned from the report endpoint. Check that you are on the city network. 
+> It's likely that your request is getting flagged as a bot by the web app firewall."
+
+It is not critical these scripts are running flawlessly. We will get errors from time to time that are out of DTS's control.
+
+These datasets are the back end of 311 dashboard in Power BI along with biweekly emails that are emailed to department leadership. 
+So, long term outages should be investigated with help from 311.
+
+"""
+
+
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 default_args = {
@@ -141,6 +162,7 @@ TWO_YEARS_AGO_SECRETS.update(OTHER_SECRETS)
 with DAG(
     dag_id="dts_311_report_publishing",
     description="Downloads reports of 311 service requests for TPW and publishes it in a Socrata dataset.",
+    doc_md=doc_md,
     default_args=default_args,
     schedule=("36 2,13 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None),
     dagrun_timeout=timedelta(minutes=60),

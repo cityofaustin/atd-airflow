@@ -7,6 +7,21 @@ from pendulum import datetime, duration
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
+doc_md = """
+## Finance Reporting ETL
+
+Gets task order (TK) data from a database, places it in an S3 bucket, then moves it along to Knack and socrata.
+
+## Troubleshooting
+
+You need to be on city VPN to run this locally.
+
+Feel free to trigger this DAG manually to see if that fixes the issue. 
+
+Contact the eCapris team for help with issues connecting to their oracle DB we use for this DAG.
+
+"""
+
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 DEFAULT_ARGS = {
@@ -118,6 +133,7 @@ FINANCE_PURCHASING_SECRETS.update(OTHER_SECRETS)
 with DAG(
     dag_id="atd_finance_data_task_orders",
     description="Gets Finance data from a database, places it in an S3 bucket, then moves it along to Knack and socrata.",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
     schedule="38 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-finance-data", "knack", "data-tracker", "socrata"],
