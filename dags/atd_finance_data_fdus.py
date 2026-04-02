@@ -1,14 +1,26 @@
-# test locally with: docker compose run --rm airflow-cli dags test atd_finance_data_task_orders
-
 from os import getenv
 
-from airflow.decorators import task
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import task, DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
+
+doc_md = """
+## Finance Reporting ETL
+
+Gets FDU data from a database, places it in an S3 bucket, then moves it along to Knack and socrata.
+
+## Troubleshooting
+
+You need to be on city VPN to run this locally.
+
+Feel free to trigger this DAG manually to see if that fixes the issue. 
+
+Contact the eCapris team for help with issues connecting to their oracle DB we use for this DAG.
+
+"""
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -19,7 +31,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "execution_timeout": duration(minutes=180),  # some queries are very slow
+    "execution_timeout": duration(minutes=60),  # some queries are very slow
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -119,10 +131,11 @@ DATA_TRACKER_SECRETS.update(OTHER_SECRETS)
 FINANCE_PURCHASING_SECRETS.update(OTHER_SECRETS)
 
 with DAG(
-    dag_id="atd_finance_data_task_orders",
+    dag_id="atd_finance_data_fdus",
     description="Gets Finance data from a database, places it in an S3 bucket, then moves it along to Knack and socrata.",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
-    schedule_interval="38 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="33 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-finance-data", "knack", "data-tracker", "socrata"],
     catchup=False,
 ) as dag:
@@ -130,11 +143,11 @@ with DAG(
     finance_purchasing_env = get_env_vars_task(FINANCE_PURCHASING_SECRETS)
 
     t1 = DockerOperator(
-        task_id="task_orders_to_s3",
+        task_id="fdus_to_s3",
         image="atddocker/atd-finance-data:production",
         docker_conn_id="docker_default",
         auto_remove="force",
-        command="python3 upload_to_s3.py task_orders",
+        command="python3 upload_to_s3.py fdus",
         environment=data_tracker_env,
         tty=True,
         force_pull=True,
@@ -142,39 +155,15 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id="task_orders_to_data_tracker",
+        task_id="fdus_to_socrata",
         image="atddocker/atd-finance-data:production",
         docker_conn_id="docker_default",
         auto_remove="force",
-        command="python3 s3_to_knack.py task_orders data-tracker",
-        environment=data_tracker_env,
-        tty=True,
-        force_pull=False,
-        mount_tmp_dir=False,
-    )
-
-    t3 = DockerOperator(
-        task_id="task_orders_to_finance_purchasing",
-        image="atddocker/atd-finance-data:production",
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command="python3 s3_to_knack.py task_orders finance-purchasing",
+        command="python3 s3_to_socrata.py --dataset fdus",
         environment=finance_purchasing_env,
         tty=True,
         force_pull=False,
         mount_tmp_dir=False,
     )
 
-    t4 = DockerOperator(
-        task_id="task_orders_to_socrata",
-        image="atddocker/atd-finance-data:production",
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command="python3 s3_to_socrata.py --dataset task_orders",
-        environment=finance_purchasing_env,
-        tty=True,
-        force_pull=False,
-        mount_tmp_dir=False,
-    )
-
-    t1 >> t2 >> t3 >> t4
+    t1 >> t2
