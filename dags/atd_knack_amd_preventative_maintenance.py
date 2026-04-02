@@ -54,7 +54,7 @@ REQUIRED_SECRETS = {
 
 
 with DAG(
-    dag_id=f"atd_knack_amd_pm",
+    dag_id=f"atd_knack_amd_preventative_maintenance",
     description="Copies primary signal preventive maintenance records to secondary signals. Then, loads preventative maintenance work order (view_3887) records from Knack to Postgrest and Socrata.",
     default_args=DEFAULT_ARGS,
     schedule="15 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
