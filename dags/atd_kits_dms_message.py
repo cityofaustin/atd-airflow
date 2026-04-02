@@ -51,6 +51,7 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id="atd_kits_dms_message_pub",
     description="Extract DMS message from KITS database and upload to Data Tracker (Knack).",
+    doc_md="In order to reach kits server, you need special VPN access or run from 8900 Cameron",
     default_args=DEFAULT_ARGS,
     schedule="21 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=5),
