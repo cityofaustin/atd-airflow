@@ -8,7 +8,10 @@ from pendulum import datetime, duration
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
-DEPLOYMENT_ENVIRONMENT = "prod" if getenv("ENVIRONMENT") == "production" else "dev"
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
+
+# Define a similar variable with an abbreviated stage name for use in commands
+deployment_stage_abbreviation = "prod" if DEPLOYMENT_ENVIRONMENT == "production" else "dev"
 
 DEFAULT_ARGS = {
     "owner": "airflow",
@@ -78,7 +81,7 @@ with DAG(
     dag_id=f"atd_signal_comms",
     description="Ping network devices and publish to S3, then socrata",
     default_args=DEFAULT_ARGS,
-    schedule_interval="7 2 * * *" if DEPLOYMENT_ENVIRONMENT == "prod" else None,
+    schedule_interval="7 2 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-signal-comms", "socrata"],
     catchup=False,
 ) as dag:
@@ -93,7 +96,7 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"python atd-signal-comms/run_comm_check.py camera --env {DEPLOYMENT_ENVIRONMENT}",
+        command=f"python atd-signal-comms/run_comm_check.py camera --env {deployment_stage_abbreviation}",
         environment=env_vars,
         tty=True,
         force_pull=True,
@@ -106,7 +109,7 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"python atd-signal-comms/run_comm_check.py detector --env {DEPLOYMENT_ENVIRONMENT}",
+        command=f"python atd-signal-comms/run_comm_check.py detector --env {deployment_stage_abbreviation}",
         environment=env_vars,
         tty=True,
         force_pull=False,
@@ -119,7 +122,7 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"python atd-signal-comms/run_comm_check.py digital_message_sign --env {DEPLOYMENT_ENVIRONMENT}",
+        command=f"python atd-signal-comms/run_comm_check.py digital_message_sign --env {deployment_stage_abbreviation}",
         environment=env_vars,
         tty=True,
         force_pull=False,
@@ -132,7 +135,7 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"python atd-signal-comms/run_comm_check.py cabinet_battery_backup --env {DEPLOYMENT_ENVIRONMENT}",
+        command=f"python atd-signal-comms/run_comm_check.py cabinet_battery_backup --env {deployment_stage_abbreviation}",
         environment=env_vars,
         tty=True,
         force_pull=False,
@@ -145,7 +148,7 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"python atd-signal-comms/run_comm_check.py signal_monitor --env {DEPLOYMENT_ENVIRONMENT}",
+        command=f"python atd-signal-comms/run_comm_check.py signal_monitor --env {deployment_stage_abbreviation}",
         environment=env_vars,
         tty=True,
         force_pull=False,
@@ -158,7 +161,7 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"python atd-signal-comms/socrata_pub.py camera --start {start_date} -v --env {DEPLOYMENT_ENVIRONMENT}",
+        command=f"python atd-signal-comms/socrata_pub.py camera --start {start_date} -v --env {deployment_stage_abbreviation}",
         environment=env_vars,
         tty=True,
         force_pull=False,
@@ -171,7 +174,7 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"python atd-signal-comms/socrata_pub.py detector --start {start_date} -v --env {DEPLOYMENT_ENVIRONMENT}",
+        command=f"python atd-signal-comms/socrata_pub.py detector --start {start_date} -v --env {deployment_stage_abbreviation}",
         environment=env_vars,
         tty=True,
         force_pull=False,
@@ -184,7 +187,7 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"python atd-signal-comms/socrata_pub.py digital_message_sign --start {start_date} -v --env {DEPLOYMENT_ENVIRONMENT}",
+        command=f"python atd-signal-comms/socrata_pub.py digital_message_sign --start {start_date} -v --env {deployment_stage_abbreviation}",
         environment=env_vars,
         tty=True,
         force_pull=False,
@@ -197,7 +200,7 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"python atd-signal-comms/socrata_pub.py cabinet_battery_backup --start {start_date} -v --env {DEPLOYMENT_ENVIRONMENT}",
+        command=f"python atd-signal-comms/socrata_pub.py cabinet_battery_backup --start {start_date} -v --env {deployment_stage_abbreviation}",
         environment=env_vars,
         tty=True,
         force_pull=False,
@@ -210,7 +213,7 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"python atd-signal-comms/socrata_pub.py signal_monitor --start {start_date} -v --env {DEPLOYMENT_ENVIRONMENT}",
+        command=f"python atd-signal-comms/socrata_pub.py signal_monitor --start {start_date} -v --env {deployment_stage_abbreviation}",
         environment=env_vars,
         tty=True,
         force_pull=False,
