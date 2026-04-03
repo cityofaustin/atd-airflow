@@ -15,6 +15,8 @@ Load signal detection status log (view_3003) records from Knack to Postgrest to 
 
 ## Troubleshooting
 
+**Need VPN access or addition to security group allow list to reach Postgrest**
+
 Most of the time just re-triggering this DAG will likely resolve any issues automatically.
 
 The most common bug is when the underlying Knack view is changed and the corresponding Socrata dataset was not updated to match.

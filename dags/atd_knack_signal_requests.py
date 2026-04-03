@@ -15,6 +15,8 @@ Load signal requests (view_200) records from Knack to AGOL
 
 ## Troubleshooting
 
+You should not need to be on VPN to reach Knack or AGOL.
+
 Most of the time just re-triggering this DAG will likely resolve any issues automatically.
 
 The most common bug is when the underlying Knack view is changed and the corresponding AGOL feature service

@@ -15,6 +15,8 @@ Load traffic control plan (TCP) submission from ROW portal to Socrata
 
 ## Troubleshooting
 
+**Need VPN access or addition to security group allow list to reach Postgrest**
+
 Most of the time just re-triggering this DAG will likely resolve any issues automatically.
 
 The most common bug is when the underlying Knack view is changed and the corresponding Socrata dataset

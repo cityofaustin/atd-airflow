@@ -14,6 +14,8 @@ Make a copy of records flagged by users in the finance-purchasing knack app.
 
 ## Troubleshooting
 
+You should not need to be on VPN to reach Knack.
+
 This DAG runs very frequently, so just waiting may resolve connectivity issues automatically.
 
 """

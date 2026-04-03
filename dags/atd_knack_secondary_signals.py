@@ -14,6 +14,8 @@ Refreshes primary <-> secondary traffic signal relationships.
 
 ## Troubleshooting
 
+You should not need to be on VPN to reach Knack.
+
 Most of the time just re-triggering this DAG will likely resolve any issues automatically.
 
 Further investigation will likely require looking at the supplied Knack view to make sure the required fields are available.
