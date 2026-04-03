@@ -24,6 +24,7 @@ def get_current_time(tz: str = "UTC") -> str:
 
     return pendulum.now(tz).to_iso8601_string()
 
+
 @task
 def get_previous_success_end_time(
     context: dict[str, Any] | None = None,
@@ -34,22 +35,21 @@ def get_previous_success_end_time(
     TaskFlow task: previous successful run end time (ISO-8601) or a fallback date.
 
     If the task instance context doesn't contain a previous-success end time, return
-    `fallback_date` (expected format: "YYYY-MM-DD"). Defaults to the Unix epoch date.
+    `fallback_date`. Defaults to the Unix epoch date.
     """
 
     ctx = context or get_current_context()
     prev = ctx.get("prev_data_interval_end_success") or ctx.get("prev_end_date_success")
-
     if prev is None:
-        # Validate strict date format (e.g. "1981-03-27") and return as-is.
-        pendulum.from_format(fallback_date, "YYYY-MM-DD")
-        return fallback_date
+        fallback_date = pendulum.parse(fallback_date)
+        return fallback_date.isoformat()
 
     try:
-        return prev.in_timezone(tz).to_iso8601_string()
+        return prev.isoformat()
     except Exception:
-        pendulum.from_format(fallback_date, "YYYY-MM-DD")
-        return fallback_date
+        fallback_date = pendulum.parse(fallback_date)
+        return fallback_date.isoformat()
+
 
 @task
 def get_previous_success_start_time(
@@ -61,17 +61,19 @@ def get_previous_success_start_time(
     TaskFlow task: previous successful run start time (ISO-8601) or a fallback date.
 
     If the task instance context doesn't contain a previous-success start time, return
-    `fallback_date` (expected format: "YYYY-MM-DD"). Defaults to the Unix epoch date.
+    `fallback_date`. Defaults to the Unix epoch date.
     """
 
     ctx = context or get_current_context()
-    prev = ctx.get("prev_data_interval_start_success") or ctx.get("prev_start_date_success")
+    prev = ctx.get("prev_data_interval_start_success") or ctx.get(
+        "prev_start_date_success"
+    )
     if prev is None:
-        pendulum.from_format(fallback_date, "YYYY-MM-DD")
-        return fallback_date
+        fallback_date = pendulum.parse(fallback_date)
+        return fallback_date.isoformat()
 
     try:
-        return prev.in_timezone(tz).to_iso8601_string()
+        return prev.isoformat()
     except Exception:
-        pendulum.from_format(fallback_date, "YYYY-MM-DD")
-        return fallback_date
+        fallback_date = pendulum.parse(fallback_date)
+        return fallback_date.isoformat()

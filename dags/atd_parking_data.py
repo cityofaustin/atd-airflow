@@ -1,17 +1,37 @@
-# test locally with: docker compose run --rm airflow-cli dags test atd_parking_data
 from os import getenv
 from datetime import timedelta
 
-from airflow.decorators import task
-from airflow.models import DAG
+from airflow.sdk import task, DAG, Param
 from airflow.models.dagrun import DagRun
-from airflow.models.param import Param
 from airflow.models.taskinstance import TaskInstance
-from airflow.operators.docker_operator import DockerOperator
-from pendulum import datetime, duration
+from airflow.providers.docker.operators.docker import DockerOperator
+from pendulum import datetime, duration, parse, now
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
+from utils.time import get_previous_success_start_time
+
+doc_md = """
+## Parking Data ETL
+
+Stores parking kiosk transaction data from flowbird and pushes it to socrata.
+
+Warning ⚠️: This DAG uses the flowbird API with an onerous 1-request-per-minute limit. 
+If you try to run multiple instances of this DAG it will likely present API limit errors. 
+
+Note: Running this DAG with no run history will default to retrieving the last 3 days of parking data.
+
+## Troubleshooting
+
+You must have your IP whitelisted for postgrest or be on city VPN in order to run this DAG.
+
+Feel free to retry this DAG whenever it fails. 
+
+Nothing critical depends on this DAG, currently it is just for reporting, dashboards, and a public dataset.
+
+Diagnosing issues with the Flowbird "DR-direct" API will likely require consulting with them.
+
+"""
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -104,21 +124,28 @@ REQUIRED_SECRETS = {
 }
 
 
+@task
+def format_start_date(prev) -> str:
+    return parse(prev).format("YYYY-MM-DD")
+
+
 with DAG(
     dag_id="atd_parking_data",
     description="Scripts that download and process parking data.",
+    doc_md=doc_md,
     default_args=default_args,
-    schedule_interval="35 8 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="35 8 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-parking-data", "parking", "socrata", "postgrest"],
     catchup=False,
 ) as dag:
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
-
-    # default to the last 14 days of transactions
-    prev_exec = "{{ (prev_start_date_success - macros.timedelta(days=14)).strftime('%Y-%m-%d') if prev_start_date_success else (execution_date - macros.timedelta(days=14)).strftime('%Y-%m-%d')}}"
+    three_days_ago = now("America/Chicago").subtract(days=3)
+    prev = get_previous_success_start_time(
+        fallback_date=three_days_ago.to_iso8601_string()
+    )
+    prev_exec = format_start_date(prev)
 
     docker_tasks = []
-
     docker_tasks.append(
         DockerOperator(
             task_id="smartfolio_transactions",

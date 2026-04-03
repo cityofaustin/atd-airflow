@@ -1,12 +1,27 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration, now
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 from utils.knack import get_date_filter_arg
+
+doc_md = """
+## Public Safety Incident Reports
+
+Formerly "Traffic incidents", this DAG sends incident data from the CAD data warehouse and sends it to a socrata dataset.
+
+## Troubleshooting
+
+You must be on VPN to run this DAG locally.
+
+This DAG is run every 5 minutes, so most of the errors are transient and will be resolved after a few runs by themselves.
+
+Any outage longer than an hour should be investigated as the active AFD and Traffic incident pages on Socrata are pretty frequently
+visited by the public. We also will lose the historical logging of incidents during that downtime.
+"""
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -79,8 +94,9 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id="dts_public_safety_incident_reports",
     description="wrapper etl for atd-traffic-incident-reports docker image connects to oracle db and updates postrgrest and socrata with fire and traffic incidents",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
-    schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-traffic-incident-reports", "postgrest", "socrata"],
     catchup=False,
 ) as dag:
