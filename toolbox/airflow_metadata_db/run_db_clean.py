@@ -4,15 +4,26 @@ import os
 import subprocess
 import sys
 
+import urllib.parse
 
 def _redact_url(url: str) -> str:
-    if "@" not in url:
+    """Redact credentials from a database URL for logging purposes."""
+    # Parse the URL so we can safely remove any userinfo from the authority.
+    parsed = urllib.parse.urlsplit(url)
+    # If there is no network location (netloc), there is nothing obvious to redact.
+    if not parsed.netloc:
         return url
-    prefix, suffix = url.split("@", 1)
-    if "://" in prefix:
-        scheme, _rest = prefix.split("://", 1)
-        return f"{scheme}://***@{suffix}"
-    return f"***@{suffix}"
+    # Separate any userinfo from the host/port by splitting at the last "@",
+    # so that "@" characters in passwords are safely discarded with the userinfo.
+    userinfo, sep, hostport = parsed.netloc.rpartition("@")
+    if not sep:
+        # No "@" in netloc → no credentials to redact.
+        return url
+    redacted_netloc = f"***@{hostport}"
+    redacted = parsed._replace(netloc=redacted_netloc)
+    return urllib.parse.urlunsplit(redacted)
+
+
 
 
 def main() -> int:
