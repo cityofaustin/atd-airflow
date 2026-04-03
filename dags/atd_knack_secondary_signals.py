@@ -1,13 +1,23 @@
-# test locally with: docker compose run --rm airflow-cli dags test atd_knack_secondary_signals
-
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
+
+doc_md = """
+## Knack Services DAG: Secondary Signals Updater
+
+Refreshes primary <-> secondary traffic signal relationships.
+
+## Troubleshooting
+
+Most of the time just re-triggering this DAG will likely resolve any issues automatically.
+
+Further investigation will likely require looking at the supplied Knack view to make sure the required fields are available.
+"""
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -25,19 +35,20 @@ DEFAULT_ARGS = {
 REQUIRED_SECRETS = {
     "KNACK_APP_ID": {
         "opitem": "Knack AMD Data Tracker",
-        "opfield": f"production.appId",
+        "opfield": "production.appId",
     },
     "KNACK_API_KEY": {
         "opitem": "Knack AMD Data Tracker",
-        "opfield": f"production.apiKey",
+        "opfield": "production.apiKey",
     },
 }
 
 with DAG(
     dag_id="atd_knack_secondary_signals",
     description="Update traffic signal records with secondary signal relationships.",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
-    schedule_interval="25 2 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="25 2 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "data-tracker"],
     catchup=False,
 ) as dag:

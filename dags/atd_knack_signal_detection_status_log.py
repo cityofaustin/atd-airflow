@@ -1,12 +1,25 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
-from pendulum import datetime, duration, now
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
+from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
-from utils.slack_operator import task_fail_slack_alert
 from utils.knack import get_date_filter_arg
+from utils.slack_operator import task_fail_slack_alert
+
+doc_md = """
+## Knack Services DAG: Detector Status Log
+
+Load signal detection status log (view_3003) records from Knack to Postgrest to Socrata
+
+## Troubleshooting
+
+Most of the time just re-triggering this DAG will likely resolve any issues automatically.
+
+The most common bug is when the underlying Knack view is changed and the corresponding Socrata dataset was not updated to match.
+
+"""
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -23,12 +36,12 @@ DEFAULT_ARGS = {
 
 REQUIRED_SECRETS = {
     "KNACK_APP_ID": {
-        "opitem": "Knack Right of Way (ROW) Portal",
-        "opfield": f"production.appId",
+        "opitem": "Knack AMD Data Tracker",
+        "opfield": "production.appId",
     },
     "KNACK_API_KEY": {
-        "opitem": "Knack Right of Way (ROW) Portal",
-        "opfield": f"production.apiKey",
+        "opitem": "Knack AMD Data Tracker",
+        "opfield": "production.apiKey",
     },
     "SOCRATA_API_KEY_ID": {
         "opitem": "Socrata Key ID, Secret, and Token",
@@ -54,23 +67,24 @@ REQUIRED_SECRETS = {
 
 
 with DAG(
-    dag_id=f"atd_knack_tcp_submissions",
-    description="Load traffic control plan (TCP) submission from ROW portal to Socrata",
+    dag_id="atd_knack_signal_detection_status_log",
+    description="Load signal detection status log (view_3003) records from Knack to Postgrest to Socrata",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
-    schedule_interval="15 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="0 5 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "data-tracker"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/atd-knack-services:production"
-    app_name = "row"
-    container = "view_483"
+    app_name = "data-tracker"
+    container = "view_3003"
 
     date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
-        task_id="atd_knack_tcp_submissions_to_postgrest",
+        task_id="atd_knack_traffic_signal_detection_status_log_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
@@ -82,7 +96,7 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id="atd_knack_tcp_submissions_to_socrata",
+        task_id="atd_knack_traffic_signal_detection_status_log_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",

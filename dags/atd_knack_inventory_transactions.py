@@ -1,17 +1,30 @@
 from os import getenv
 
-from airflow.decorators import task
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
+from utils.onepassword import get_env_vars_task
+from utils.knack import get_date_filter_arg
 from utils.slack_operator import task_fail_slack_alert
+
+doc_md = """
+## Knack Services DAG: Inventory Transactions
+
+Updates a socrata dataset of AMD inventory transactions.
+
+## Troubleshooting
+
+Most of the time just re-triggering this DAG will likely resolve any issues automatically.
+
+The most common bug is when the underlying Knack view is changed and the corresponding Socrata dataset was not updated to match.
+
+"""
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
-default_args = {
+DEFAULT_ARGS = {
     "owner": "airflow",
-    "description": "Publishes all signal studies records from Knack to Socrata",
     "depends_on_past": False,
     "start_date": datetime(2015, 1, 1, tz="America/Chicago"),
     "email_on_failure": False,
@@ -24,11 +37,11 @@ default_args = {
 REQUIRED_SECRETS = {
     "KNACK_APP_ID": {
         "opitem": "Knack AMD Data Tracker",
-        "opfield": f"production.appId",
+        "opfield": "production.appId",
     },
     "KNACK_API_KEY": {
         "opitem": "Knack AMD Data Tracker",
-        "opfield": f"production.apiKey",
+        "opfield": "production.apiKey",
     },
     "SOCRATA_API_KEY_ID": {
         "opitem": "Socrata Key ID, Secret, and Token",
@@ -52,35 +65,30 @@ REQUIRED_SECRETS = {
     },
 }
 
+
 with DAG(
-    dag_id=f"atd_knack_services_signal_studies",
-    default_args=default_args,
-    schedule_interval="5 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    dag_id="atd_knack_inventory_transactions",
+    description="Updates a socrata dataset of AMD inventory transactions.",
+    doc_md=doc_md,
+    default_args=DEFAULT_ARGS,
+    schedule="33 23 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/atd-knack-services:production"
     app_name = "data-tracker"
-    container = "view_3488"
+    container = "view_3897"
 
-    @task(
-        task_id="get_env_vars",
-        execution_timeout=duration(seconds=30),
-    )
-    def get_env_vars():
-        from utils.onepassword import load_dict
+    date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
 
-        return load_dict(REQUIRED_SECRETS)
-
-    env_vars = get_env_vars()
+    env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
-        task_id="atd_knack_signal_studies_to_postgrest",
+        task_id="atd_knack_inventory_transactions_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
-        api_version="auto",
         auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container}",
+        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
         force_pull=True,
@@ -88,15 +96,14 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id="atd_knack_signal_studies_to_socrata",
+        task_id="atd_knack_inventory_transactions_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
-        api_version="auto",
         auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container}",
+        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
     )
 
-    t1 >> t2
+    date_filter_arg >> t1 >> t2
