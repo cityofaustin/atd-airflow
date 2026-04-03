@@ -52,6 +52,7 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id="atd_knack_arterial_managment_locations",
     description="Publishes AMD location records to AGOL",
+    doc_md="**Need VPN access or addition to security group allow list to reach Postgrest**",
     default_args=DEFAULT_ARGS,
     schedule="30 21 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "agol", "data-tracker"],

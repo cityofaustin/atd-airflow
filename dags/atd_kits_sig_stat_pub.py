@@ -55,7 +55,7 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id=f"atd_kits_sig_stat_pub",
     description="Fetch signal flash statuses KITS and publish to Socrata",
-    doc_md="In order to reach kits server, you need special VPN access or run from 8900 Cameron",
+    doc_md="In order to reach kits server, you need special VPN access or run from Cameron Road Office Complex",
     default_args=DEFAULT_ARGS,
     schedule="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-kits", "socrata", "kits"],

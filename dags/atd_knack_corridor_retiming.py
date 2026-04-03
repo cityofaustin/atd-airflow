@@ -1,6 +1,6 @@
 from os import getenv
 
-from airflow.models import DAG
+from airflow.sdk import DAG
 from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
@@ -56,6 +56,7 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id=f"atd_knack_corridor_retiming",
     description="Load corridor retiming data from Knack to Postgrest to Socrata",
+    doc_md="**Need VPN access or addition to security group allow list to reach Postgrest**",
     default_args=DEFAULT_ARGS,
     schedule="45 11 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "data-tracker"],
