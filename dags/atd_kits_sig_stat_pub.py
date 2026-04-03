@@ -1,8 +1,8 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
-from pendulum import datetime, duration, now
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
+from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
@@ -55,8 +55,9 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id=f"atd_kits_sig_stat_pub",
     description="Fetch signal flash statuses KITS and publish to Socrata",
+    doc_md="In order to reach kits server, you need special VPN access or run from Cameron Road Office Complex",
     default_args=DEFAULT_ARGS,
-    schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-kits", "socrata", "kits"],
     catchup=False,
 ) as dag:

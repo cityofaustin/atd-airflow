@@ -1,8 +1,8 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
-from pendulum import datetime, duration, now
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
+from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
@@ -17,18 +17,18 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "execution_timeout": duration(minutes=5),
+    "execution_timeout": duration(minutes=60),
     "on_failure_callback": task_fail_slack_alert,
 }
 
 REQUIRED_SECRETS = {
     "KNACK_APP_ID": {
         "opitem": "Knack AMD Data Tracker",
-        "opfield": f"production.appId",
+        "opfield": "production.appId",
     },
     "KNACK_API_KEY": {
         "opitem": "Knack AMD Data Tracker",
-        "opfield": f"production.apiKey",
+        "opfield": "production.apiKey",
     },
     "SOCRATA_API_KEY_ID": {
         "opitem": "Socrata Key ID, Secret, and Token",
@@ -54,27 +54,29 @@ REQUIRED_SECRETS = {
 
 
 with DAG(
-    dag_id=f"atd_knack_corridor_retiming",
-    description="Load corridor retiming data from Knack to Postgrest to Socrata",
+    dag_id=f"atd_knack_amd_preventative_maintenance",
+    description="Copies primary signal preventive maintenance records to secondary signals. Then, loads preventative maintenance work order (view_3887) records from Knack to Postgrest and Socrata.",
+    doc_md="**Need VPN access or addition to security group allow list to reach Postgrest**",
     default_args=DEFAULT_ARGS,
-    schedule_interval="45 11 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="15 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "data-tracker"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/atd-knack-services:production"
     app_name = "data-tracker"
-    container = "view_3814"
+    container = "view_3887"
+    copy_to_secondary_view = "view_4284"
 
     date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
-        task_id="atd_knack_corridor_retiming_to_postgrest",
+        task_id="atd_knack_preventative_maintenance_copy",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
+        command=f"./atd-knack-services/services/signal_pm_copier.py -a {app_name} -c {copy_to_secondary_view}",
         environment=env_vars,
         tty=True,
         force_pull=True,
@@ -82,7 +84,18 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id="atd_knack_corridor_retiming_to_socrata",
+        task_id="atd_knack_amd_pm_to_postgrest",
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove="force",
+        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
+        environment=env_vars,
+        tty=True,
+        mount_tmp_dir=False,
+    )
+
+    t3 = DockerOperator(
+        task_id="atd_knack_amd_pm_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
@@ -91,5 +104,7 @@ with DAG(
         tty=True,
         mount_tmp_dir=False,
     )
+    
 
-    date_filter_arg >> t1 >> t2
+    date_filter_arg >> t1 >> t2 >> t3
+

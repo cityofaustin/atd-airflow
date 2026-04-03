@@ -1,10 +1,8 @@
-# Test locally with: docker compose run --rm airflow-cli dags test atd_kits_dms_message_pub
-
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
-from pendulum import datetime, duration, now
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
+from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
@@ -53,8 +51,9 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id="atd_kits_dms_message_pub",
     description="Extract DMS message from KITS database and upload to Data Tracker (Knack).",
+    doc_md="In order to reach kits server, you need special VPN access or run from Cameron Road Office Complex",
     default_args=DEFAULT_ARGS,
-    schedule_interval="21 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="21 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=5),
     tags=["repo:atd-kits", "knack", "kits", "dms"],
     catchup=False,
