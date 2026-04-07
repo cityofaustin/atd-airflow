@@ -1,7 +1,7 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import dag
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -47,17 +47,30 @@ REQUIRED_SECRETS = {
     },
 }
 
-with DAG(
-    dag_id=f"atd_knack_data_tracker_sr_asset_assign",
+DAG_DOC_MD = '''
+### DAG purpose
+This DAG assigns signal records to service request issues in the AMD Data Tracker based on service request location.
+
+### Runtime behavior
+- Runs every minute in production.
+- Does not run on a schedule outside production.
+- Pulls required credentials from 1Password before starting the container task.
+'''
+
+
+@dag(
+    dag_id="atd_knack_data_tracker_sr_asset_assign",
     description="Assigns signal records to CSR issues in data tracker based on CSR location",
     default_args=DEFAULT_ARGS,
-    schedule_interval="* * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="* * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "data-tracker"],
     catchup=False,
-) as dag:
+    doc_md=DAG_DOC_MD,
+)
+def atd_knack_data_tracker_sr_asset_assign():
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperator(
+    service_request_asset_assign_task = DockerOperator(
         task_id="service_request_asset_assign",
         image="atddocker/atd-knack-services:production",
         docker_conn_id="docker_default",
@@ -69,4 +82,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t1
+    service_request_asset_assign_task
+
+
+atd_knack_data_tracker_sr_asset_assign()
