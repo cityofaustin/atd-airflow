@@ -1,11 +1,26 @@
+# test locally with: docker compose run --rm airflow-cli dags test atd_knack_purchase_request_copier
+
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
+
+doc_md = """
+## Knack Services DAG: Purchase Request Copier
+
+Make a copy of records flagged by users in the finance-purchasing knack app.
+
+## Troubleshooting
+
+You should not need to be on VPN to reach Knack.
+
+This DAG runs very frequently, so just waiting may resolve connectivity issues automatically.
+
+"""
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -24,19 +39,20 @@ DEFAULT_ARGS = {
 REQUIRED_SECRETS = {
     "KNACK_APP_ID": {
         "opitem": "Knack Finance and Purchasing",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.appId",
+        "opfield": "production.appId",
     },
     "KNACK_API_KEY": {
         "opitem": "Knack Finance and Purchasing",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.apiKey",
+        "opfield": "production.apiKey",
     },
 }
 
 with DAG(
     dag_id="atd_knack_purchase_request_copier",
     description="Copy requested records in the finance-purchasing knack app.",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
-    schedule_interval="* * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="* * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "finance-purchasing", "finance"],
     catchup=False,
 ) as dag:

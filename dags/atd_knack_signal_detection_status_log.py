@@ -1,12 +1,29 @@
+# test locally with: docker compose run --rm airflow-cli dags test atd_knack_signal_detection_status_log
+
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.knack import get_date_filter_arg
 from utils.slack_operator import task_fail_slack_alert
+
+doc_md = """
+## Knack Services DAG: Detector Status Log
+
+Load signal detection status log (view_3003) records from Knack to Postgrest to Socrata
+
+## Troubleshooting
+
+**Need VPN access or addition to security group allow list to reach Postgrest**
+
+Most of the time just re-triggering this DAG will likely resolve any issues automatically.
+
+The most common bug is when the underlying Knack view is changed and the corresponding Socrata dataset was not updated to match.
+
+"""
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -24,11 +41,11 @@ DEFAULT_ARGS = {
 REQUIRED_SECRETS = {
     "KNACK_APP_ID": {
         "opitem": "Knack AMD Data Tracker",
-        "opfield": f"production.appId",
+        "opfield": "production.appId",
     },
     "KNACK_API_KEY": {
         "opitem": "Knack AMD Data Tracker",
-        "opfield": f"production.apiKey",
+        "opfield": "production.apiKey",
     },
     "SOCRATA_API_KEY_ID": {
         "opitem": "Socrata Key ID, Secret, and Token",
@@ -56,8 +73,9 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id="atd_knack_signal_detection_status_log",
     description="Load signal detection status log (view_3003) records from Knack to Postgrest to Socrata",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
-    schedule_interval="0 5 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="0 5 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "data-tracker"],
     catchup=False,
 ) as dag:
