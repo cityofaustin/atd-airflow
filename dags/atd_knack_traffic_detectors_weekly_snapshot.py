@@ -1,3 +1,5 @@
+# test locally with: docker compose run --rm airflow-cli dags test atd_knack_traffic_detectors_weekly_snapshot
+
 from os import getenv
 
 from airflow.sdk import DAG

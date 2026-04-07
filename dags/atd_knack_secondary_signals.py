@@ -1,3 +1,5 @@
+# test locally with: docker compose run --rm airflow-cli dags test atd_knack_secondary_signals
+
 from os import getenv
 
 from airflow.sdk import DAG
