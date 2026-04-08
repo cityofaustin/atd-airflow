@@ -10,8 +10,8 @@ from utils.onepassword import get_env_vars_task
 doc_md = """
 Issues labled 'Project Index' are updated in the Knack DTS Portal.
 
-These issues' evaluations are then referenced on the DTS website (austinmobility.io)
 
+These issues' evaluations are then referenced on the DTS website (austinmobility.io)
 """
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
@@ -48,6 +48,7 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id=f"atd_service_bot_issues_to_dts_portal_{DEPLOYMENT_ENVIRONMENT}",
     default_args=DEFAULT_ARGS,
+    doc_md=doc_md,
     schedule="0 5 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-service-bot", "knack", "github"],
     catchup=False,
