@@ -72,4 +72,5 @@ with DAG(
         environment=env_vars,
         tty=True,
         force_pull=True,
+        mount_tmp_dir=False,
     )
