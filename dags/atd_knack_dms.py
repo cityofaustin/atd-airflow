@@ -2,7 +2,7 @@
 
 from os import getenv
 
-from airflow.models import DAG
+from airflow.sdk import DAG
 from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 

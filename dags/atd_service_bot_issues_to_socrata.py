@@ -1,8 +1,7 @@
 from os import getenv
 from pendulum import datetime, duration
 
-from airflow.decorators import task
-from airflow.models import DAG
+from airflow.sdk import DAG
 from airflow.providers.docker.operators.docker import DockerOperator
 
 from utils.slack_operator import task_fail_slack_alert
