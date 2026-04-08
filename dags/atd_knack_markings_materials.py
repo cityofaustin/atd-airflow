@@ -1,7 +1,7 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -50,26 +50,23 @@ REQUIRED_SECRETS = {
 
 
 with DAG(
-    dag_id="atd_knack_markings_specifications",
-    description="Loads markings specifications records from Knack to Postgrest to AGOL",
+    dag_id="atd_knack_markings_materials",
+    description="Loads markings materials records from Knack to Postgrest to AGOL",
     default_args=DEFAULT_ARGS,
-    # runs once at 1130a ct and again at 140pm ct
-    schedule_interval=(
-        "50 11,13 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
-    ),
+    schedule=("10 12,14 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None),
     tags=["repo:atd-knack-services", "knack", "agol", "signs-markings"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/atd-knack-services:production"
     app_name = "signs-markings"
-    container = "view_3103"
+    container = "view_3104"
 
     date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
-        task_id="atd_knack_markings_specifications_to_postgrest",
+        task_id="atd_knack_markings_materials_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
@@ -81,14 +78,14 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id="atd_knack_markings_specifications_to_agol",
+        task_id="atd_knack_markings_materials_to_agol",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
         command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
+        force_pull=False,
         mount_tmp_dir=False,
     )
 
