@@ -12,7 +12,7 @@ DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 DEFAULT_ARGS = {
     "owner": "airflow",
-    "description": "Fetch new DTS service requests and create Github issues",
+    "description": "Fetch new DTS service requests from Knack DTS Portal and create Github issues",
     "depends_on_past": False,
     "start_date": datetime(2015, 12, 1, tz="America/Chicago"),
     "email_on_failure": False,

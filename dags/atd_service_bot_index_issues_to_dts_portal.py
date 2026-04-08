@@ -7,11 +7,18 @@ from airflow.providers.docker.operators.docker import DockerOperator
 from utils.slack_operator import task_fail_slack_alert
 from utils.onepassword import get_env_vars_task
 
+doc_md = """
+Issues labled 'Project Index' are updated in the Knack DTS Portal.
+
+These issues' evaluations are then referenced on the DTS website (austinmobility.io)
+
+"""
+
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 DEFAULT_ARGS = {
     "owner": "airflow",
-    "description": "Create/update 'Index' issues in the DTS portal from Github.",
+    "description": "Create/update 'Project Index' issues in the Knack DTS portal from Github.",
     "depends_on_past": False,
     "start_date": datetime(2015, 12, 1, tz="America/Chicago"),
     "email_on_failure": False,

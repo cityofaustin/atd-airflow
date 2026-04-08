@@ -7,6 +7,11 @@ from airflow.providers.docker.operators.docker import DockerOperator
 from utils.slack_operator import task_fail_slack_alert
 from utils.onepassword import get_env_vars_task
 
+doc_md="""
+Publishes issues from the atd-data-tech github repository to the open data portal: https://data.austintexas.gov/resource/rzwg-fyv8.json
+
+The DTS team site (austinmobility.io) uses the open data portal dataset, if you want to update the issues on the team site with the latest issues from github, trigger this dag.
+"""
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -54,6 +59,7 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id=f"atd_service_bot_github_to_socrata_{DEPLOYMENT_ENVIRONMENT}",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
     schedule="0 22 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-service-bot", "socrata", "github"],
