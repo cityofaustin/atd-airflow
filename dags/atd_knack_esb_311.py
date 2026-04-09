@@ -1,9 +1,9 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import dag
 from docker.types import Mount
-from pendulum import datetime, duration, now
+from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
@@ -62,16 +62,20 @@ REQUIRED_SECRETS_SIGNS_MARKINGS = {
 }
 
 
-with DAG(
-    dag_id=f"atd_knack_esb_311",
+@dag(
+    dag_id="atd_knack_esb_311",
     description="Publishes 311 SR activities from Knack to 311 CSR via the CTM ESB",
     default_args=DEFAULT_ARGS,
-    schedule_interval=(
-        "1-59/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
-    ),
+    schedule="1-59/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-311", "311", "knack", "esb"],
     catchup=False,
-) as dag:
+    doc_md='''
+Publishes 311 service request activities from Knack to Austin 3-1-1 CSR through the CTM ESB.
+
+Runs every 5 minutes in production and requires Docker access and mounted ESB certificates.
+''',
+)
+def atd_knack_esb_311():
     env_vars_data_tracker = get_env_vars_task(REQUIRED_SECRETS_DATA_TRACKER)
     env_vars_signs_markings = get_env_vars_task(REQUIRED_SECRETS_SIGNS_MARKINGS)
 
@@ -83,7 +87,7 @@ with DAG(
         type="volume",
     )
 
-    t1 = DockerOperator(
+    data_tracker_activities_to_311 = DockerOperator(
         task_id="knack_amd_data_tracker_activities_to_311",
         image=DOCKER_IMAGE,
         docker_conn_id="docker_default",
@@ -97,7 +101,7 @@ with DAG(
         mounts=[cert_mount],
     )
 
-    t2 = DockerOperator(
+    signs_markings_activities_to_311 = DockerOperator(
         task_id="knack_amd_signs_markings_activities_to_311",
         image=DOCKER_IMAGE,
         docker_conn_id="docker_default",
@@ -111,4 +115,7 @@ with DAG(
         mounts=[cert_mount],
     )
 
-    t1 >> t2
+    data_tracker_activities_to_311 >> signs_markings_activities_to_311
+
+
+atd_knack_esb_311()
