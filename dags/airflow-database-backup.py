@@ -6,6 +6,7 @@ from pendulum import datetime, duration
 from airflow.providers.standard.operators.bash import BashOperator
 from airflow.sdk import DAG, task
 
+from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
@@ -60,19 +61,6 @@ object lands in a per-day prefix.
 ) as dag:
 
     @task()
-    def get_env_vars():
-        """
-        Load secrets required for the backup upload from 1Password Connect.
-
-        Returns:
-            dict: Environment-style key/value pairs (e.g. AWS access key and
-                secret) as resolved from 'REQUIRED_SECRETS'.
-        """
-        from utils.onepassword import load_dict
-
-        return load_dict(REQUIRED_SECRETS)
-
-    @task()
     def add_todays_date_to_dict(secrets):
         """
         Add today's calendar date to the secrets dict for S3 path layout.
@@ -87,7 +75,7 @@ object lands in a per-day prefix.
         secrets["current_date"] = vanilla_datetime.today().strftime("%Y-%m-%d")
         return secrets
 
-    env_vars = get_env_vars()
+    env_vars = get_env_vars_task(REQUIRED_SECRETS)
     env_vars = add_todays_date_to_dict(env_vars)
 
     BashOperator(
