@@ -56,20 +56,20 @@ REQUIRED_SECRETS = {
 @dag(
     dag_id="atd_cost_of_service_fees",
     default_args=DEFAULT_ARGS,
-    description="Fetch all cost of service fees from Amanda and publish to ROW Knack app",
+    description="Fetch all cost of service fees from AMANDA and publish to ROW Knack app",
     schedule="7 0 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-cost-of-service-reporting", "knack", "amanda"],
     catchup=False,
     doc_md="""
 ## Cost of service fees to Knack
 
-Loads cost-of-service fee data from the Amanda database and publishes it to the
+Loads cost-of-service fee data from the AMANDA database and publishes it to the
 Right of Way (ROW) Knack application using the 'atddocker/atd-cost-of-service:production'
 container image.
 
 ### Task flow
 
-1. 'get_env_vars' — loads Knack and Amanda replica credentials from 1Password.
+1. 'get_env_vars' — loads Knack and AMANDA replica credentials from 1Password.
 2. 'atd_cost_of_service_fees_to_knack' — runs 'python3 knack_load_fees.py' inside the image.
 
 ### Schedule
