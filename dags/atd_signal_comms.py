@@ -101,6 +101,11 @@ write results to S3, then publish incremental updates to Socrata.
 Cron '7 2 * * *' (02:07 host time) when 'ENVIRONMENT' is 'production' (deployment treated
 as 'prod'); otherwise the DAG is not scheduled.
 
+### Network requirement
+
+This DAG must run from an environment that can reach the Signal network. Without Signal
+network connectivity, the 'run_comm_check.py' tasks cannot poll devices and will fail.
+
 ### New Airflow environments
 
 The 'get_start_date' task uses 'prev_start_date_success' from the task context so Socrata
