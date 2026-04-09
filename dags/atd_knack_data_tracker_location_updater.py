@@ -42,7 +42,7 @@ REQUIRED_SECRETS = {
 
 @dag(
     dag_id='atd_knack_data_tracker_location_updater',
-    description='With data from AGOL, update signal location information in Knack ',
+    description='With data from AGOL, update signal location information in Knack',
     default_args=DEFAULT_ARGS,
     schedule='19 7 * * *' if DEPLOYMENT_ENVIRONMENT == 'production' else None,
     tags=['repo:atd-knack-services', 'knack', 'data-tracker', 'agol'],
