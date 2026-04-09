@@ -1,7 +1,7 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import dag
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -13,7 +13,6 @@ DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 DEFAULT_ARGS = {
     "owner": "airflow",
     "depends_on_past": False,
-    "start_date": datetime(2015, 1, 1, tz="America/Chicago"),
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
@@ -61,14 +60,26 @@ REQUIRED_SECRETS = {
 }
 
 
-with DAG(
-    dag_id="atd_knack_flashing_beacons",
-    description="Load flashing beacons (view_1563) records from Knack to Postgrest to AGOL",
+DAG_DOC_MD = '''
+### atd_knack_flashing_beacons
+Loads flashing beacons (view_1563) records from Knack to Postgrest, Socrata, and AGOL.
+
+This DAG uses the get_date_filter_arg task to build incremental filters from the DAG's previous run time.
+When migrating to a new Airflow environment, add an artificial prior run so the first incremental run has a baseline timestamp.
+'''
+
+
+@dag(
+    dag_id='atd_knack_flashing_beacons',
+    description='Load flashing beacons (view_1563) records from Knack to Postgrest to AGOL',
     default_args=DEFAULT_ARGS,
-    schedule_interval="15 10 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    tags=["repo:atd-knack-services", "knack", "socrata", "agol", "data-tracker"],
+    start_date=datetime(2015, 1, 1, tz='America/Chicago'),
+    schedule='15 10 * * *' if DEPLOYMENT_ENVIRONMENT == 'production' else None,
+    tags=['repo:atd-knack-services', 'knack', 'socrata', 'agol', 'data-tracker'],
     catchup=False,
-) as dag:
+    doc_md=DAG_DOC_MD,
+)
+def atd_knack_flashing_beacons():
     docker_image = "atddocker/atd-knack-services:production"
     app_name = "data-tracker"
     container = "view_1563"
@@ -77,7 +88,7 @@ with DAG(
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperator(
+    load_postgrest_task = DockerOperator(
         task_id="atd_knack_flashing_beacons_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -89,7 +100,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperator(
+    load_socrata_task = DockerOperator(
         task_id="atd_knack_flashing_beacons_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -100,7 +111,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t3 = DockerOperator(
+    load_agol_task = DockerOperator(
         task_id="atd_knack_flashing_beacons_to_agol",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -111,4 +122,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    date_filter_arg >> t1 >> t2 >> t3
+    date_filter_arg >> load_postgrest_task >> load_socrata_task >> load_agol_task
+
+
+dag = atd_knack_flashing_beacons()
