@@ -56,11 +56,6 @@ contains Maximo Emergency Management data. AWS region and credentials are loaded
 2. 'parse_email' — Docker task that runs the parser with those variables in the container
    environment.
 
-### Schedule
-
-Cron '*/30 * * * *' (every 30 minutes) when 'ENVIRONMENT' is 'production'; otherwise this
-DAG is not scheduled.
-
 ### Docker
 
 Uses connection 'docker_default', 'api_version' 'auto', force-pulls the image, and sets

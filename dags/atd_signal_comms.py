@@ -96,11 +96,6 @@ write results to S3, then publish incremental updates to Socrata.
 4. Socrata publish tasks — 'socrata_pub_*' run 'socrata_pub.py' for each asset type using
    the start date from step 1.
 
-### Schedule
-
-Cron '7 2 * * *' (02:07 host time) when 'ENVIRONMENT' is 'production' (deployment treated
-as 'prod'); otherwise the DAG is not scheduled.
-
 ### Network requirement
 
 This DAG must run from an environment that can reach the Signal network. Without Signal

@@ -65,11 +65,6 @@ using the 'atddocker/atd-road-conditions:production' image.
 2. 'get_env_vars' — loads API and service credentials from 1Password.
 3. 'road_conditions_socrata' — runs './atd-road-conditions/socrata.py'.
 
-### Schedule
-
-Cron '*/5 * * * *' (every five minutes) in production; unscheduled in
-non-production environments.
-
 ### New Airflow environments
 
 The 'get_date_filter_arg' task uses the previous successful run time

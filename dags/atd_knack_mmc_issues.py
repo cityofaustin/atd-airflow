@@ -76,10 +76,6 @@ and Socrata.
 3. 'atd_knack_mmc_issues_to_postgrest' — runs 'records_to_postgrest.py'.
 4. 'atd_knack_mmc_issues_to_socrata' — runs 'records_to_socrata.py'.
 
-### Schedule
-
-Cron '10 6 * * *' (06:10) in production; unscheduled in non-production environments.
-
 ### New Airflow environments
 
 The 'get_date_filter_arg' task uses the previous successful run time

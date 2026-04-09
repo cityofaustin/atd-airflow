@@ -84,10 +84,6 @@ publishes them to PostgREST, Socrata, and ArcGIS Online ('AGOL').
 4. 'atd_knack_cctv_cameras_to_socrata' — runs 'records_to_socrata.py'.
 5. 'atd_knack_cctv_cameras_to_agol' — runs 'records_to_agol.py'.
 
-### Schedule
-
-Cron '55 1 * * *' (01:55) in production; unscheduled in non-production environments.
-
 ### New Airflow environments
 
 The 'get_date_filter_arg' task uses the previous successful run time

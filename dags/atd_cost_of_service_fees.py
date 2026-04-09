@@ -72,11 +72,6 @@ container image.
 1. 'get_env_vars' — loads Knack and AMANDA replica credentials from 1Password.
 2. 'atd_cost_of_service_fees_to_knack' — runs 'python3 knack_load_fees.py' inside the image.
 
-### Schedule
-
-Cron '7 0 * * *' (00:07 America/Chicago daily) in production; unscheduled in
-non-production environments.
-
 ### Docker
 
 Uses connection 'docker_default', 'bridge' network mode, and 'force_pull' on the

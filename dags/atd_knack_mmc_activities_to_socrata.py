@@ -77,10 +77,6 @@ publishes them to PostgREST and Socrata.
 4. 'atd_knack_mmc_activities_to_socrata_to_socrata' — runs
    'records_to_socrata.py'.
 
-### Schedule
-
-Cron '20 6 * * *' (06:20) in production; unscheduled in non-production environments.
-
 ### New Airflow environments
 
 The 'get_date_filter_arg' task uses the previous successful run time
