@@ -1,7 +1,7 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import dag
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -60,21 +60,25 @@ REQUIRED_SECRETS = {
 }
 
 
-with DAG(
+@dag(
     dag_id="atd_knack_detectors",
     description="Load detectors (view_1333) records from Knack to Postgrest to AGOL and Socrata",
     default_args=DEFAULT_ARGS,
-    schedule_interval="10 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="10 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "agol", "data-tracker"],
     catchup=False,
-) as dag:
+    doc_md='''
+This DAG loads detector records from Knack to PostgREST, then publishes to Socrata and AGOL.
+''',
+)
+def atd_knack_detectors():
     docker_image = "atddocker/atd-knack-services:production"
     app_name = "data-tracker"
     container = "view_1333"
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperator(
+    load_detectors_to_postgrest = DockerOperator(
         task_id="atd_knack_detectors_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -86,7 +90,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperator(
+    load_detectors_to_socrata = DockerOperator(
         task_id="atd_knack_detectors_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -97,7 +101,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t3 = DockerOperator(
+    load_detectors_to_agol = DockerOperator(
         task_id="atd_knack_detectors_to_agol",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -108,4 +112,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t1 >> t2 >> t3
+    load_detectors_to_postgrest >> load_detectors_to_socrata >> load_detectors_to_agol
+
+
+atd_knack_detectors()
