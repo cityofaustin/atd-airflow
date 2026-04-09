@@ -1,18 +1,16 @@
 # test locally with: docker compose run --rm airflow-cli dags test atd_knack_development_services
 
-import os
+from os import getenv
 
-from airflow.decorators import task
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
-from airflow.utils.helpers import chain
-from pendulum import datetime, duration, now
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import dag
+from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.knack import get_date_filter_arg
 from utils.slack_operator import task_fail_slack_alert
 
-DEPLOYMENT_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 DEFAULT_ARGS = {
     "owner": "airflow",
@@ -72,19 +70,24 @@ def knack_services_task_template(task_id, image, command, env_vars, pull=False):
     )
 
 
-with DAG(
+@dag(
     dag_id="atd_knack_development_services",
     description="Downloads Knack data for several objects then publishes it to socrata datasets.",
     default_args=DEFAULT_ARGS,
-    schedule_interval="0 2 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="0 2 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "tds", "development-services"],
     catchup=False,
-) as dag:
+    doc_md='''
+This DAG downloads Development Services records from Knack and publishes them to PostgREST and Socrata.
+
+This DAG uses get_date_filter_arg(), which depends on the DAG's last run time.
+When moving this DAG to a new Airflow environment, add an artificial previous run time so incremental filtering behaves correctly.
+''',
+)
+def atd_knack_development_services():
     docker_image = "atddocker/atd-knack-services:production"
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
     date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
-
-    app_name = "development-services"
 
     commands = [
         {
@@ -187,4 +190,8 @@ with DAG(
             )
         )
 
-    chain(*tasks)
+    for upstream_task, downstream_task in zip(tasks, tasks[1:]):
+        upstream_task >> downstream_task
+
+
+atd_knack_development_services()
