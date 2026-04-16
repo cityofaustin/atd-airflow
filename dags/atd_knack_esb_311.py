@@ -67,7 +67,7 @@ REQUIRED_SECRETS_SIGNS_MARKINGS = {
     description="Publishes 311 SR activities from Knack to 311 CSR via the CTM ESB",
     default_args=DEFAULT_ARGS,
     schedule="1-59/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    tags=["repo:atd-knack-311", "311", "knack", "esb"],
+    tags=["repo:atd-knack-311", "311", "knack", "esb", "boomi"],
     catchup=False,
     doc_md='''
 Publishes 311 service request activities from Knack to Austin 3-1-1 CSR through the CTM ESB.
