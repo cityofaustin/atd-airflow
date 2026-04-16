@@ -63,9 +63,6 @@ REQUIRED_SECRETS = {
 DAG_DOC_MD = '''
 ### atd_knack_flashing_beacons
 Loads flashing beacons (view_1563) records from Knack to Postgrest, Socrata, and AGOL.
-
-This DAG uses the get_date_filter_arg task to build incremental filters from the DAG's previous run time.
-When migrating to a new Airflow environment, add an artificial prior run so the first incremental run has a baseline timestamp.
 '''
 
 

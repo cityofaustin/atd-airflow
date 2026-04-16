@@ -49,10 +49,6 @@ This DAG updates street segment records in the AMD Data Tracker using ArcGIS Onl
 - Does not run on a schedule outside production.
 - Pulls required credentials from 1Password before running the container task.
 
-### Run-time dependency note
-Task 'get_date_filter_arg' uses this DAG's last run time.
-When moving this DAG to a new Airflow environment, add an artificial prior run time to avoid an unbounded first run.
-This DAG cannot do a full replace and should be treated as an incremental updater only.
 '''
 
 

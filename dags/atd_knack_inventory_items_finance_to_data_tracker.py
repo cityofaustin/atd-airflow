@@ -89,9 +89,6 @@ finance_inventory_data_tracker_sync_required_secrets["KNACK_API_KEY_DEST"] = fin
 DAG_DOC_MD = '''
 ### atd_knack_inventory_items_finance_to_data_tracker
 Updates Data Tracker inventory items using records from the Finance and Purchasing system.
-
-This DAG uses the get_date_filter_arg task to build incremental filters from the DAG's previous run time.
-When migrating to a new Airflow environment, add an artificial prior run so the first incremental run has a baseline timestamp.
 '''
 
 

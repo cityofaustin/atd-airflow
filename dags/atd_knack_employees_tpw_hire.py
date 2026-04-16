@@ -27,10 +27,6 @@ DAG_DOC_MD = """
 ### TPW Hire Employee Sync
 
 This DAG syncs Banner TPW employee data from the HR Manager Knack app into the TPW Hire Knack app.
-
-It includes a date filter task named 'get_date_filter_arg' that uses the DAG's last run time.
-
-When moving this DAG to a new Airflow environment, add an artificial previous run so this date filter has a baseline timestamp.
 """
 
 REQUIRED_SECRETS_KNACK_SERVICES = {

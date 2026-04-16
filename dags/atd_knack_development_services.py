@@ -79,9 +79,6 @@ def knack_services_task_template(task_id, image, command, env_vars, pull=False):
     catchup=False,
     doc_md='''
 This DAG downloads Development Services records from Knack and publishes them to PostgREST and Socrata.
-
-This DAG uses get_date_filter_arg(), which depends on the DAG's last run time.
-When moving this DAG to a new Airflow environment, add an artificial previous run time so incremental filtering behaves correctly.
 ''',
 )
 def atd_knack_development_services():

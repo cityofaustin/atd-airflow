@@ -49,9 +49,6 @@ REQUIRED_SECRETS = {
     catchup=False,
     doc_md="""
 This DAG updates Knack signal location data using AGOL source data.
-
-Task 'get_date_filter_arg' uses this DAG's last run time.
-When moving this DAG into a new Airflow environment, add an artificial prior run time to avoid pulling an unbounded data window on first execution.
 """,
 )
 def atd_knack_data_tracker_location_updater():
