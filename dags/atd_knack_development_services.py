@@ -3,7 +3,7 @@
 from os import getenv
 
 from airflow.providers.docker.operators.docker import DockerOperator
-from airflow.sdk import dag
+from airflow.sdk import dag, chain
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -187,8 +187,6 @@ def atd_knack_development_services():
             )
         )
 
-    for upstream_task, downstream_task in zip(tasks, tasks[1:]):
-        upstream_task >> downstream_task
-
+    chain(*tasks)
 
 atd_knack_development_services()
