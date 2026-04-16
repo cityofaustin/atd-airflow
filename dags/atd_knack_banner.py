@@ -1,11 +1,21 @@
 from os import getenv
 
-from airflow.models import DAG
+from airflow.sdk import DAG
 from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert, slack_member_ids
+
+doc_md="""
+## Troubleshooting
+
+The most common error is when a new record is being added to the HR app but it is duplicating an existing email address.
+
+
+This can happen if an employee is rehired and they are issued a new employee ID or if a person with the same name as a previous employee is given the duplicate email address.
+For whatever reason, the recourse is to contact Diana to triage, contact TPW HR, then ammend records in Knack.
+"""
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -43,7 +53,8 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id=f"atd_knack_banner",
-    description="Update knack HR app based on records in Banner and CTM",
+    description="Update knack HR app based on records in Banner",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
     schedule="45 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     dagrun_timeout=duration(minutes=30),

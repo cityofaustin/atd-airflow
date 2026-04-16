@@ -1,11 +1,10 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
-from utils.knack import get_date_filter_arg
 from utils.slack_operator import task_fail_slack_alert
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
@@ -23,11 +22,11 @@ DEFAULT_ARGS = {
 
 REQUIRED_SECRETS = {
     "KNACK_APP_ID": {
-        "opitem": "Knack Signs and Markings",
+        "opitem": "Knack AMD Data Tracker",
         "opfield": f"production.appId",
     },
     "KNACK_API_KEY": {
-        "opitem": "Knack Signs and Markings",
+        "opitem": "Knack AMD Data Tracker",
         "opfield": f"production.apiKey",
     },
     "PGREST_ENDPOINT": {
@@ -38,41 +37,41 @@ REQUIRED_SECRETS = {
         "opitem": "atd-knack-services PostgREST",
         "opfield": "production.jwt",
     },
-    "AGOL_USERNAME": {
-        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
-        "opfield": "production.username",
+    "SOCRATA_API_KEY_ID": {
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "socrata.apiKeyId",
     },
-    "AGOL_PASSWORD": {
-        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
-        "opfield": "production.password",
+    "SOCRATA_API_KEY_SECRET": {
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "socrata.apiKeySecret",
+    },
+    "SOCRATA_APP_TOKEN": {
+        "opitem": "Socrata Key ID, Secret, and Token",
+        "opfield": "socrata.appToken",
     },
 }
 
 
 with DAG(
-    dag_id="atd_knack_markings_materials",
-    description="Loads markings materials records from Knack to Postgrest to AGOL",
+    dag_id="atd_knack_school_zone_beacon_zones",
+    description="Load school zone beacon zones (view_4027) records from Knack to Postgrest to Socrata",
     default_args=DEFAULT_ARGS,
-    schedule_interval=(
-        "10 12,14 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
-    ),
-    tags=["repo:atd-knack-services", "knack", "agol", "signs-markings"],
+    schedule="25 5 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    tags=["repo:atd-knack-services", "knack", "data-tracker", "socrata"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/atd-knack-services:production"
-    app_name = "signs-markings"
-    container = "view_3104"
-
-    date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
+    app_name = "data-tracker"
+    container = "view_4027"
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
-        task_id="atd_knack_markings_materials_to_postgrest",
+        task_id="atd_knack_school_zone_beacon_zones_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
+        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container}",
         environment=env_vars,
         tty=True,
         force_pull=True,
@@ -80,15 +79,14 @@ with DAG(
     )
 
     t2 = DockerOperator(
-        task_id="atd_knack_markings_materials_to_agol",
+        task_id="atd_knack_school_zone_beacon_zones_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container} {date_filter_arg}",
+        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 
-    date_filter_arg >> t1 >> t2
+    t1 >> t2
