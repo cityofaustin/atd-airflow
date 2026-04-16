@@ -70,9 +70,7 @@ REQUIRED_SECRETS_SIGNS_MARKINGS = {
     tags=["repo:atd-knack-311", "311", "knack", "esb", "boomi"],
     catchup=False,
     doc_md='''
-Publishes 311 service request activities from Knack to Austin 3-1-1 CSR through the CTM ESB.
-
-Runs every 5 minutes in production and requires Docker access and mounted ESB certificates.
+Publishes 311 service request activities from Knack to Austin 3-1-1 CSR through the ATS Enterprise Service Bus powered by Boomi.
 ''',
 )
 def atd_knack_esb_311():
