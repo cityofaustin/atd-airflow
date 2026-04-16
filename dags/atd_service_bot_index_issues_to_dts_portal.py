@@ -8,7 +8,7 @@ from utils.slack_operator import task_fail_slack_alert
 from utils.onepassword import get_env_vars_task
 
 doc_md = """
-Issues labled 'Project Index' are updated in the Knack DTS Portal.
+Issues labeled 'Project Index' are updated in the Knack DTS Portal.
 
 
 These issues' evaluations are then referenced on the DTS website (austinmobility.io)
