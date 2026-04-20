@@ -48,18 +48,6 @@ REQUIRED_SECRETS = {
 Runs 'atddocker/maximo-geo-emergency-mgmt:production' to parse the latest email that
 contains Maximo Emergency Management data. AWS region and credentials are loaded from
 1Password for the current deployment environment.
-
-### Task flow
-
-1. 'get_env_vars' — loads 'AWS_DEFAULT_REGION', 'AWS_ACCESS_KEY_ID', and
-   'AWS_SECRET_ACCESS_KEY' from 1Password ('Maximo Geo Integrations').
-2. 'parse_email' — Docker task that runs the parser with those variables in the container
-   environment.
-
-### Docker
-
-Uses connection 'docker_default', 'api_version' 'auto', force-pulls the image, and sets
-'mount_tmp_dir' to False.
 """,
 )
 def maximo_geo_emergency_mgmt_email_parser():

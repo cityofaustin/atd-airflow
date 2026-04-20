@@ -67,16 +67,6 @@ Loads MMC activity records from Knack Data Tracker (app 'data-tracker', containe
 'view_2681') using the 'atddocker/atd-knack-services:production' image, then
 publishes them to PostgREST and Socrata.
 
-### Task flow
-
-1. 'get_date_filter_arg' — supplies an incremental date flag based on the last
-   successful run (see below).
-2. 'get_env_vars' — loads API and service credentials from 1Password.
-3. 'atd_knack_mmc_activities_to_socrata_to_postgrest' — runs
-   'records_to_postgrest.py'.
-4. 'atd_knack_mmc_activities_to_socrata_to_socrata' — runs
-   'records_to_socrata.py'.
-
 ### New Airflow environments
 
 The 'get_date_filter_arg' task uses the previous successful run time
@@ -85,10 +75,6 @@ A brand-new Airflow database has no prior successful runs for this DAG, so that
 value may not behave as expected until history exists. When moving this DAG to a
 new Airflow environment, add an artificial successful run (or otherwise seed the
 behavior you want) so the first real run uses an appropriate baseline date.
-
-### Docker
-
-Tasks use connection 'docker_default' and pull the image on the first task.
 """,
 )
 def atd_knack_mmc_activities_to_socrata():

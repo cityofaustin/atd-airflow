@@ -86,16 +86,6 @@ def get_start_date(**context):
 Runs 'atddocker/atd-signal-comms:production' to check device communications,
 write results to S3, then publish incremental updates to Socrata.
 
-### Task flow
-
-1. 'get_start_date' — supplies the '--start' date for Socrata publish commands
-   from the previous successful DAG run (or today if there is no history).
-2. 'get_env_vars' — loads AWS, Knack, PostgREST, and Socrata credentials from 1Password.
-3. Comm check tasks — 'run_comm_check_*' run 'run_comm_check.py' per asset type (camera,
-   detector, digital message sign, cabinet battery backup, signal monitor).
-4. Socrata publish tasks — 'socrata_pub_*' run 'socrata_pub.py' for each asset type using
-   the start date from step 1.
-
 ### Network requirement
 
 This DAG must run from an environment that can reach the Signal network. Without Signal
@@ -110,10 +100,6 @@ incremental window you expect. When moving this DAG to a new environment, add an
 successful run (or otherwise establish the baseline you want) before relying on incremental
 Socrata loads.
 
-### Docker
-
-Tasks use connection 'docker_default'. The first comm-check task force-pulls the image;
-later tasks reuse the local image.
 """,
 )
 def atd_signal_comms():
