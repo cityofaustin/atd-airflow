@@ -47,10 +47,10 @@ REQUIRED_SECRETS = {
     },
 }
 
-DAG_DOC_MD = '''
+DAG_DOC_MD = """
 ### DAG purpose
 This DAG assigns signal records to service request issues in the AMD Data Tracker based on service request location.
-'''
+"""
 
 
 @dag(

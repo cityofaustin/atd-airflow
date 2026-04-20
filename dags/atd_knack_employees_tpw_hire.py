@@ -73,6 +73,7 @@ REQUIRED_SECRETS_HR_MANAGER.update(REQUIRED_SECRETS_KNACK_SERVICES)
 REQUIRED_SECRETS_TPW_HIRE.update(REQUIRED_SECRETS_KNACK_SERVICES)
 REQUIRED_SECRETS_KNACK_TO_KNACK.update(REQUIRED_SECRETS_KNACK_SERVICES)
 
+
 @dag(
     dag_id="atd_knack_employees_tpw_hire",
     description="Copies Banner TPW employee data from the HR knack app to TPW hire knack app.",
@@ -127,7 +128,12 @@ def atd_knack_employees_tpw_hire():
         tty=True,
         mount_tmp_dir=False,
     )
-    date_filter_task >> hr_accounts_to_postgrest >> tpw_hire_employees_to_postgrest >> hr_accounts_to_tpw_hire
+    (
+        date_filter_task
+        >> hr_accounts_to_postgrest
+        >> tpw_hire_employees_to_postgrest
+        >> hr_accounts_to_tpw_hire
+    )
 
 
 atd_knack_employees_tpw_hire()

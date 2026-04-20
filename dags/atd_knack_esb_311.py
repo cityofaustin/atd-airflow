@@ -69,9 +69,9 @@ REQUIRED_SECRETS_SIGNS_MARKINGS = {
     schedule="1-59/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-311", "311", "knack", "esb", "boomi"],
     catchup=False,
-    doc_md='''
+    doc_md="""
 Publishes 311 service request activities from Knack to Austin 3-1-1 CSR through the ATS Enterprise Service Bus powered by Boomi.
-''',
+""",
 )
 def atd_knack_esb_311():
     env_vars_data_tracker = get_env_vars_task(REQUIRED_SECRETS_DATA_TRACKER)

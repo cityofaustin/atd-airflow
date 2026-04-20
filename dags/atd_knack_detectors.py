@@ -67,9 +67,9 @@ REQUIRED_SECRETS = {
     schedule="10 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "agol", "data-tracker"],
     catchup=False,
-    doc_md='''
+    doc_md="""
 This DAG loads detector records from Knack to PostgREST, then publishes to Socrata and AGOL.
-''',
+""",
 )
 def atd_knack_detectors():
     docker_image = "atddocker/atd-knack-services:production"

@@ -7,7 +7,7 @@ from airflow.providers.docker.operators.docker import DockerOperator
 from utils.slack_operator import task_fail_slack_alert
 from utils.onepassword import get_env_vars_task
 
-doc_md="""
+doc_md = """
 Publishes issues from the atd-data-tech github repository to the open data portal: https://data.austintexas.gov/d/rzwg-fyv8
 
 ---

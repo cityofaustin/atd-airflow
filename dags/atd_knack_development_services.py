@@ -77,9 +77,9 @@ def knack_services_task_template(task_id, image, command, env_vars, pull=False):
     schedule="0 2 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "tds", "development-services"],
     catchup=False,
-    doc_md='''
+    doc_md="""
 This DAG downloads Development Services records from Knack and publishes them to PostgREST and Socrata.
-''',
+""",
 )
 def atd_knack_development_services():
     docker_image = "atddocker/atd-knack-services:production"
@@ -188,5 +188,6 @@ def atd_knack_development_services():
         )
 
     chain(*tasks)
+
 
 atd_knack_development_services()

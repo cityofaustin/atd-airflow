@@ -10,7 +10,9 @@ from utils.slack_operator import task_fail_slack_alert
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 # Define a similar variable with an abbreviated stage name for use in commands
-deployment_stage_abbreviation = "prod" if DEPLOYMENT_ENVIRONMENT == "production" else "dev"
+deployment_stage_abbreviation = (
+    "prod" if DEPLOYMENT_ENVIRONMENT == "production" else "dev"
+)
 
 DEFAULT_ARGS = {
     "owner": "airflow",
