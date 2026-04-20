@@ -43,12 +43,6 @@ REQUIRED_SECRETS = {
 DAG_DOC_MD = '''
 ### DAG purpose
 This DAG updates street segment records in the AMD Data Tracker using ArcGIS Online source data.
-
-### Runtime behavior
-- Runs at minute 45 of every hour in production.
-- Does not run on a schedule outside production.
-- Pulls required credentials from 1Password before running the container task.
-
 '''
 
 
