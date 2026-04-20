@@ -1,10 +1,9 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import dag
 from pendulum import datetime, duration
 
-from utils.knack import get_date_filter_arg
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
@@ -17,7 +16,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "execution_timeout": duration(minutes=30),
+    "execution_timeout": duration(minutes=5),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -30,6 +29,14 @@ REQUIRED_SECRETS = {
         "opitem": "Knack AMD Data Tracker",
         "opfield": f"production.apiKey",
     },
+    "KNACK_API_USER_EMAIL": {
+        "opitem": "Knack AMD Data Tracker",
+        "opfield": f"production.apiUserEmail",
+    },
+    "KNACK_API_USER_PW": {
+        "opitem": "Knack AMD Data Tracker",
+        "opfield": f"production.apiUserPassword",
+    },
     "AGOL_USERNAME": {
         "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
         "opfield": "production.username",
@@ -40,28 +47,37 @@ REQUIRED_SECRETS = {
     },
 }
 
-with DAG(
-    dag_id=f"atd_knack_data_tracker_street_segment_updater",
-    description="Update street segment records in Data Tracker with feature data from ArcGIS Online",
+DAG_DOC_MD = '''
+### DAG purpose
+This DAG assigns signal records to service request issues in the AMD Data Tracker based on service request location.
+'''
+
+
+@dag(
+    dag_id="atd_knack_data_tracker_sr_asset_assign",
+    description="Assigns signal records to CSR issues in data tracker based on CSR location",
     default_args=DEFAULT_ARGS,
-    schedule_interval="45 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    tags=["repo:atd-knack-services", "knack", "data-tracker", "agol"],
+    schedule="* * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    tags=["repo:atd-knack-services", "knack", "data-tracker"],
     catchup=False,
-) as dag:
+    doc_md=DAG_DOC_MD,
+)
+def atd_knack_data_tracker_sr_asset_assign():
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    date_filter_arg = get_date_filter_arg()
-
-    t1 = DockerOperator(
-        task_id="update_street_segments",
+    service_request_asset_assign_task = DockerOperator(
+        task_id="service_request_asset_assign",
         image="atddocker/atd-knack-services:production",
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"./atd-knack-services/services/knack_street_seg_updater.py -a data-tracker -c view_1198 {date_filter_arg}",
+        command=f"./atd-knack-services/services/sr_asset_assign.py -a data-tracker -c view_2362 -s signals",
         environment=env_vars,
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
     )
 
-    date_filter_arg >> t1
+    service_request_asset_assign_task
+
+
+atd_knack_data_tracker_sr_asset_assign()

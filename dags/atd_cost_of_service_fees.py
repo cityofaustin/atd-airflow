@@ -1,7 +1,7 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import dag
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -53,18 +53,26 @@ REQUIRED_SECRETS = {
 }
 
 
-with DAG(
+@dag(
     dag_id="atd_cost_of_service_fees",
     default_args=DEFAULT_ARGS,
-    description="Fetch all cost of service fees fom amanda publish to ROW knack app",
-    schedule_interval="7 0 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    description="Fetch all cost of service fees from AMANDA and publish to ROW Knack app",
+    schedule="7 0 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-cost-of-service-reporting", "knack", "amanda"],
     catchup=False,
-) as dag:
+    doc_md="""
+## Cost of service fees to Knack
+
+Loads cost-of-service fee data from the AMANDA database and publishes it to the
+Right of Way (ROW) Knack application using the 'atddocker/atd-cost-of-service:production'
+container image. To run locally, please ensure you're on the VPN to reach the AMANDA database.
+""",
+)
+def atd_cost_of_service_fees():
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperator(
+    load_fees_to_knack = DockerOperator(
         task_id="atd_cost_of_service_fees_to_knack",
         image="atddocker/atd-cost-of-service:production",
         auto_remove="force",
@@ -77,4 +85,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t1
+    env_vars >> load_fees_to_knack
+
+
+atd_cost_of_service_fees()

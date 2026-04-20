@@ -1,7 +1,7 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import dag
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -50,35 +50,45 @@ REQUIRED_SECRETS = {
         "opitem": "atd-knack-services PostgREST",
         "opfield": "production.jwt",
     },
-    "AGOL_USERNAME": {
-        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
-        "opfield": "production.username",
-    },
-    "AGOL_PASSWORD": {
-        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
-        "opfield": "production.password",
-    },
 }
 
 
-with DAG(
-    dag_id="atd_knack_cctv_cameras",
-    description="Publishes CCTV records from Data Tracker to Socrata and AGOL",
+@dag(
+    dag_id="atd_knack_mmc_issues",
+    description="Loads MMC issue records (aka 311 service requests from Data Tracker) to Socrata",
     default_args=DEFAULT_ARGS,
-    schedule_interval="55 1 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    tags=["repo:atd-knack-services", "knack", "socrata", "agol", "data-tracker"],
+    schedule="10 6 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    tags=["repo:atd-knack-services", "knack", "socrata", "data-tracker"],
     catchup=False,
-) as dag:
+    doc_md="""
+## MMC issues (Knack to PostgREST and Socrata)
+
+Loads MMC issue records (311-style service requests) from Knack Data Tracker
+(app 'data-tracker', container 'view_2892') using the
+'atddocker/atd-knack-services:production' image, then publishes them to PostgREST
+and Socrata.
+
+### New Airflow environments
+
+The 'get_date_filter_arg' task uses the previous successful run time
+('prev_start_date_success' in task context) to build the incremental date filter.
+A brand-new Airflow database has no prior successful runs for this DAG, so that
+value may not behave as expected until history exists. When moving this DAG to a
+new Airflow environment, add an artificial successful run (or otherwise seed the
+behavior you want) so the first real run uses an appropriate baseline date.
+""",
+)
+def atd_knack_mmc_issues():
     docker_image = "atddocker/atd-knack-services:production"
     app_name = "data-tracker"
-    container = "view_395"
+    container = "view_2892"
 
-    date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
+    date_filter_arg = get_date_filter_arg(should_replace_monthly=False)
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperator(
-        task_id="atd_knack_cctv_cameras_to_postgrest",
+    to_postgrest = DockerOperator(
+        task_id="atd_knack_mmc_issues_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
@@ -89,8 +99,8 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperator(
-        task_id="atd_knack_cctv_cameras_to_socrata",
+    to_socrata = DockerOperator(
+        task_id="atd_knack_mmc_issues_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
@@ -100,15 +110,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t3 = DockerOperator(
-        task_id="atd_knack_cctv_cameras_to_agol",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container} {date_filter_arg}",
-        environment=env_vars,
-        tty=True,
-        mount_tmp_dir=False,
-    )
+    date_filter_arg >> to_postgrest >> to_socrata
 
-    date_filter_arg >> t1 >> t2 >> t3
+
+atd_knack_mmc_issues()

@@ -1,10 +1,11 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import dag
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
+from utils.knack import get_date_filter_arg
 from utils.slack_operator import task_fail_slack_alert
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
@@ -60,52 +61,74 @@ REQUIRED_SECRETS = {
 }
 
 
-with DAG(
-    dag_id="atd_knack_detectors",
-    description="Load detectors (view_1333) records from Knack to Postgrest to AGOL and Socrata",
+@dag(
+    dag_id="atd_knack_cctv_cameras",
+    description="Publishes CCTV records from Data Tracker to Socrata and AGOL",
     default_args=DEFAULT_ARGS,
-    schedule_interval="10 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="55 1 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "agol", "data-tracker"],
     catchup=False,
-) as dag:
+    doc_md="""
+## CCTV cameras (Knack to PostgREST, Socrata, and AGOL)
+
+Loads CCTV camera records from Knack Data Tracker (app 'data-tracker', container
+'view_395') using the 'atddocker/atd-knack-services:production' image, then
+publishes them to PostgREST, Socrata, and ArcGIS Online ('AGOL').
+
+### New Airflow environments
+
+The 'get_date_filter_arg' task uses the previous successful run time
+('prev_start_date_success' in task context) to build the incremental date filter.
+A brand-new Airflow database has no prior successful runs for this DAG, so that
+value may not behave as expected until history exists. When moving this DAG to a
+new Airflow environment, add an artificial successful run (or otherwise seed
+the behavior you want) so the first real run uses an appropriate baseline date.
+""",
+)
+def atd_knack_cctv_cameras():
     docker_image = "atddocker/atd-knack-services:production"
     app_name = "data-tracker"
-    container = "view_1333"
+    container = "view_395"
+
+    date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperator(
-        task_id="atd_knack_detectors_to_postgrest",
+    to_postgrest = DockerOperator(
+        task_id="atd_knack_cctv_cameras_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container}",
+        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperator(
-        task_id="atd_knack_detectors_to_socrata",
+    to_socrata = DockerOperator(
+        task_id="atd_knack_cctv_cameras_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container}",
+        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
     )
 
-    t3 = DockerOperator(
-        task_id="atd_knack_detectors_to_agol",
+    to_agol = DockerOperator(
+        task_id="atd_knack_cctv_cameras_to_agol",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container}",
+        command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
     )
 
-    t1 >> t2 >> t3
+    date_filter_arg >> to_postgrest >> to_socrata >> to_agol
+
+
+atd_knack_cctv_cameras()
