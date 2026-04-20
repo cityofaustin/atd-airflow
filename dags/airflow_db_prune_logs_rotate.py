@@ -1,15 +1,15 @@
+import logging
 from os import getenv
 from pendulum import datetime
 from datetime import timedelta
 
-from airflow.decorators import dag, task
-from airflow.models import Param
-from airflow.utils.log.logging_mixin import LoggingMixin
+from airflow.sdk import Param, dag, task
 from airflow.exceptions import AirflowException
 
 from utils.slack_operator import task_fail_slack_alert
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT")
+logger = logging.getLogger(__name__)
 
 
 default_task_args = {
@@ -41,7 +41,6 @@ def get_days_back_to_prune(days_back_to_prune: str):
         raise AirflowException(
             f"Invalid 'days_back_to_prune' parameter: '{days_back_to_prune}'. Must be an integer."
         )
-    logger = LoggingMixin().log
     logger.info(f"Pruning Airflow DB records older than {prune_before_days} days")
     return prune_before_days
 
@@ -62,7 +61,6 @@ def get_clean_before_timestamp(prune_before_days: int):
     clean_before_timestamp = (
         now("America/Chicago") - duration(days=prune_before_days)
     ).to_iso8601_string()
-    logger = LoggingMixin().log
     logger.info(
         f"Pruning records before {parse(clean_before_timestamp).to_datetime_string()} America/Chicago, ISO8601: {clean_before_timestamp}"
     )
@@ -80,8 +78,10 @@ def db_clean_bash(timestamp: str) -> str:
     Returns:
         str: Bash command string.
     """
-    cmd = f'airflow db clean --yes --clean-before-timestamp "{timestamp}"'
-    logger = LoggingMixin().log
+    cmd = (
+        "python3 /opt/airflow/toolbox/airflow_metadata_db/run_db_clean.py "
+        f'--clean-before-timestamp "{timestamp}"'
+    )
     logger.info(f"Running command: {cmd}")
     return cmd
 
@@ -100,7 +100,6 @@ def log_file_cleanup_bash(day_interval: int) -> str:
     cmd = (
         f'find /opt/airflow/logs/ -type f -name "*.log" -mtime +{day_interval} -delete'
     )
-    logger = LoggingMixin().log
     logger.info(f"Running command: {cmd}")
     return cmd
 
@@ -114,7 +113,6 @@ def log_dir_cleanup_bash() -> str:
         str: Bash command string.
     """
     cmd = "find /opt/airflow/logs/ -type d -empty -delete"
-    logger = LoggingMixin().log
     logger.info(f"Running command: {cmd}")
     return cmd
 
@@ -122,10 +120,40 @@ def log_dir_cleanup_bash() -> str:
 @dag(
     dag_id="airflow_purge_logs_prune_database",
     default_args=default_task_args,
-    schedule_interval="0 0 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="0 0 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-airflow", "airflow", "maintenance"],
     catchup=False,
-    params={"days_back_to_prune": Param(default=30, type="integer", minimum=15)},
+    doc_md="""
+### Airflow metadata and log cleanup
+
+This DAG prunes old Airflow metadata and rotates filesystem logs.
+
+#### Why a wrapper utility is used for DB cleanup
+
+In Airflow 3, task runtime is isolated from direct metadata DB access, and tasks
+may see a blocked URL such as 'airflow-db-not-allowed:///'. Running
+'airflow db clean' directly in a normal task can therefore fail.
+
+To avoid that, task 'airflow_db_clean' runs:
+
+'python3 /opt/airflow/toolbox/airflow_metadata_db/run_db_clean.py'
+
+That utility invokes 'airflow db clean' with an explicit metadata DB URL via:
+
+'AIRFLOW_DB_CLEAN_SQL_ALCHEMY_CONN'
+
+In compose, both DB env vars map to one source value
+('AIRFLOW_METADATA_DB_SQL_ALCHEMY_CONN') to keep configuration DRY.
+""",
+    params={
+        "days_back_to_prune": Param(
+            default=30,
+            type="integer",
+            minimum=15,
+            title="Days Back To Prune",
+            description="Delete metadata/log records older than this many days.",
+        )
+    },
     dagrun_timeout=timedelta(minutes=10),
 )
 def airflow_purge_logs_prune_database():

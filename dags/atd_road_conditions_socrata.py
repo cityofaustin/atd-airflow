@@ -1,7 +1,7 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import dag
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -22,14 +22,6 @@ DEFAULT_ARGS = {
 }
 
 REQUIRED_SECRETS = {
-    "KNACK_APP_ID": {
-        "opitem": "Knack AMD Data Tracker",
-        "opfield": f"production.appId",
-    },
-    "KNACK_API_KEY": {
-        "opitem": "Knack AMD Data Tracker",
-        "opfield": f"production.apiKey",
-    },
     "SOCRATA_API_KEY_ID": {
         "opitem": "Socrata Key ID, Secret, and Token",
         "opfield": "socrata.apiKeyId",
@@ -43,53 +35,50 @@ REQUIRED_SECRETS = {
         "opfield": "socrata.appToken",
     },
     "PGREST_ENDPOINT": {
-        "opitem": "atd-knack-services PostgREST",
+        "opitem": "atd-road-conditions PostgREST",
         "opfield": "production.endpoint",
     },
     "PGREST_JWT": {
-        "opitem": "atd-knack-services PostgREST",
+        "opitem": "atd-road-conditions PostgREST",
         "opfield": "production.jwt",
     },
 }
 
 
-with DAG(
-    dag_id="atd_knack_mmc_issues",
-    description="Loads MMC issue records (aka 311 service requests from Data Tracker to Socrata",
+@dag(
+    dag_id="road_conditions_socrata",
     default_args=DEFAULT_ARGS,
-    schedule_interval="10 6 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    tags=["repo:atd-knack-services", "knack", "socrata", "data-tracker"],
+    description="Fetch road condition sensor data from postgrest and publish to socrata",
+    schedule="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    tags=["repo:atd-road-conditions", "socrata"],
     catchup=False,
-) as dag:
-    docker_image = "atddocker/atd-knack-services:production"
-    app_name = "data-tracker"
-    container = "view_2892"
+    doc_md="""
+## Road conditions to Socrata
+
+Fetches road condition sensor data from PostgREST and publishes it to Socrata
+using the 'atddocker/atd-road-conditions:production' image. Requires VPN access 
+to reach PostgREST.
+""",
+)
+def road_conditions_socrata():
 
     date_filter_arg = get_date_filter_arg(should_replace_monthly=False)
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperator(
-        task_id="atd_knack_mmc_issues_to_postgrest",
-        image=docker_image,
+    publish_road_conditions_to_socrata = DockerOperator(
+        task_id="road_conditions_socrata",
+        image="atddocker/atd-road-conditions:production",
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
+        command=f"./atd-road-conditions/socrata.py {date_filter_arg}",
         environment=env_vars,
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperator(
-        task_id="atd_knack_mmc_issues_to_socrata",
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}",
-        environment=env_vars,
-        tty=True,
-        mount_tmp_dir=False,
-    )
+    date_filter_arg >> publish_road_conditions_to_socrata
 
-    date_filter_arg >> t1 >> t2
+
+road_conditions_socrata()
