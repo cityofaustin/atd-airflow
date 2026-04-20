@@ -56,27 +56,8 @@ REQUIRED_SECRETS = {
 ## Road conditions to Socrata
 
 Fetches road condition sensor data from PostgREST and publishes it to Socrata
-using the 'atddocker/atd-road-conditions:production' image.
-
-### Task flow
-
-1. 'get_date_filter_arg' — supplies an incremental date flag based on the last
-   successful run.
-2. 'get_env_vars' — loads API and service credentials from 1Password.
-3. 'road_conditions_socrata' — runs './atd-road-conditions/socrata.py'.
-
-### New Airflow environments
-
-The 'get_date_filter_arg' task uses the previous successful run time
-('prev_start_date_success' in task context) to build the incremental date filter.
-A brand-new Airflow database has no prior successful runs for this DAG, so that
-value may not behave as expected until history exists. When moving this DAG to a
-new Airflow environment, add an artificial successful run (or otherwise seed
-the behavior you want) so the first real run uses an appropriate baseline date.
-
-### Docker
-
-Tasks use connection 'docker_default' and pull the image on the first task.
+using the 'atddocker/atd-road-conditions:production' image. Requires VPN access 
+to reach PostgREST.
 """,
 )
 def road_conditions_socrata():
@@ -87,7 +68,7 @@ def road_conditions_socrata():
 
     publish_road_conditions_to_socrata = DockerOperator(
         task_id="road_conditions_socrata",
-        image="atddocker/atd-road-conditions:latest",
+        image="atddocker/atd-road-conditions:production",
         docker_conn_id="docker_default",
         auto_remove="force",
         command=f"./atd-road-conditions/socrata.py {date_filter_arg}",
