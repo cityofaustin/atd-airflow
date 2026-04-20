@@ -7,7 +7,7 @@ from pendulum import datetime, duration
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert, slack_member_ids
 
-doc_md="""
+doc_md = """
 ## Troubleshooting
 
 The most common error is when a new record is being added to the HR app but it is duplicating an existing email address.

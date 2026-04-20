@@ -7,7 +7,6 @@ from airflow.providers.docker.operators.docker import DockerOperator
 from utils.slack_operator import task_fail_slack_alert
 from utils.onepassword import get_env_vars_task
 
-
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 DEFAULT_ARGS = {
@@ -50,7 +49,11 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id=f"atd_service_bot_issue_intake_{DEPLOYMENT_ENVIRONMENT}",
     default_args=DEFAULT_ARGS,
-    schedule="*/3 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule=(
+        "*/3 * * * *"
+        if DEPLOYMENT_ENVIRONMENT == "production"
+        else None if DEPLOYMENT_ENVIRONMENT == "production" else None
+    ),
     tags=["repo:atd-service-bot", "knack", "github"],
     catchup=False,
 ) as dag:

@@ -104,7 +104,5 @@ with DAG(
         tty=True,
         mount_tmp_dir=False,
     )
-    
 
     date_filter_arg >> t1 >> t2 >> t3
-

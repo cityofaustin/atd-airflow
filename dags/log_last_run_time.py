@@ -128,4 +128,5 @@ def log_last_run_time():
         now_cst,
     )
 
+
 dag_instance = log_last_run_time()
