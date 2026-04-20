@@ -64,39 +64,39 @@ REQUIRED_SECRETS = {
 }
 
 
-DAG_DOC_MD = '''
+DAG_DOC_MD = """
 ### atd_knack_inventory_items_nightly_snapshot
 Appends inventory item counts from Data Tracker to Socrata and then backs up the dataset.
 
 This DAG intentionally uses a fixed date filter of 1970-01-01 so each run appends the full view contents.
-'''
+"""
 
 
 @dag(
-    dag_id='atd_knack_inventory_items_nightly_snapshot',
-    description='Appends inventory item counts to running log in Socrata',
+    dag_id="atd_knack_inventory_items_nightly_snapshot",
+    description="Appends inventory item counts to running log in Socrata",
     default_args=DEFAULT_ARGS,
-    schedule='13 23 * * *' if DEPLOYMENT_ENVIRONMENT == 'production' else None,
-    tags=['repo:atd-knack-services', 'knack', 'socrata'],
+    schedule="13 23 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    tags=["repo:atd-knack-services", "knack", "socrata"],
     catchup=False,
     doc_md=DAG_DOC_MD,
 )
 def atd_knack_inventory_items_nightly_snapshot():
-    docker_image = 'atddocker/atd-knack-services:production'
-    app_name = 'data-tracker'
-    container = 'view_2863'
+    docker_image = "atddocker/atd-knack-services:production"
+    app_name = "data-tracker"
+    container = "view_2863"
 
     # Always append complete view contents for nightly snapshots.
-    date_filter_arg = '-d 1970-01-01'
+    date_filter_arg = "-d 1970-01-01"
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     load_inventory_items_to_postgrest_task = DockerOperator(
-        task_id='atd_knack_inventory_items_nightly_snapshot_to_postgrest',
+        task_id="atd_knack_inventory_items_nightly_snapshot_to_postgrest",
         image=docker_image,
-        docker_conn_id='docker_default',
-        auto_remove='force',
-        command=f'./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}',
+        docker_conn_id="docker_default",
+        auto_remove="force",
+        command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
         force_pull=True,
@@ -104,28 +104,32 @@ def atd_knack_inventory_items_nightly_snapshot():
     )
 
     load_inventory_items_to_socrata_task = DockerOperator(
-        task_id='atd_knack_inventory_items_nightly_snapshot_to_socrata',
+        task_id="atd_knack_inventory_items_nightly_snapshot_to_socrata",
         image=docker_image,
-        docker_conn_id='docker_default',
-        auto_remove='force',
-        command=f'./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}',
+        docker_conn_id="docker_default",
+        auto_remove="force",
+        command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
     )
 
     backup_inventory_items_socrata_task = DockerOperator(
-        task_id='atd_knack_inventory_items_nightly_snapshot_socrata_backup',
+        task_id="atd_knack_inventory_items_nightly_snapshot_socrata_backup",
         image=docker_image,
-        docker_conn_id='docker_default',
-        auto_remove='force',
-        command=f'./atd-knack-services/services/backup_socrata.py -a {app_name} -c {container}',
+        docker_conn_id="docker_default",
+        auto_remove="force",
+        command=f"./atd-knack-services/services/backup_socrata.py -a {app_name} -c {container}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
     )
 
-    load_inventory_items_to_postgrest_task >> load_inventory_items_to_socrata_task >> backup_inventory_items_socrata_task
+    (
+        load_inventory_items_to_postgrest_task
+        >> load_inventory_items_to_socrata_task
+        >> backup_inventory_items_socrata_task
+    )
 
 
 atd_knack_inventory_items_nightly_snapshot()

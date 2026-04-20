@@ -40,7 +40,13 @@ REQUIRED_SECRETS = {
     description="Parse the most recent email received containing Maximo Emergency Management data",
     default_args=default_args,
     schedule="*/30 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    tags=["repo:dts-maximo-geo-integration", "maximo", "geo", "emergency-management", "email-parser"],
+    tags=[
+        "repo:dts-maximo-geo-integration",
+        "maximo",
+        "geo",
+        "emergency-management",
+        "email-parser",
+    ],
     catchup=False,
     doc_md="""
 ## Maximo Geo emergency management email parser

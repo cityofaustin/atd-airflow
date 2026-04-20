@@ -69,36 +69,46 @@ REQUIRED_SECRETS = {
 
 # finance > postgrest
 finance_inventory_postgrest_required_secrets = dict(REQUIRED_SECRETS)
-finance_inventory_postgrest_required_secrets["KNACK_APP_ID"] = finance_inventory_postgrest_required_secrets["KNACK_APP_ID_FINANCE"]
-finance_inventory_postgrest_required_secrets["KNACK_API_KEY"] = finance_inventory_postgrest_required_secrets["KNACK_API_KEY_FINANCE"]
+finance_inventory_postgrest_required_secrets["KNACK_APP_ID"] = (
+    finance_inventory_postgrest_required_secrets["KNACK_APP_ID_FINANCE"]
+)
+finance_inventory_postgrest_required_secrets["KNACK_API_KEY"] = (
+    finance_inventory_postgrest_required_secrets["KNACK_API_KEY_FINANCE"]
+)
 # data tracker > postgrest
 data_tracker_inventory_postgrest_required_secrets = dict(REQUIRED_SECRETS)
-data_tracker_inventory_postgrest_required_secrets["KNACK_APP_ID"] = data_tracker_inventory_postgrest_required_secrets["KNACK_APP_ID_DATA_TRACKER"]
-data_tracker_inventory_postgrest_required_secrets["KNACK_API_KEY"] = data_tracker_inventory_postgrest_required_secrets["KNACK_API_KEY_DATA_TRACKER"]
+data_tracker_inventory_postgrest_required_secrets["KNACK_APP_ID"] = (
+    data_tracker_inventory_postgrest_required_secrets["KNACK_APP_ID_DATA_TRACKER"]
+)
+data_tracker_inventory_postgrest_required_secrets["KNACK_API_KEY"] = (
+    data_tracker_inventory_postgrest_required_secrets["KNACK_API_KEY_DATA_TRACKER"]
+)
 # postgres (finance) > data tracker
 finance_inventory_data_tracker_sync_required_secrets = dict(REQUIRED_SECRETS)
-finance_inventory_data_tracker_sync_required_secrets["KNACK_APP_ID_SRC"] = finance_inventory_data_tracker_sync_required_secrets["KNACK_APP_ID_FINANCE"]
-finance_inventory_data_tracker_sync_required_secrets["KNACK_APP_ID_DEST"] = finance_inventory_data_tracker_sync_required_secrets[
-    "KNACK_APP_ID_DATA_TRACKER"
-]
-finance_inventory_data_tracker_sync_required_secrets["KNACK_API_KEY_DEST"] = finance_inventory_data_tracker_sync_required_secrets[
-    "KNACK_API_KEY_DATA_TRACKER"
-]
+finance_inventory_data_tracker_sync_required_secrets["KNACK_APP_ID_SRC"] = (
+    finance_inventory_data_tracker_sync_required_secrets["KNACK_APP_ID_FINANCE"]
+)
+finance_inventory_data_tracker_sync_required_secrets["KNACK_APP_ID_DEST"] = (
+    finance_inventory_data_tracker_sync_required_secrets["KNACK_APP_ID_DATA_TRACKER"]
+)
+finance_inventory_data_tracker_sync_required_secrets["KNACK_API_KEY_DEST"] = (
+    finance_inventory_data_tracker_sync_required_secrets["KNACK_API_KEY_DATA_TRACKER"]
+)
 
 
-DAG_DOC_MD = '''
+DAG_DOC_MD = """
 ### atd_knack_inventory_items_finance_to_data_tracker
 Updates Data Tracker inventory items using records from the Finance and Purchasing system.
-'''
+"""
 
 
 @dag(
-    dag_id='atd_knack_inventory_items_finance_to_data_tracker',
-    description='Update inventory items in the Data Tracker from the Finance and Purchasing system',
+    dag_id="atd_knack_inventory_items_finance_to_data_tracker",
+    description="Update inventory items in the Data Tracker from the Finance and Purchasing system",
     default_args=DEFAULT_ARGS,
-    start_date=datetime(2015, 1, 1, tz='America/Chicago'),
-    schedule='55 1 * * *' if DEPLOYMENT_ENVIRONMENT == 'production' else None,
-    tags=['repo:atd-knack-services', 'knack', 'data-tracker', 'finance'],
+    start_date=datetime(2015, 1, 1, tz="America/Chicago"),
+    schedule="55 1 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    tags=["repo:atd-knack-services", "knack", "data-tracker", "finance"],
     catchup=False,
     doc_md=DAG_DOC_MD,
 )
@@ -109,9 +119,15 @@ def atd_knack_inventory_items_finance_to_data_tracker():
     container_dest = "view_2863"
     container_src = "view_788"
 
-    finance_inventory_postgrest_env_vars = get_env_vars_task(finance_inventory_postgrest_required_secrets)
-    data_tracker_inventory_postgrest_env_vars = get_env_vars_task(data_tracker_inventory_postgrest_required_secrets)
-    finance_inventory_data_tracker_sync_env_vars = get_env_vars_task(finance_inventory_data_tracker_sync_required_secrets)
+    finance_inventory_postgrest_env_vars = get_env_vars_task(
+        finance_inventory_postgrest_required_secrets
+    )
+    data_tracker_inventory_postgrest_env_vars = get_env_vars_task(
+        data_tracker_inventory_postgrest_required_secrets
+    )
+    finance_inventory_data_tracker_sync_env_vars = get_env_vars_task(
+        finance_inventory_data_tracker_sync_required_secrets
+    )
     date_filter_arg = get_date_filter_arg(should_replace_monthly=False)
 
     load_finance_inventory_to_postgrest_task = DockerOperator(
@@ -147,7 +163,12 @@ def atd_knack_inventory_items_finance_to_data_tracker():
         tty=True,
         mount_tmp_dir=False,
     )
-    date_filter_arg >> load_finance_inventory_to_postgrest_task >> load_data_tracker_inventory_to_postgrest_task >> sync_finance_inventory_to_data_tracker_task
+    (
+        date_filter_arg
+        >> load_finance_inventory_to_postgrest_task
+        >> load_data_tracker_inventory_to_postgrest_task
+        >> sync_finance_inventory_to_data_tracker_task
+    )
 
 
 dag = atd_knack_inventory_items_finance_to_data_tracker()

@@ -60,19 +60,19 @@ REQUIRED_SECRETS = {
 }
 
 
-DAG_DOC_MD = '''
+DAG_DOC_MD = """
 ### atd_knack_flashing_beacons
 Loads flashing beacons (view_1563) records from Knack to Postgrest, Socrata, and AGOL.
-'''
+"""
 
 
 @dag(
-    dag_id='atd_knack_flashing_beacons',
-    description='Load flashing beacons (view_1563) records from Knack to Postgrest to AGOL',
+    dag_id="atd_knack_flashing_beacons",
+    description="Load flashing beacons (view_1563) records from Knack to Postgrest to AGOL",
     default_args=DEFAULT_ARGS,
-    start_date=datetime(2015, 1, 1, tz='America/Chicago'),
-    schedule='15 10 * * *' if DEPLOYMENT_ENVIRONMENT == 'production' else None,
-    tags=['repo:atd-knack-services', 'knack', 'socrata', 'agol', 'data-tracker'],
+    start_date=datetime(2015, 1, 1, tz="America/Chicago"),
+    schedule="15 10 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    tags=["repo:atd-knack-services", "knack", "socrata", "agol", "data-tracker"],
     catchup=False,
     doc_md=DAG_DOC_MD,
 )
