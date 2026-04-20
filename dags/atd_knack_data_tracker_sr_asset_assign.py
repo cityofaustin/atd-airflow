@@ -50,11 +50,6 @@ REQUIRED_SECRETS = {
 DAG_DOC_MD = '''
 ### DAG purpose
 This DAG assigns signal records to service request issues in the AMD Data Tracker based on service request location.
-
-### Runtime behavior
-- Runs every minute in production.
-- Does not run on a schedule outside production.
-- Pulls required credentials from 1Password before starting the container task.
 '''
 
 
