@@ -65,17 +65,7 @@ REQUIRED_SECRETS = {
 
 Loads cost-of-service fee data from the AMANDA database and publishes it to the
 Right of Way (ROW) Knack application using the 'atddocker/atd-cost-of-service:production'
-container image.
-
-### Task flow
-
-1. 'get_env_vars' — loads Knack and AMANDA replica credentials from 1Password.
-2. 'atd_cost_of_service_fees_to_knack' — runs 'python3 knack_load_fees.py' inside the image.
-
-### Docker
-
-Uses connection 'docker_default', 'bridge' network mode, and 'force_pull' on the
-container task.
+container image. To run locally, please ensure you're on the VPN to reach the AMANDA database.
 """,
 )
 def atd_cost_of_service_fees():
