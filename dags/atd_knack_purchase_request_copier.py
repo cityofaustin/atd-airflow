@@ -70,8 +70,8 @@ with DAG(
         command=f"./atd-knack-services/services/purchase_request_copier.py -a {app_name} -c {container}",
         environment=env_vars,
         tty=True,
+        force_pull=False, # atd_knack_signals pulls this image every 5 minutes
         mount_tmp_dir=False,
-        force_pull=False,
     )
 
     t1
