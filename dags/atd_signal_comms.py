@@ -1,5 +1,6 @@
 from os import getenv
 
+from airflow.providers.docker.operators.docker import DockerOperator
 from utils.docker_operator import DockerOperatorWithFallback
 from airflow.sdk import dag, task
 from pendulum import datetime, duration
@@ -122,7 +123,7 @@ def atd_signal_comms():
         network_mode="bridge",
     )
 
-    detectors_s3 = DockerOperatorWithFallback(
+    detectors_s3 = DockerOperator(
         task_id="run_comm_check_detectors",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -132,9 +133,10 @@ def atd_signal_comms():
         tty=True,
         mount_tmp_dir=False,
         network_mode="bridge",
+        force_pull=False,
     )
 
-    dms_s3 = DockerOperatorWithFallback(
+    dms_s3 = DockerOperator(
         task_id="run_comm_check_dms",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -144,9 +146,10 @@ def atd_signal_comms():
         tty=True,
         mount_tmp_dir=False,
         network_mode="bridge",
+        force_pull=False,
     )
 
-    battery_backup_s3 = DockerOperatorWithFallback(
+    battery_backup_s3 = DockerOperator(
         task_id="run_comm_check_battery_backup",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -156,9 +159,10 @@ def atd_signal_comms():
         tty=True,
         mount_tmp_dir=False,
         network_mode="bridge",
+        force_pull=False,
     )
 
-    signal_monitors_s3 = DockerOperatorWithFallback(
+    signal_monitors_s3 = DockerOperator(
         task_id="run_comm_check_signal_monitors",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -168,9 +172,10 @@ def atd_signal_comms():
         tty=True,
         mount_tmp_dir=False,
         network_mode="bridge",
+        force_pull=False,
     )
 
-    cameras_socrata = DockerOperatorWithFallback(
+    cameras_socrata = DockerOperator(
         task_id="socrata_pub_cameras",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -180,9 +185,10 @@ def atd_signal_comms():
         tty=True,
         mount_tmp_dir=False,
         network_mode="bridge",
+        force_pull=False,
     )
 
-    detectors_socrata = DockerOperatorWithFallback(
+    detectors_socrata = DockerOperator(
         task_id="socrata_pub_detectors",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -192,9 +198,10 @@ def atd_signal_comms():
         tty=True,
         mount_tmp_dir=False,
         network_mode="bridge",
+        force_pull=False,
     )
 
-    dms_socrata = DockerOperatorWithFallback(
+    dms_socrata = DockerOperator(
         task_id="socrata_pub_dms",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -204,9 +211,10 @@ def atd_signal_comms():
         tty=True,
         mount_tmp_dir=False,
         network_mode="bridge",
+        force_pull=False,
     )
 
-    battery_backup_socrata = DockerOperatorWithFallback(
+    battery_backup_socrata = DockerOperator(
         task_id="socrata_pub_battery_backup",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -216,9 +224,10 @@ def atd_signal_comms():
         tty=True,
         mount_tmp_dir=False,
         network_mode="bridge",
+        force_pull=False,
     )
 
-    signal_monitors_socrata = DockerOperatorWithFallback(
+    signal_monitors_socrata = DockerOperator(
         task_id="socrata_pub_signal_monitors",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -228,6 +237,7 @@ def atd_signal_comms():
         tty=True,
         mount_tmp_dir=False,
         network_mode="bridge",
+        force_pull=False,
     )
 
     (
