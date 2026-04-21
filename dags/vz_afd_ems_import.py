@@ -7,6 +7,14 @@ from pendulum import datetime
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert, slack_member_ids
 
+doc_md = """
+Extracts EMS and AFD data from files in an S3 bucket and imports to a VZ Database.
+
+If no email is found in the S3 bucket, the task will throw an error.
+
+Until the automatic email forwarding is fixed, Xavier manually forwards the email. As such, this may fail if Xavier does not forward the email.
+"""
+
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT")
 
@@ -53,13 +61,16 @@ REQUIRED_SECRETS = {
 @dag(
     dag_id="vz-afd-ems-incident-import",
     description="A DAG which imports EMS and AFD data into the Vision Zero database.",
+    doc_md=doc_md,
     # todo: we are currently skipping weekends
     # https://github.com/cityofaustin/atd-data-tech/issues/25781
     schedule="45 7 * * 1-5" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     start_date=datetime(2023, 1, 1, tz="America/Chicago"),
     catchup=False,
     tags=["repo:atd-vz-data", "vision-zero", "ems", "afd", "import"],
-    on_failure_callback=task_fail_slack_alert if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    on_failure_callback=(
+        task_fail_slack_alert if DEPLOYMENT_ENVIRONMENT == "production" else None
+    ),
 )
 def etl_data_import():
     dag.byline = f"Failure impacts VZ team, {slack_member_ids['John']} & {slack_member_ids['Frank']}"
