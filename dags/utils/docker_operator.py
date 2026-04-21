@@ -7,18 +7,15 @@ class DockerOperatorWithFallback(DockerOperator):
     """DockerOperator that attempts a force pull but falls back to a local image on failure."""
 
     def execute(self, context):
-        original_force_pull = getattr(self, "force_pull", False)
         self.log.info("Attempting to pull image %s", self.image)
         try:
-            self.force_pull = True
-            return super().execute(context)
+            for output in self.cli.pull(self.image, stream=True, decode=True):
+                if isinstance(output, dict) and "status" in output:
+                    self.log.info("%s", output.get("status", ""))
         except Exception as e:
             self.log.warning(
                 "Could not pull image %s (%s). Using local image if available.",
                 self.image,
                 e,
             )
-            self.force_pull = False
-            return super().execute(context)
-        finally:
-            self.force_pull = original_force_pull
+        return self._run_image()
