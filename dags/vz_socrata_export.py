@@ -17,11 +17,20 @@ results:
 from os import getenv
 from pendulum import datetime, duration
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert, slack_member_ids
+
+doc_md = """
+Download crash and people records and publish to the Open Data Portal.
+
+This is the ETL that keeps the VZV up to date.
+
+Do not run on Saturday, Sunday and Monday mornings to give VZ team time to QA records imported over weekend and avoid Socrata maintenance window
+
+"""
 
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT")
@@ -84,10 +93,11 @@ with DAG(
     catchup=False,
     dag_id="vz-socrata-export",
     description="Exports Vision Zero crash and people datasets to Socrata from Vision Zero database.",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
     # do not run on saturday, sunday and monday mornings to give VZ team time to QA records imported over weekend
     # and avoid Socrata maintenance window
-    schedule_interval="0 4 * * 2-5" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="0 4 * * 2-5" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     start_date=datetime(2024, 8, 1, tz="America/Chicago"),
     tags=["vision-zero", "cris", "repo:atd-vz-data", "socrata"],
 ) as dag:
@@ -114,7 +124,7 @@ with DAG(
         environment=env_vars,
         auto_remove="force",
         tty=True,
-        force_pull=True,
+        force_pull=False,
         trigger_rule="all_done",  # always run this task regardless of outcome of crashes task
     )
 

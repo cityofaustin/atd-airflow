@@ -1,7 +1,7 @@
 from os import getenv
 
-from airflow.decorators import dag
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import dag
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime
 
 from utils.onepassword import get_env_vars_task
@@ -87,10 +87,8 @@ def etl_data_import():
         command="afd",
         tty=True,
         mount_tmp_dir=False,
+        trigger_rule="all_done",  # run regardless of whether EMS succeeded or failed
     )
-
-    # run the AFD task regardless of whether EMS succeeded or failed
-    afd_import.trigger_rule = "all_done"
 
     ems_import >> afd_import
 
