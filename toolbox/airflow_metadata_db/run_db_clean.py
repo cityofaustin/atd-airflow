@@ -55,11 +55,17 @@ def main() -> int:
     # Ensure command-based URL resolution does not override the explicit URL.
     env.pop("AIRFLOW__DATABASE__SQL_ALCHEMY_CONN_CMD", None)
 
+    # dag_version is excluded: Airflow 3 incorrectly tries to delete dag_version rows
+    # that are still referenced by task_instance rows within the retention window,
+    # causing a FK RestrictViolation. dag_version is small and low-value to prune.
+    tables = "callback_request,task_instance_history,xcom,task_instance,import_error,trigger,deadline,dag_run"
     cmd = [
         "airflow",
         "db",
         "clean",
         "--yes",
+        "--tables",
+        tables,
         "--clean-before-timestamp",
         args.clean_before_timestamp,
     ]
