@@ -85,7 +85,9 @@ DEFAULT_ARGS = {
     "email_on_retry": False,
     "retries": 2,
     "execution_timeout": duration(minutes=60),
-    "on_failure_callback": task_fail_slack_alert,
+    "on_failure_callback": (
+        task_fail_slack_alert if DEPLOYMENT_ENVIRONMENT == "production" else None
+    ),
 }
 
 

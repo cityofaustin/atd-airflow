@@ -59,7 +59,7 @@ REQUIRED_SECRETS = {
     start_date=datetime(2023, 1, 1, tz="America/Chicago"),
     catchup=False,
     tags=["repo:atd-vz-data", "vision-zero", "ems", "afd", "import"],
-    on_failure_callback=task_fail_slack_alert,
+    on_failure_callback=task_fail_slack_alert if DEPLOYMENT_ENVIRONMENT == "production" else None,
 )
 def etl_data_import():
     dag.byline = f"Failure impacts VZ team, {slack_member_ids['John']} & {slack_member_ids['Frank']}"
