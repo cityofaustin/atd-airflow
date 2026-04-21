@@ -1,7 +1,7 @@
 from os import getenv
 
 from airflow.sdk import DAG, task, Param
-from airflow.providers.docker.operators.docker import DockerOperator
+from utils.docker_operator import DockerOperatorWithFallback
 from pendulum import datetime, duration, parse
 
 from utils.onepassword import get_env_vars_task
@@ -123,7 +123,6 @@ with DAG(
         command=f"python components_to_agol.py {args}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
         execution_timeout=duration(minutes=30),
     )
@@ -135,7 +134,6 @@ with DAG(
         command=f"python components_to_agol.py {args}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
         execution_timeout=duration(minutes=5),
     )

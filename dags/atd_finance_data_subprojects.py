@@ -1,7 +1,7 @@
 from os import getenv
 
 from airflow.sdk import task, DAG
-from airflow.providers.docker.operators.docker import DockerOperator
+from utils.docker_operator import DockerOperatorWithFallback
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -150,7 +150,6 @@ with DAG(
         command="python3 upload_to_s3.py subprojects",
         environment=data_tracker_env,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 
@@ -162,7 +161,6 @@ with DAG(
         command="python3 s3_to_knack.py subprojects finance-purchasing",
         environment=finance_purchasing_env,
         tty=True,
-        force_pull=False,
         mount_tmp_dir=False,
     )
 
@@ -174,7 +172,6 @@ with DAG(
         command="python3 s3_to_socrata.py --dataset subprojects",
         environment=finance_purchasing_env,
         tty=True,
-        force_pull=False,
         mount_tmp_dir=False,
     )
 

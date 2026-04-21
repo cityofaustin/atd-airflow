@@ -3,7 +3,7 @@ from os import getenv
 from datetime import timedelta
 
 from airflow.sdk import task, DAG
-from airflow.providers.docker.operators.docker import DockerOperator
+from utils.docker_operator import DockerOperatorWithFallback
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -117,7 +117,6 @@ with DAG(
         command=f"python etl/rev_exp_report_to_s3.py",
         environment=env_vars,
         tty=True,
-        force_pull=True,
     )
 
     t2 = DockerOperator(
@@ -129,7 +128,6 @@ with DAG(
         command=f"python etl/mstro_reports_to_socrata.py",
         environment=env_vars,
         tty=True,
-        force_pull=False,
     )
 
     t1 >> t2

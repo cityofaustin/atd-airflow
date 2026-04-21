@@ -1,6 +1,6 @@
 from os import getenv
 
-from airflow.providers.docker.operators.docker import DockerOperator
+from utils.docker_operator import DockerOperatorWithFallback
 from airflow.sdk import dag
 from pendulum import datetime, duration
 
@@ -81,7 +81,6 @@ def atd_cost_of_service_fees():
         environment=env_vars,
         tty=True,
         docker_conn_id="docker_default",
-        force_pull=True,
         mount_tmp_dir=False,
     )
 

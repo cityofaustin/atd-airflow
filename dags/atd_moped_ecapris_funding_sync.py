@@ -2,7 +2,7 @@
 
 from os import getenv
 
-from airflow.providers.docker.operators.docker import DockerOperator
+from utils.docker_operator import DockerOperatorWithFallback
 from airflow.sdk import dag, Param, task
 from pendulum import datetime, duration
 
@@ -127,7 +127,6 @@ def sync_ecapris_funding():
         "auto_remove": "force",
         "environment": env_vars,
         "tty": True,
-        "force_pull": True,
         "mount_tmp_dir": False,
     }
 

@@ -3,7 +3,7 @@ from os import getenv
 from datetime import timedelta
 
 from airflow.sdk import task, DAG
-from airflow.providers.docker.operators.docker import DockerOperator
+from utils.docker_operator import DockerOperatorWithFallback
 from pendulum import datetime, duration, now
 
 from utils.onepassword import get_env_vars_task
@@ -103,7 +103,6 @@ with DAG(
         command=f"python -m etl.open311.open311_to_socrata -d {prev_run_time}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
     )
 
     t1

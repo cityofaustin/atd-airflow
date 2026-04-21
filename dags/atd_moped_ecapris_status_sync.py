@@ -2,7 +2,7 @@
 
 from os import getenv
 
-from airflow.providers.docker.operators.docker import DockerOperator
+from utils.docker_operator import DockerOperatorWithFallback
 from airflow.sdk import dag, Param, task
 from pendulum import datetime, duration
 
@@ -105,7 +105,6 @@ def sync_ecapris_statuses():
         command=f"python3.12 ecapris_statuses_sync.py",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 

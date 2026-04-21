@@ -3,7 +3,7 @@
 from os import getenv
 
 from airflow.sdk import task, DAG
-from airflow.providers.docker.operators.docker import DockerOperator
+from utils.docker_operator import DockerOperatorWithFallback
 from pendulum import datetime, duration
 
 from utils.slack_operator import task_fail_slack_alert
@@ -102,7 +102,6 @@ with DAG(
         command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 

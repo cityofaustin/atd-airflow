@@ -2,7 +2,7 @@ from os import getenv
 from pendulum import datetime, duration
 
 from airflow.sdk import DAG
-from airflow.providers.docker.operators.docker import DockerOperator
+from utils.docker_operator import DockerOperatorWithFallback
 
 from utils.slack_operator import task_fail_slack_alert
 from utils.onepassword import get_env_vars_task
@@ -78,6 +78,5 @@ with DAG(
         command="./atd-service-bot/issues_to_socrata.py",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )

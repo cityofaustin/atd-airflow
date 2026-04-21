@@ -1,6 +1,6 @@
 from os import getenv
 
-from airflow.providers.docker.operators.docker import DockerOperator
+from utils.docker_operator import DockerOperatorWithFallback
 from airflow.sdk import dag
 from pendulum import datetime, duration
 
@@ -104,7 +104,6 @@ def atd_knack_signals():
         command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 

@@ -1,7 +1,7 @@
 from os import getenv
 
 from airflow.sdk import task, DAG
-from airflow.providers.docker.operators.docker import DockerOperator
+from utils.docker_operator import DockerOperatorWithFallback
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -113,7 +113,6 @@ with DAG(
         command="python3 upload_to_s3.py fdu_expenses_obligated",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 
@@ -125,7 +124,6 @@ with DAG(
         command="python3 fdu_program_tagging.py",
         environment=env_vars,
         tty=True,
-        force_pull=False,
         mount_tmp_dir=False,
     )
 

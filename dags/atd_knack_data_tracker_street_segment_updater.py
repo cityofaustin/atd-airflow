@@ -1,6 +1,6 @@
 from os import getenv
 
-from airflow.providers.docker.operators.docker import DockerOperator
+from utils.docker_operator import DockerOperatorWithFallback
 from airflow.sdk import dag
 from pendulum import datetime, duration
 
@@ -68,7 +68,6 @@ def atd_knack_data_tracker_street_segment_updater():
         command=f"./atd-knack-services/services/knack_street_seg_updater.py -a data-tracker -c view_1198 {date_filter_arg}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 

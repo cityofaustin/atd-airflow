@@ -1,7 +1,7 @@
 from os import getenv
 
 from airflow.sdk import DAG
-from airflow.providers.docker.operators.docker import DockerOperator
+from utils.docker_operator import DockerOperatorWithFallback
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -131,7 +131,6 @@ with DAG(
         command=f"python amanda/amanda_to_s3.py --query row_inspector_permit_list",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
         retries=3,
         retry_delay=duration(seconds=60),

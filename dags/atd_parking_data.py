@@ -4,7 +4,7 @@ from datetime import timedelta
 from airflow.sdk import task, DAG, Param
 from airflow.models.dagrun import DagRun
 from airflow.models.taskinstance import TaskInstance
-from airflow.providers.docker.operators.docker import DockerOperator
+from utils.docker_operator import DockerOperatorWithFallback
 from pendulum import datetime, duration, parse, now
 
 from utils.onepassword import get_env_vars_task
@@ -156,7 +156,6 @@ with DAG(
             auto_remove="force",
             environment=env_vars,
             tty=True,
-            force_pull=True,
             retries=3,
             retry_delay=duration(seconds=60),
         )
@@ -172,7 +171,6 @@ with DAG(
             auto_remove="force",
             environment=env_vars,
             tty=True,
-            force_pull=False,
             retries=3,
             retry_delay=duration(seconds=60),
         )
@@ -188,7 +186,6 @@ with DAG(
             auto_remove="force",
             environment=env_vars,
             tty=True,
-            force_pull=False,
             retries=3,
             retry_delay=duration(seconds=60),
         )

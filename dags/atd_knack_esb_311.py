@@ -1,6 +1,6 @@
 from os import getenv
 
-from airflow.providers.docker.operators.docker import DockerOperator
+from utils.docker_operator import DockerOperatorWithFallback
 from airflow.sdk import dag
 from docker.types import Mount
 from pendulum import datetime, duration
@@ -93,7 +93,6 @@ def atd_knack_esb_311():
         command="./atd-knack-311/send_knack_messages_to_esb.py data-tracker",
         environment=env_vars_data_tracker,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
         network_mode="bridge",
         mounts=[cert_mount],
@@ -107,7 +106,6 @@ def atd_knack_esb_311():
         command="./atd-knack-311/send_knack_messages_to_esb.py signs-markings",
         environment=env_vars_signs_markings,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
         network_mode="bridge",
         mounts=[cert_mount],
