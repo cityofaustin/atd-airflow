@@ -91,7 +91,7 @@ with DAG(
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperator(
+    t1 = DockerOperatorWithFallback(
         task_id="maximo_workorders_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -102,7 +102,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperator(
+    t2 = DockerOperatorWithFallback(
         task_id="maximo_service_requests_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -113,7 +113,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t3 = DockerOperator(
+    t3 = DockerOperatorWithFallback(
         task_id="maximo_work_order_history_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -124,7 +124,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t4 = DockerOperator(
+    t4 = DockerOperatorWithFallback(
         task_id="work_order_time_logs_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -135,7 +135,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t5 = DockerOperator(
+    t5 = DockerOperatorWithFallback(
         task_id="work_order_materials_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -146,7 +146,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t6 = DockerOperator(
+    t6 = DockerOperatorWithFallback(
         task_id="work_order_specifications_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -157,7 +157,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t7 = DockerOperator(
+    t7 = DockerOperatorWithFallback(
         task_id="maximo_locations_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",

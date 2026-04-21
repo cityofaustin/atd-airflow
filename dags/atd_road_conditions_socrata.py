@@ -66,7 +66,7 @@ def road_conditions_socrata():
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    publish_road_conditions_to_socrata = DockerOperator(
+    publish_road_conditions_to_socrata = DockerOperatorWithFallback(
         task_id="road_conditions_socrata",
         image="atddocker/atd-road-conditions:production",
         docker_conn_id="docker_default",

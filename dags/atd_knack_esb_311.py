@@ -85,7 +85,7 @@ def atd_knack_esb_311():
         type="volume",
     )
 
-    data_tracker_activities_to_311 = DockerOperator(
+    data_tracker_activities_to_311 = DockerOperatorWithFallback(
         task_id="knack_amd_data_tracker_activities_to_311",
         image=DOCKER_IMAGE,
         docker_conn_id="docker_default",
@@ -98,7 +98,7 @@ def atd_knack_esb_311():
         mounts=[cert_mount],
     )
 
-    signs_markings_activities_to_311 = DockerOperator(
+    signs_markings_activities_to_311 = DockerOperatorWithFallback(
         task_id="knack_amd_signs_markings_activities_to_311",
         image=DOCKER_IMAGE,
         docker_conn_id="docker_default",

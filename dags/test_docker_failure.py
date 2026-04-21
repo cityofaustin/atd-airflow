@@ -29,7 +29,7 @@ DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 def test_docker_failure():
     """Test stacked exception handling in Docker container."""
 
-    docker_failure = DockerOperator(
+    docker_failure = DockerOperatorWithFallback(
         task_id="docker_failure",
         image="atddocker/atd-airflow:production",
         doc_md="This is an example of task specific documentation",

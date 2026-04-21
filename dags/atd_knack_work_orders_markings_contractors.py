@@ -79,7 +79,7 @@ with DAG(
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperator(
+    t1 = DockerOperatorWithFallback(
         task_id="atd_knack_markings_contractor_work_orders_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -90,7 +90,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperator(
+    t2 = DockerOperatorWithFallback(
         task_id="atd_knack_markings_work_orders_to_agol",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -101,7 +101,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t3 = DockerOperator(
+    t3 = DockerOperatorWithFallback(
         task_id="atd_knack_markings_contractor_work_orders_agol_build_markings_segment_geometries",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -112,7 +112,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t4 = DockerOperator(
+    t4 = DockerOperatorWithFallback(
         task_id="atd_knack_markings_contractor_work_orders_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",

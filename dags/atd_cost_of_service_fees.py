@@ -72,7 +72,7 @@ def atd_cost_of_service_fees():
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    load_fees_to_knack = DockerOperator(
+    load_fees_to_knack = DockerOperatorWithFallback(
         task_id="atd_cost_of_service_fees_to_knack",
         image="atddocker/atd-cost-of-service:production",
         auto_remove="force",

@@ -130,13 +130,13 @@ def sync_ecapris_funding():
         "mount_tmp_dir": False,
     }
 
-    ecapris_funding_sync_dry_run = DockerOperator(
+    ecapris_funding_sync_dry_run = DockerOperatorWithFallback(
         task_id="ecapris_funding_sync_dry_run",
         command="python3.14 ecapris_funding_sync.py -n",
         **common_docker_config,
     )
 
-    ecapris_funding_sync = DockerOperator(
+    ecapris_funding_sync = DockerOperatorWithFallback(
         task_id="ecapris_funding_sync",
         command=f"python3.14 ecapris_funding_sync.py",
         **common_docker_config,

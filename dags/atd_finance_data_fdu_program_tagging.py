@@ -105,7 +105,7 @@ with DAG(
 ) as dag:
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperator(
+    t1 = DockerOperatorWithFallback(
         task_id="fdus_to_s3",
         image="atddocker/atd-finance-data:production",
         docker_conn_id="docker_default",
@@ -116,7 +116,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperator(
+    t2 = DockerOperatorWithFallback(
         task_id="tagging_fdus",
         image="atddocker/atd-finance-data:production",
         docker_conn_id="docker_default",

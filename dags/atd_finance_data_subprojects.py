@@ -142,7 +142,7 @@ with DAG(
     data_tracker_env = get_env_vars_task(DATA_TRACKER_SECRETS)
     finance_purchasing_env = get_env_vars_task(FINANCE_PURCHASING_SECRETS)
 
-    t1 = DockerOperator(
+    t1 = DockerOperatorWithFallback(
         task_id="subprojects_to_s3",
         image="atddocker/atd-finance-data:production",
         docker_conn_id="docker_default",
@@ -153,7 +153,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperator(
+    t2 = DockerOperatorWithFallback(
         task_id="subprojects_to_data_tracker",
         image="atddocker/atd-finance-data:production",
         docker_conn_id="docker_default",
@@ -164,7 +164,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t3 = DockerOperator(
+    t3 = DockerOperatorWithFallback(
         task_id="subprojects_to_socrata",
         image="atddocker/atd-finance-data:production",
         docker_conn_id="docker_default",

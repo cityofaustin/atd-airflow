@@ -69,7 +69,7 @@ with DAG(
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperator(
+    t1 = DockerOperatorWithFallback(
         task_id="data_tracker_sync",
         image=docker_image,
         docker_conn_id="docker_default",

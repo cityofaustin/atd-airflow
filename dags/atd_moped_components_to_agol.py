@@ -115,7 +115,7 @@ with DAG(
 
     branch = branch()
 
-    full = DockerOperator(
+    full = DockerOperatorWithFallback(
         task_id="moped_components_to_agol_full",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -127,7 +127,7 @@ with DAG(
         execution_timeout=duration(minutes=30),
     )
 
-    incremental = DockerOperator(
+    incremental = DockerOperatorWithFallback(
         task_id="moped_components_to_agol_incremental",
         image=docker_image,
         auto_remove="force",

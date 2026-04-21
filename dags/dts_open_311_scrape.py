@@ -94,7 +94,7 @@ with DAG(
         fallback_date=one_day_ago.to_iso8601_string()
     )
 
-    t1 = DockerOperator(
+    t1 = DockerOperatorWithFallback(
         task_id="open311_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",

@@ -58,7 +58,7 @@ with DAG(
 ) as dag:
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperator(
+    t1 = DockerOperatorWithFallback(
         task_id="update_secondary_signals",
         image="atddocker/atd-knack-services:production",
         docker_conn_id="docker_default",

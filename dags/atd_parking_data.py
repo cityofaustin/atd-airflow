@@ -147,7 +147,7 @@ with DAG(
 
     docker_tasks = []
     docker_tasks.append(
-        DockerOperator(
+        DockerOperatorWithFallback(
             task_id="smartfolio_transactions",
             image=docker_image,
             docker_conn_id="docker_default",
@@ -162,7 +162,7 @@ with DAG(
     )
 
     docker_tasks.append(
-        DockerOperator(
+        DockerOperatorWithFallback(
             task_id="process_smartfolio_transactions",
             image=docker_image,
             docker_conn_id="docker_default",
@@ -177,7 +177,7 @@ with DAG(
     )
 
     docker_tasks.append(
-        DockerOperator(
+        DockerOperatorWithFallback(
             task_id="transactions_to_socrata",
             image=docker_image,
             docker_conn_id="docker_default",

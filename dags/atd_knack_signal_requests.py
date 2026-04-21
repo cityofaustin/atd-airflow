@@ -84,7 +84,7 @@ with DAG(
 
     date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
 
-    t1 = DockerOperator(
+    t1 = DockerOperatorWithFallback(
         task_id="signal_requests_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -96,7 +96,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperator(
+    t2 = DockerOperatorWithFallback(
         task_id="signal_requests_to_agol",
         image=docker_image,
         docker_conn_id="docker_default",

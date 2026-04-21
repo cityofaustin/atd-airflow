@@ -94,7 +94,7 @@ def atd_knack_cctv_cameras():
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    to_postgrest = DockerOperator(
+    to_postgrest = DockerOperatorWithFallback(
         task_id="atd_knack_cctv_cameras_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -105,7 +105,7 @@ def atd_knack_cctv_cameras():
         mount_tmp_dir=False,
     )
 
-    to_socrata = DockerOperator(
+    to_socrata = DockerOperatorWithFallback(
         task_id="atd_knack_cctv_cameras_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -116,7 +116,7 @@ def atd_knack_cctv_cameras():
         mount_tmp_dir=False,
     )
 
-    to_agol = DockerOperator(
+    to_agol = DockerOperatorWithFallback(
         task_id="atd_knack_cctv_cameras_to_agol",
         image=docker_image,
         docker_conn_id="docker_default",

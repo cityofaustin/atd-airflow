@@ -56,7 +56,7 @@ REQUIRED_SECRETS = {
 
 
 def knack_services_task_template(task_id, image, command, env_vars):
-    return DockerOperator(
+    return DockerOperatorWithFallback(
         task_id=task_id,
         image=image,
         docker_conn_id="docker_default",
