@@ -3,7 +3,7 @@
 from os import getenv
 
 from airflow.sdk import DAG
-from utils.docker_operator import DockerOperatorWithFallback
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -62,7 +62,7 @@ with DAG(
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperatorWithFallback(
+    t1 = DockerOperator(
         task_id="purchase_request_copier",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -71,6 +71,7 @@ with DAG(
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
+        force_pull=False,
     )
 
     t1
