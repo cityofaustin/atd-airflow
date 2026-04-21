@@ -2,6 +2,7 @@
 
 from os import getenv
 
+from airflow.providers.docker.operators.docker import DockerOperator
 from utils.docker_operator import DockerOperatorWithFallback
 from airflow.sdk import dag, chain
 from pendulum import datetime, duration
@@ -55,8 +56,8 @@ REQUIRED_SECRETS = {
 }
 
 
-def knack_services_task_template(task_id, image, command, env_vars):
-    return DockerOperatorWithFallback(
+def knack_services_task_template(task_id, image, command, env_vars, operator_cls=DockerOperator):
+    return operator_cls(
         task_id=task_id,
         image=image,
         docker_conn_id="docker_default",
@@ -170,13 +171,14 @@ def atd_knack_development_services():
 
     tasks = []
 
-    for cmd in commands:
+    for i, cmd in enumerate(commands):
         tasks.append(
             knack_services_task_template(
                 task_id=cmd["task_id"],
                 image=docker_image,
                 command=cmd["command"],
                 env_vars=env_vars,
+                operator_cls=DockerOperatorWithFallback if i == 0 else DockerOperator,
             )
         )
 
