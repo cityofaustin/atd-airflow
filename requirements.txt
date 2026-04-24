@@ -1,4 +1,4 @@
-onepasswordconnectsdk==1.*
+onepasswordconnectsdk==2.*
 apache-airflow-providers-fab==3.0.*
 connexion[flask]>=2.14.2,<3.0
 flask-appbuilder==5.*
