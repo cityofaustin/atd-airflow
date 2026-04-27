@@ -40,6 +40,10 @@ class DockerOperatorWithFallback(DockerOperator):
 
     @cached_property
     def hook(self) -> _DockerHookWithLoginFallback:
+        """
+        Original Method:https://github.com/apache/airflow/blob/dc939331f4cd90892fd201931c466dffff977a4f/providers/docker/src/airflow/providers/docker/operators/docker.py#L343
+        """
+        
         tls_config = DockerHook.construct_tls_config(
             ca_cert=self.tls_ca_cert,
             client_cert=self.tls_client_cert,
@@ -57,6 +61,10 @@ class DockerOperatorWithFallback(DockerOperator):
         )
 
     def execute(self, context):
+        """
+        Original Method: https://github.com/apache/airflow/blob/dc939331f4cd90892fd201931c466dffff977a4f/providers/docker/src/airflow/providers/docker/operators/docker.py#L487
+        """
+
         self.log.info("Attempting to pull image %s", self.image)
         try:
             for output in self.cli.pull(self.image, stream=True, decode=True):
