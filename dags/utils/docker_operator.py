@@ -33,7 +33,10 @@ class _DockerHookWithLoginFallback(DockerHook):
 
 
 class DockerOperatorWithFallback(DockerOperator):
-    """DockerOperator that attempts a force pull but falls back to a local image on failure."""
+    """
+    DockerOperator that attempts a force pull but falls back to a local image on failure.
+    All other functionality is the same as DockerOperator, `force_pull` is ignored.
+    """
 
     @cached_property
     def hook(self) -> _DockerHookWithLoginFallback:
