@@ -9,9 +9,23 @@ from airflow.providers.docker.operators.docker import DockerOperator
 class _DockerHookWithLoginFallback(DockerHook):
     """DockerHook that warns instead of raising when registry login fails."""
 
+    _BASE_LOGIN_METHOD = "_DockerHook__login"
+
+    @classmethod
+    def _require_base_login_method(cls):
+        method = getattr(DockerHook, cls._BASE_LOGIN_METHOD, None)
+        if not callable(method):
+            raise RuntimeError(
+                "Docker provider internals changed: "
+                f"`DockerHook.{cls._BASE_LOGIN_METHOD}` is missing or not callable. "
+                "Update _DockerHookWithLoginFallback to match the provider implementation."
+            )
+        return method
+
     def _DockerHook__login(self, client, conn):
+        base_login = self._require_base_login_method()
         try:
-            DockerHook._DockerHook__login(self, client, conn)
+            base_login(self, client, conn)
         except Exception as e:
             self.log.warning(
                 "Registry login failed (%s). Proceeding without authentication.", e
