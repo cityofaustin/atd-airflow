@@ -13,6 +13,10 @@ Extracts EMS and AFD data from files in an S3 bucket and imports to a VZ Databas
 If no email is found in the S3 bucket, the task will throw an error.
 
 Until the automatic email forwarding is fixed, Xavier manually forwards the email. As such, this may fail if Xavier does not forward the email.
+
+
+Issue tracking email forwarding: https://github.com/cityofaustin/atd-data-tech/issues/21712
+
 """
 
 
@@ -73,7 +77,6 @@ REQUIRED_SECRETS = {
     ),
 )
 def etl_data_import():
-    dag.byline = f"Failure impacts VZ team, {slack_member_ids['John']} & {slack_member_ids['Frank']}"
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     # EMS
@@ -98,10 +101,9 @@ def etl_data_import():
         command="afd",
         tty=True,
         mount_tmp_dir=False,
-        trigger_rule="all_done",  # run regardless of whether EMS succeeded or failed
     )
 
-    ems_import >> afd_import
+    env_vars >> [ems_import, afd_import]
 
 
 etl_data_import()
