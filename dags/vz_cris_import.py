@@ -15,8 +15,8 @@ results:
 from os import getenv
 from pendulum import datetime, duration
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert, slack_member_ids
