@@ -27,8 +27,18 @@ class _DockerHookWithLoginFallback(DockerHook):
         try:
             base_login(self, client, conn)
         except Exception as e:
+            status_code = getattr(e, "status_code", None)
+            if status_code is None:
+                response = getattr(e, "response", None)
+                status_code = getattr(response, "status_code", None)
+
+            if not isinstance(status_code, int) or status_code < 500 or status_code >= 600:
+                raise
+
             self.log.warning(
-                "Registry login failed (%s). Proceeding without authentication.", e
+                "Registry login failed with server error %s (%s). Proceeding without authentication.",
+                status_code,
+                e,
             )
 
 
