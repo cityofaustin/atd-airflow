@@ -48,6 +48,39 @@ class DockerOperatorWithFallback(DockerOperator):
     All other functionality is the same as DockerOperator, `force_pull` is ignored.
     """
 
+    @staticmethod
+    def _extract_status_code(exc: Exception):
+        status_code = getattr(exc, "status_code", None)
+        if status_code is not None:
+            return status_code
+
+        response = getattr(exc, "response", None)
+        return getattr(response, "status_code", None)
+
+    @classmethod
+    def _should_fallback_to_local_image(cls, exc: Exception) -> bool:
+        status_code = cls._extract_status_code(exc)
+        if isinstance(status_code, int):
+            return 500 <= status_code < 600
+
+        if isinstance(exc, (TimeoutError, ConnectionError)):
+            return True
+
+        transient_error_names = {
+            "ConnectTimeout",
+            "ConnectionError",
+            "MaxRetryError",
+            "ProtocolError",
+            "ReadTimeout",
+            "Timeout",
+        }
+        current = exc
+        while current is not None:
+            if current.__class__.__name__ in transient_error_names:
+                return True
+            current = current.__cause__ or current.__context__
+        return False
+
     @cached_property
     def hook(self) -> _DockerHookWithLoginFallback:
         """
@@ -81,6 +114,9 @@ class DockerOperatorWithFallback(DockerOperator):
                 if isinstance(output, dict) and "status" in output:
                     self.log.info("%s", output.get("status", ""))
         except Exception as e:
+            if not self._should_fallback_to_local_image(e):
+                raise
+
             self.log.warning(
                 "Could not pull image %s (%s). Using local image if available.",
                 self.image,
