@@ -66,19 +66,6 @@ class DockerOperatorWithFallback(DockerOperator):
         if isinstance(exc, (TimeoutError, ConnectionError)):
             return True
 
-        transient_error_names = {
-            "ConnectTimeout",
-            "ConnectionError",
-            "MaxRetryError",
-            "ProtocolError",
-            "ReadTimeout",
-            "Timeout",
-        }
-        current = exc
-        while current is not None:
-            if current.__class__.__name__ in transient_error_names:
-                return True
-            current = current.__cause__ or current.__context__
         return False
 
     @cached_property
