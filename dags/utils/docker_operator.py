@@ -48,6 +48,19 @@ class DockerOperatorWithFallback(DockerOperator):
     All other functionality is the same as DockerOperator, `force_pull` is ignored.
     """
 
+    _RUN_IMAGE_METHOD = "_run_image"
+
+    @classmethod
+    def _require_run_image(cls):
+        method = getattr(DockerOperator, cls._RUN_IMAGE_METHOD, None)
+        if not callable(method):
+            raise RuntimeError(
+                "Docker provider internals changed: "
+                f"`DockerOperator.{cls._RUN_IMAGE_METHOD}` is missing or not callable. "
+                "Update DockerOperatorWithFallback to match the provider implementation."
+            )
+        return method
+
     @staticmethod
     def _extract_status_code(exc: Exception):
         status_code = getattr(exc, "status_code", None)
@@ -95,6 +108,7 @@ class DockerOperatorWithFallback(DockerOperator):
         Original Method: https://github.com/apache/airflow/blob/dc939331f4cd90892fd201931c466dffff977a4f/providers/docker/src/airflow/providers/docker/operators/docker.py#L487
         """
 
+        self._require_run_image()
         self.log.info("Attempting to pull image %s", self.image)
         try:
             for output in self.cli.pull(self.image, stream=True, decode=True):
@@ -110,3 +124,6 @@ class DockerOperatorWithFallback(DockerOperator):
                 e,
             )
         return self._run_image()
+
+
+DockerOperatorWithFallback._require_run_image()
