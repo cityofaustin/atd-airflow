@@ -116,7 +116,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperatorWithFallback(
+    t2 = DockerOperator(
         task_id="tagging_fdus",
         image="atddocker/atd-finance-data:production",
         docker_conn_id="docker_default",

@@ -153,7 +153,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperatorWithFallback(
+    t2 = DockerOperator(
         task_id="fdus_to_socrata",
         image="atddocker/atd-finance-data:production",
         docker_conn_id="docker_default",
