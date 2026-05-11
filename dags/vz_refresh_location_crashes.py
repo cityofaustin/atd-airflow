@@ -5,8 +5,8 @@ This DAG refreshes the location_crashes_view in the Vision Zero database
 from os import getenv
 from pendulum import datetime, duration
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
@@ -53,7 +53,7 @@ with DAG(
     dag_id="vz-location-crashes-refresh",
     description="Refreshes the materialized view: location_crashes_view ",
     default_args=DEFAULT_ARGS,
-    schedule_interval="0 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="0 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     start_date=datetime(2024, 8, 1, tz="America/Chicago"),
     tags=["vision-zero", "repo:vision-zero"],
 ) as dag:
