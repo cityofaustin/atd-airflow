@@ -1,7 +1,7 @@
 from os import getenv
 
 from airflow.sdk import dag
-from airflow.providers.docker.operators.docker import DockerOperator
+from utils.docker_operator import DockerOperatorWithFallback
 from pendulum import datetime
 
 from utils.onepassword import get_env_vars_task
@@ -80,7 +80,7 @@ def etl_data_import():
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     # EMS
-    ems_import = DockerOperator(
+    ems_import = DockerOperatorWithFallback(
         task_id="run_ems_import",
         environment=env_vars,
         image=docker_image,
@@ -92,7 +92,7 @@ def etl_data_import():
     )
 
     # AFD
-    afd_import = DockerOperator(
+    afd_import = DockerOperatorWithFallback(
         task_id="run_afd_import",
         environment=env_vars,
         image=docker_image,

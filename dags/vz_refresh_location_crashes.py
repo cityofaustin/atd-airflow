@@ -6,7 +6,7 @@ from os import getenv
 from pendulum import datetime, duration
 
 from airflow.sdk import DAG
-from airflow.providers.docker.operators.docker import DockerOperator
+from utils.docker_operator import DockerOperatorWithFallback
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
@@ -59,7 +59,7 @@ with DAG(
 ) as dag:
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    refresh_location_crashes = DockerOperator(
+    refresh_location_crashes = DockerOperatorWithFallback(
         task_id="refresh_location_crashes",
         docker_conn_id="docker_default",
         image=docker_image,
@@ -67,7 +67,6 @@ with DAG(
         environment=env_vars,
         auto_remove="force",
         tty=True,
-        force_pull=True,
     )
 
     refresh_location_crashes

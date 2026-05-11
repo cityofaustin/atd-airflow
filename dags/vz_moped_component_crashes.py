@@ -21,6 +21,7 @@ from os import getenv
 from pendulum import datetime, duration
 
 from airflow.sdk import DAG
+from utils.docker_operator import DockerOperatorWithFallback
 from airflow.providers.docker.operators.docker import DockerOperator
 
 from utils.onepassword import get_env_vars_task
@@ -113,7 +114,7 @@ with DAG(
     env_vars_moped_join = get_env_vars_task(REQUIRED_SECRETS_MOPED_JOIN)
     env_vars_socrata = get_env_vars_task(REQUIRED_SECRETS_SOCRATA)
 
-    vz_moped_spatial_join = DockerOperator(
+    vz_moped_spatial_join = DockerOperatorWithFallback(
         task_id="vz_moped_spatial_join",
         docker_conn_id="docker_default",
         image=docker_image_vz_moped_join,
@@ -121,7 +122,6 @@ with DAG(
         environment=env_vars_moped_join,
         auto_remove="force",
         tty=True,
-        force_pull=True,
     )
 
     socrata_export_crash_components = DockerOperator(
@@ -132,7 +132,6 @@ with DAG(
         environment=env_vars_socrata,
         auto_remove="force",
         tty=True,
-        force_pull=True,
     )
 
     (

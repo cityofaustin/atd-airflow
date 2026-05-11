@@ -18,6 +18,7 @@ from os import getenv
 from pendulum import datetime, duration
 
 from airflow.sdk import DAG
+from utils.docker_operator import DockerOperatorWithFallback
 from airflow.providers.docker.operators.docker import DockerOperator
 
 from utils.onepassword import get_env_vars_task
@@ -107,7 +108,7 @@ with DAG(
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    socrata_export_crashes = DockerOperator(
+    socrata_export_crashes = DockerOperatorWithFallback(
         task_id="socrata_export_crashes",
         docker_conn_id="docker_default",
         image=docker_image,
@@ -115,7 +116,6 @@ with DAG(
         environment=env_vars,
         auto_remove="force",
         tty=True,
-        force_pull=True,
     )
 
     socrata_export_people = DockerOperator(
@@ -126,7 +126,6 @@ with DAG(
         environment=env_vars,
         auto_remove="force",
         tty=True,
-        force_pull=False,
         trigger_rule="all_done",  # always run this task regardless of outcome of crashes task
     )
 
