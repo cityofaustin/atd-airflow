@@ -1,6 +1,7 @@
 from os import getenv
 
 from airflow.sdk import task, DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from utils.docker_operator import DockerOperatorWithFallback
 from pendulum import datetime, duration
 
