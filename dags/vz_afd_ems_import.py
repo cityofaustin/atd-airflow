@@ -103,7 +103,9 @@ def etl_data_import():
         mount_tmp_dir=False,
     )
 
-    env_vars >> [ems_import, afd_import]
+dag_instance = etl_data_import()
 
-
-etl_data_import()
+if dag_instance:
+    dag_instance.byline = (
+        f"Failure impacts Vision Zero team, {slack_member_ids['John']} & {slack_member_ids['Frank']}"
+    )
