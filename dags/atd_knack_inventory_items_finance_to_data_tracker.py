@@ -1,5 +1,6 @@
 from os import getenv
 
+from airflow.providers.docker.operators.docker import DockerOperator
 from utils.docker_operator import DockerOperatorWithFallback
 from airflow.sdk import dag
 from pendulum import datetime, duration
@@ -141,7 +142,7 @@ def atd_knack_inventory_items_finance_to_data_tracker():
         mount_tmp_dir=False,
     )
 
-    load_data_tracker_inventory_to_postgrest_task = DockerOperatorWithFallback(
+    load_data_tracker_inventory_to_postgrest_task = DockerOperator(
         task_id="atd_knack_data_tracker_inventory_items_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -152,7 +153,7 @@ def atd_knack_inventory_items_finance_to_data_tracker():
         mount_tmp_dir=False,
     )
 
-    sync_finance_inventory_to_data_tracker_task = DockerOperatorWithFallback(
+    sync_finance_inventory_to_data_tracker_task = DockerOperator(
         task_id="atd_knack_update_data_tracker_inventory_items_from_finance_inventory",
         image=docker_image,
         docker_conn_id="docker_default",

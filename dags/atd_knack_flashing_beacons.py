@@ -1,5 +1,6 @@
 from os import getenv
 
+from airflow.providers.docker.operators.docker import DockerOperator
 from utils.docker_operator import DockerOperatorWithFallback
 from airflow.sdk import dag
 from pendulum import datetime, duration
@@ -96,7 +97,7 @@ def atd_knack_flashing_beacons():
         mount_tmp_dir=False,
     )
 
-    load_socrata_task = DockerOperatorWithFallback(
+    load_socrata_task = DockerOperator(
         task_id="atd_knack_flashing_beacons_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -107,7 +108,7 @@ def atd_knack_flashing_beacons():
         mount_tmp_dir=False,
     )
 
-    load_agol_task = DockerOperatorWithFallback(
+    load_agol_task = DockerOperator(
         task_id="atd_knack_flashing_beacons_to_agol",
         image=docker_image,
         docker_conn_id="docker_default",

@@ -1,5 +1,6 @@
 from os import getenv
 
+from airflow.providers.docker.operators.docker import DockerOperator
 from utils.docker_operator import DockerOperatorWithFallback
 from airflow.sdk import dag
 from docker.types import Mount
@@ -98,7 +99,7 @@ def atd_knack_esb_311():
         mounts=[cert_mount],
     )
 
-    signs_markings_activities_to_311 = DockerOperatorWithFallback(
+    signs_markings_activities_to_311 = DockerOperator(
         task_id="knack_amd_signs_markings_activities_to_311",
         image=DOCKER_IMAGE,
         docker_conn_id="docker_default",

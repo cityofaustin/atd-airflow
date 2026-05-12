@@ -4,6 +4,7 @@ from os import getenv
 
 from airflow.sdk import DAG
 from utils.docker_operator import DockerOperatorWithFallback
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -79,7 +80,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperatorWithFallback(
+    t2 = DockerOperator(
         task_id="atd_knack_markings_attachments_to_agol",
         image=docker_image,
         docker_conn_id="docker_default",
