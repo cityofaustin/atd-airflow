@@ -117,7 +117,7 @@ def etl_data_import():
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"incidents_to_s3.py{dry_run_arg}",
+        command=f"incidents_to_s3.py --remove{dry_run_arg}",
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
