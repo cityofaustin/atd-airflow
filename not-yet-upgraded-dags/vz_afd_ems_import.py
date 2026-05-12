@@ -70,6 +70,7 @@ def etl_data_import():
         task_id="run_ems_import",
         environment=env_vars,
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove="force",
         command="ems",
         tty=True,
