@@ -79,7 +79,7 @@ DEFAULT_ARGS = {
     task_id="get_args",
 )
 def get_is_dry_run_arg(params):
-    """Return True if the dry_run param has been set"""
+    """Return ` --dry-run` if the dry_run param has been set"""
     if bool(params["dry_run"]):
         return " --dry-run"
     else:
