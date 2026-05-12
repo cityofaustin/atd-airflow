@@ -90,6 +90,7 @@ def get_is_dry_run_arg(params):
     dag_id="vz-cad-incidents-import",
     description="A DAG which imports CAD records into the Vision Zero database.",
     doc_md=doc_md,
+    # the CAD file export happens daily at 5a CT
     schedule="15 6 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     start_date=datetime(2023, 1, 1, tz="America/Chicago"),
     catchup=False,
