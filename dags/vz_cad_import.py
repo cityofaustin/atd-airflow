@@ -28,6 +28,11 @@ else:
 
 docker_image = f"atddocker/vz-cad-incidents-import:{'production' if DEPLOYMENT_ENVIRONMENT == 'production' else 'latest'}"
 
+mount_source = (
+    "/mnt/vision_zero_cad"
+    if DEPLOYMENT_ENVIRONMENT == "production"
+    else "/your/path/here"
+)
 
 REQUIRED_SECRETS = {
     "BUCKET_ENV": {
@@ -63,7 +68,7 @@ DEFAULT_ARGS = {
     "email_on_retry": False,
     "retries": 0,
     "retry_delay": duration(minutes=1),
-    # "on_failure_callback": task_fail_slack_alert,
+    "on_failure_callback": task_fail_slack_alert,
 }
 
 
@@ -97,7 +102,7 @@ def etl_data_import():
     dry_run_arg = get_is_dry_run_arg()
 
     files_volume_mount = Mount(
-        source="/Users/john/atd/vision-zero/etl/cad_incidents_import/test_data",
+        source=mount_source,
         target="/mnt/vision_zero_cad",
         type="bind",
     )
