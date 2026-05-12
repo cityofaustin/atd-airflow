@@ -28,6 +28,9 @@ else:
 
 docker_image = f"atddocker/vz-cad-incidents-import:{'production' if DEPLOYMENT_ENVIRONMENT == 'production' else 'latest'}"
 
+
+# for local dev, replace `"/your/path/here` with the abs path to your testing files, e.g.,
+# /Users/john/atd/vision-zero/etl/cad_incidents_import/test_data
 mount_source = (
     "/mnt/vision_zero_cad"
     if DEPLOYMENT_ENVIRONMENT == "production"
