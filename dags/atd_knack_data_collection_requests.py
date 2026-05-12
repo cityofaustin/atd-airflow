@@ -1,6 +1,7 @@
 from os import getenv
 
 from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from utils.docker_operator import DockerOperatorWithFallback
 from pendulum import datetime, duration
 
@@ -69,7 +70,7 @@ with DAG(
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperatorWithFallback(
+    to_postgrest = DockerOperatorWithFallback(
         task_id="atd_knack_data_collection_requests_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -80,7 +81,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperatorWithFallback(
+    to_socrata = DockerOperator(
         task_id="atd_knack_data_collection_requests_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -91,4 +92,4 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    date_filter_arg >> t1 >> t2
+    date_filter_arg >> to_postgrest >> to_socrata

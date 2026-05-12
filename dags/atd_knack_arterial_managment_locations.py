@@ -1,6 +1,7 @@
 from os import getenv
 
 from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from utils.docker_operator import DockerOperatorWithFallback
 from pendulum import datetime, duration
 
@@ -50,7 +51,7 @@ REQUIRED_SECRETS = {
 
 
 with DAG(
-    dag_id="atd_knack_arterial_managment_locations",
+    dag_id="atd_knack_arterial_management_locations",
     description="Publishes AMD location records to AGOL",
     doc_md="**Need VPN access or addition to security group allow list to reach Postgrest**",
     default_args=DEFAULT_ARGS,
@@ -66,8 +67,8 @@ with DAG(
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperatorWithFallback(
-        task_id="atd_knack_arterial_managment_locations_to_postgrest",
+    to_postgrest = DockerOperatorWithFallback(
+        task_id="atd_knack_arterial_management_locations_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
@@ -77,8 +78,8 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperatorWithFallback(
-        task_id="atd_knack_arterial_managment_locations_to_agol",
+    to_agol = DockerOperator(
+        task_id="atd_knack_arterial_management_locations_to_agol",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
@@ -88,4 +89,4 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    date_filter_arg >> t1 >> t2
+    date_filter_arg >> to_postgrest >> to_agol

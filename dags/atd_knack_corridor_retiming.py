@@ -1,6 +1,7 @@
 from os import getenv
 
 from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from utils.docker_operator import DockerOperatorWithFallback
 from pendulum import datetime, duration
 
@@ -81,7 +82,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperatorWithFallback(
+    t2 = DockerOperator(
         task_id="atd_knack_corridor_retiming_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",

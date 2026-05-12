@@ -1,5 +1,6 @@
 from os import getenv
 
+from airflow.providers.docker.operators.docker import DockerOperator
 from utils.docker_operator import DockerOperatorWithFallback
 from airflow.sdk import dag
 from pendulum import datetime, duration
@@ -89,7 +90,7 @@ def atd_knack_detectors():
         mount_tmp_dir=False,
     )
 
-    load_detectors_to_socrata = DockerOperatorWithFallback(
+    load_detectors_to_socrata = DockerOperator(
         task_id="atd_knack_detectors_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -100,7 +101,7 @@ def atd_knack_detectors():
         mount_tmp_dir=False,
     )
 
-    load_detectors_to_agol = DockerOperatorWithFallback(
+    load_detectors_to_agol = DockerOperator(
         task_id="atd_knack_detectors_to_agol",
         image=docker_image,
         docker_conn_id="docker_default",
