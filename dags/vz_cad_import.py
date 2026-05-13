@@ -10,7 +10,7 @@ from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert, slack_member_ids
 
 doc_md = """
-Process CAD files in two steps. First, transfer files from COACD netork drive to S3. Then, transform and load files in to the VZ database via graphql API.
+Process CAD files in two steps. First, transfer files from COACD network drive to S3. Then, transform and load files in to the VZ database via graphql API.
 
 If no files are found in the network drive or in S3 bucket, tasks will throw an error.
 """
