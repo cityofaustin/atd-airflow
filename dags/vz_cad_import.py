@@ -29,14 +29,6 @@ else:
 docker_image = f"atddocker/vz-cad-incidents-import:{'production' if DEPLOYMENT_ENVIRONMENT == 'production' else 'latest'}"
 
 
-# for local dev, replace `"/your/path/here` with the abs path to your testing files, e.g.,
-# /Users/john/atd/vision-zero/etl/cad_incidents_import/test_data
-mount_source = (
-    "/mnt/vision_zero_cad"
-    if DEPLOYMENT_ENVIRONMENT == "production"
-    else "/your/path/here"
-)
-
 REQUIRED_SECRETS = {
     "BUCKET_ENV": {
         "opitem": "Vision Zero ETLs",
@@ -74,6 +66,19 @@ DEFAULT_ARGS = {
     "on_failure_callback": task_fail_slack_alert,
 }
 
+# for local dev, replace `"/your/path/here` with the abs path to your testing files, e.g.,
+# /Users/john/atd/vision-zero/etl/cad_incidents_import/test_data
+mount_source = (
+    "/mnt/vision_zero_cad"
+    if DEPLOYMENT_ENVIRONMENT == "production"
+    else "/Users/john/atd/vision-zero/etl/cad_incidents_import/test_data"
+)
+
+files_volume_mount = Mount(
+    source=mount_source,
+    target="/mnt/vision_zero_cad",
+    type="bind",
+)
 
 @task(
     task_id="get_args",
@@ -105,11 +110,6 @@ def etl_data_import():
 
     dry_run_arg = get_is_dry_run_arg()
 
-    files_volume_mount = Mount(
-        source=mount_source,
-        target="/mnt/vision_zero_cad",
-        type="bind",
-    )
 
     incidents_to_s3 = DockerOperatorWithFallback(
         task_id="cad_incidents_to_s3",
@@ -136,7 +136,7 @@ def etl_data_import():
         mounts=[files_volume_mount],
     )
 
-    env_vars >> incidents_to_s3 >> incidents_import
+    [env_vars, dry_run_arg] >> incidents_to_s3 >> incidents_import
 
 
 etl_data_import()
