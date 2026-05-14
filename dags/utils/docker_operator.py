@@ -44,8 +44,8 @@ class _DockerHookWithLoginFallback(DockerHook):
 
 class DockerOperatorWithFallback(DockerOperator):
     """
-    DockerOperator that attempts a force pull but falls back to a local image on failure.
-    All other functionality is the same as DockerOperator, `force_pull` is ignored.
+    DockerOperator that can force pull with fallback to local image on pull failures.
+    All other functionality is the same as DockerOperator.
     """
 
     _RUN_IMAGE_METHOD = "_run_image"
@@ -109,21 +109,38 @@ class DockerOperatorWithFallback(DockerOperator):
         """
 
         self._require_run_image()
-        self.log.info("Attempting to pull image %s", self.image)
-        try:
-            for output in self.cli.pull(self.image, stream=True, decode=True):
-                if isinstance(output, dict) and "status" in output:
-                    self.log.info("%s", output.get("status", ""))
-        except Exception as e:
-            if not self._should_fallback_to_local_image(e):
-                raise
 
-            self.log.warning(
-                "Could not pull image %s (%s). Using local image if available.",
+        # Base DockerOperator would also pull inside _run_image when force_pull=True.
+        # We handle pull behavior here to provide fallback semantics and avoid a second pull.
+        should_pull = bool(self.force_pull)
+
+        if should_pull:
+            self.log.info("Attempting to pull image %s", self.image)
+            try:
+                for output in self.cli.pull(self.image, stream=True, decode=True):
+                    if isinstance(output, dict) and "status" in output:
+                        self.log.info("%s", output.get("status", ""))
+            except Exception as e:
+                if not self._should_fallback_to_local_image(e):
+                    raise
+
+                self.log.warning(
+                    "Could not pull image %s (%s). Using local image if available.",
+                    self.image,
+                    e,
+                )
+        else:
+            self.log.info(
+                "Skipping image pull for %s because force_pull is disabled.",
                 self.image,
-                e,
             )
-        return self._run_image()
+
+        original_force_pull = self.force_pull
+        try:
+            self.force_pull = False
+            return self._run_image()
+        finally:
+            self.force_pull = original_force_pull
 
 
 DockerOperatorWithFallback._require_run_image()
