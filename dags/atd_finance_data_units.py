@@ -187,4 +187,9 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    units_to_s3 >> units_to_data_tracker >> units_to_socrata >> units_to_finance_purchasing
+    (
+        units_to_s3
+        >> units_to_data_tracker
+        >> units_to_socrata
+        >> units_to_finance_purchasing
+    )

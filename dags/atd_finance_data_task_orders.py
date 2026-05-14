@@ -187,4 +187,9 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    task_orders_s3 >> task_orders_data_tracker >> task_orders_finance_purchasing >> task_orders_socrata
+    (
+        task_orders_s3
+        >> task_orders_data_tracker
+        >> task_orders_finance_purchasing
+        >> task_orders_socrata
+    )

@@ -32,7 +32,11 @@ class _DockerHookWithLoginFallback(DockerHook):
                 response = getattr(e, "response", None)
                 status_code = getattr(response, "status_code", None)
 
-            if not isinstance(status_code, int) or status_code < 500 or status_code >= 600:
+            if (
+                not isinstance(status_code, int)
+                or status_code < 500
+                or status_code >= 600
+            ):
                 raise
 
             self.log.warning(
@@ -86,7 +90,7 @@ class DockerOperatorWithFallback(DockerOperator):
         """
         Original Method:https://github.com/apache/airflow/blob/dc939331f4cd90892fd201931c466dffff977a4f/providers/docker/src/airflow/providers/docker/operators/docker.py#L343
         """
-        
+
         tls_config = DockerHook.construct_tls_config(
             ca_cert=self.tls_ca_cert,
             client_cert=self.tls_client_cert,
