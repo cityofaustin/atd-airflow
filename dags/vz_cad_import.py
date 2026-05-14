@@ -12,7 +12,9 @@ from utils.slack_operator import task_fail_slack_alert, slack_member_ids
 doc_md = """
 Process CAD files in two steps. First, transfer files from COACD network drive to S3. Then, transform and load files in to the VZ database via graphql API.
 
-If no files are found in the network drive or in S3 bucket, tasks will throw an error.
+Files are delivered to the shared network drive daily at 5am. If no files are found in the network drive or in S3 bucket, tasks will throw an error.
+
+If files are not delivered, reach out to Oleg or Gita or Donghong on the public safety enterprise data team.
 """
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT")
@@ -70,7 +72,7 @@ DEFAULT_ARGS = {
 mount_source = (
     "/mnt/vision_zero_cad"
     if DEPLOYMENT_ENVIRONMENT == "production"
-    else "/your/path/here"
+    else "/Users/john/atd/vision-zero/etl/cad_incidents_import/test_data"
 )
 
 files_volume_mount = Mount(
