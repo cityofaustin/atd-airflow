@@ -1,7 +1,7 @@
 from os import getenv
 
 from airflow.sdk import dag, task, Param
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
 from docker.types import Mount
 
 from pendulum import datetime
