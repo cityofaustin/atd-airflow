@@ -131,8 +131,9 @@ def get_dataset_id(env_vars):
     return env_vars["ACTIVE_DATASET"]
 
 
-def knack_services_task_template(task_id, image, command, env_vars):
+def knack_services_task_template(task_id, image, command, env_vars, force_pull=False):
     return DockerOperatorWithFallback(
+        force_pull=force_pull,
         task_id=task_id,
         image=image,
         docker_conn_id="docker_default",
@@ -295,6 +296,7 @@ with DAG(
     for cmd in commands:
         tasks.append(
             knack_services_task_template(
+                force_pull=cmd.get("force_pull", False),
                 task_id=cmd["task_id"],
                 image=cmd["image"],
                 command=cmd["command"],
