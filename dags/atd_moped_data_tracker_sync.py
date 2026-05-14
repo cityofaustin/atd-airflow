@@ -69,7 +69,8 @@ with DAG(
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperatorWithFallback(
+    data_tracker_sync = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="data_tracker_sync",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -80,4 +81,4 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    date_filter_arg >> t1
+    date_filter_arg >> data_tracker_sync

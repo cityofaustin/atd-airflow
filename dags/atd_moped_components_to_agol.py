@@ -116,6 +116,7 @@ with DAG(
     branch = branch()
 
     full = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="moped_components_to_agol_full",
         image=docker_image,
         docker_conn_id="docker_default",

@@ -98,6 +98,7 @@ def sync_ecapris_statuses():
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     ecapris_statuses_to_moped = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="ecapris_statuses_to_moped",
         image=docker_image,
         docker_conn_id="docker_default",

@@ -131,6 +131,7 @@ def sync_ecapris_funding():
     }
 
     ecapris_funding_sync_dry_run = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="ecapris_funding_sync_dry_run",
         command="python3.14 ecapris_funding_sync.py -n",
         **common_docker_config,
