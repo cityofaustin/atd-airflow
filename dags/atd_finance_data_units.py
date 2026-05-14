@@ -1,7 +1,6 @@
 from os import getenv
 
 from airflow.sdk import task, DAG
-from airflow.providers.docker.operators.docker import DockerOperator
 from utils.docker_operator import DockerOperatorWithFallback
 from pendulum import datetime, duration
 
@@ -143,7 +142,8 @@ with DAG(
     data_tracker_env = get_env_vars_task(DATA_TRACKER_SECRETS)
     finance_purchasing_env = get_env_vars_task(FINANCE_PURCHASING_SECRETS)
 
-    t1 = DockerOperatorWithFallback(
+    units_to_s3 = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="units_orders_to_s3",
         image="atddocker/atd-finance-data:production",
         docker_conn_id="docker_default",
@@ -154,7 +154,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperator(
+    units_to_data_tracker = DockerOperatorWithFallback(
         task_id="units_to_data_tracker",
         image="atddocker/atd-finance-data:production",
         docker_conn_id="docker_default",
@@ -165,7 +165,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t3 = DockerOperator(
+    units_to_socrata = DockerOperatorWithFallback(
         task_id="units_to_socrata",
         image="atddocker/atd-finance-data:production",
         docker_conn_id="docker_default",
@@ -176,7 +176,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t4 = DockerOperator(
+    units_to_finance_purchasing = DockerOperatorWithFallback(
         task_id="units_to_finance_purchasing",
         image="atddocker/atd-finance-data:production",
         docker_conn_id="docker_default",
@@ -187,4 +187,4 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t1 >> t2 >> t3 >> t4
+    units_to_s3 >> units_to_data_tracker >> units_to_socrata >> units_to_finance_purchasing
