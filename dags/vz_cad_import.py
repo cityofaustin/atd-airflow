@@ -66,12 +66,12 @@ DEFAULT_ARGS = {
     "on_failure_callback": task_fail_slack_alert,
 }
 
-# for local dev, replace `"/your/path/here` with the abs path to your testing files, e.g.,
+# for local dev, replace `"/your/path/here"` with the abs path to your testing files, e.g.,
 # /Users/john/atd/vision-zero/etl/cad_incidents_import/test_data
 mount_source = (
     "/mnt/vision_zero_cad"
     if DEPLOYMENT_ENVIRONMENT == "production"
-    else "/Users/john/atd/vision-zero/etl/cad_incidents_import/test_data"
+    else "/your/path/here"
 )
 
 files_volume_mount = Mount(
