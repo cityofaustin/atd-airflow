@@ -30,6 +30,7 @@ def test_docker_failure():
     """Test stacked exception handling in Docker container."""
 
     docker_failure = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="docker_failure",
         image="atddocker/atd-airflow:production",
         doc_md="This is an example of task specific documentation",

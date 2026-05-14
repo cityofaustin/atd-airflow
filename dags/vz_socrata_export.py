@@ -19,7 +19,6 @@ from pendulum import datetime, duration
 
 from airflow.sdk import DAG
 from utils.docker_operator import DockerOperatorWithFallback
-from airflow.providers.docker.operators.docker import DockerOperator
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert, slack_member_ids
@@ -109,6 +108,7 @@ with DAG(
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     socrata_export_crashes = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="socrata_export_crashes",
         docker_conn_id="docker_default",
         image=docker_image,
@@ -118,7 +118,7 @@ with DAG(
         tty=True,
     )
 
-    socrata_export_people = DockerOperator(
+    socrata_export_people = DockerOperatorWithFallback(
         task_id="socrata_export_people",
         docker_conn_id="docker_default",
         image=docker_image,

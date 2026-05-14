@@ -81,6 +81,7 @@ def etl_data_import():
 
     # EMS
     ems_import = DockerOperatorWithFallback(
+        force_pull=True,  # runs in parallel with afd_import
         task_id="run_ems_import",
         environment=env_vars,
         image=docker_image,
@@ -93,6 +94,7 @@ def etl_data_import():
 
     # AFD
     afd_import = DockerOperatorWithFallback(
+        force_pull=True,  # runs in parallel with ems_import
         task_id="run_afd_import",
         environment=env_vars,
         image=docker_image,

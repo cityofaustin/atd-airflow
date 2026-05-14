@@ -17,11 +17,9 @@ from pendulum import datetime, duration
 
 from airflow.sdk import DAG
 from utils.docker_operator import DockerOperatorWithFallback
-from airflow.providers.docker.operators.docker import DockerOperator
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert, slack_member_ids
-
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT")
 secrets_env_prefix = None
@@ -94,6 +92,7 @@ with DAG(
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     cris_import = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="run_cris_import",
         docker_conn_id="docker_default",
         image=docker_image_cris_import,
@@ -103,7 +102,7 @@ with DAG(
         tty=True,
     )
 
-    ocr_crash_narratives = DockerOperator(
+    ocr_crash_narratives = DockerOperatorWithFallback(
         task_id="ocr_crash_narratives",
         docker_conn_id="docker_default",
         image=docker_image_cris_import,
@@ -113,7 +112,8 @@ with DAG(
         tty=True,
     )
 
-    match_ems_to_people = DockerOperator(
+    match_ems_to_people = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="match_ems_to_people",
         docker_conn_id="docker_default",
         image=docker_image_ems_match,

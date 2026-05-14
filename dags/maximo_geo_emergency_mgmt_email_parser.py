@@ -69,6 +69,7 @@ def maximo_geo_emergency_mgmt_email_parser():
     env_vars = get_env_vars()
 
     DockerOperatorWithFallback(
+        force_pull=True,
         task_id="parse_email",
         image="atddocker/maximo-geo-emergency-mgmt:production",
         api_version="auto",

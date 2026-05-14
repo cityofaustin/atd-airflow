@@ -11,7 +11,6 @@ from utils.docker_operator import DockerOperatorWithFallback
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
-
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT")
 secrets_env_prefix = None
 
@@ -60,6 +59,7 @@ with DAG(
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     refresh_location_crashes = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="refresh_location_crashes",
         docker_conn_id="docker_default",
         image=docker_image,

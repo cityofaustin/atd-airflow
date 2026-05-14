@@ -22,6 +22,7 @@ from utils.docker_operator import DockerOperatorWithFallback
 )
 def test_docker_operator_wrapper():
     DockerOperatorWithFallback(
+        force_pull=True,
         task_id="hello_world",
         image="python:3",
         command=["python3", "-c", "print('hello world')"],
