@@ -133,7 +133,6 @@ def atd_signal_comms():
         tty=True,
         mount_tmp_dir=False,
         network_mode="bridge",
-        force_pull=False,
     )
 
     dms_s3 = DockerOperatorWithFallback(
@@ -146,7 +145,6 @@ def atd_signal_comms():
         tty=True,
         mount_tmp_dir=False,
         network_mode="bridge",
-        force_pull=False,
     )
 
     battery_backup_s3 = DockerOperatorWithFallback(
@@ -159,7 +157,6 @@ def atd_signal_comms():
         tty=True,
         mount_tmp_dir=False,
         network_mode="bridge",
-        force_pull=False,
     )
 
     signal_monitors_s3 = DockerOperatorWithFallback(
@@ -172,7 +169,6 @@ def atd_signal_comms():
         tty=True,
         mount_tmp_dir=False,
         network_mode="bridge",
-        force_pull=False,
     )
 
     cameras_socrata = DockerOperatorWithFallback(
@@ -185,7 +181,6 @@ def atd_signal_comms():
         tty=True,
         mount_tmp_dir=False,
         network_mode="bridge",
-        force_pull=False,
     )
 
     detectors_socrata = DockerOperatorWithFallback(
@@ -198,7 +193,6 @@ def atd_signal_comms():
         tty=True,
         mount_tmp_dir=False,
         network_mode="bridge",
-        force_pull=False,
     )
 
     dms_socrata = DockerOperatorWithFallback(
@@ -211,7 +205,6 @@ def atd_signal_comms():
         tty=True,
         mount_tmp_dir=False,
         network_mode="bridge",
-        force_pull=False,
     )
 
     battery_backup_socrata = DockerOperatorWithFallback(
@@ -224,7 +217,6 @@ def atd_signal_comms():
         tty=True,
         mount_tmp_dir=False,
         network_mode="bridge",
-        force_pull=False,
     )
 
     signal_monitors_socrata = DockerOperatorWithFallback(
@@ -237,7 +229,6 @@ def atd_signal_comms():
         tty=True,
         mount_tmp_dir=False,
         network_mode="bridge",
-        force_pull=False,
     )
 
     (
