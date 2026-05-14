@@ -30,7 +30,6 @@ def test_docker_operator_wrapper():
         auto_remove="force",
         tty=True,
         mount_tmp_dir=False,
-        force_pull=True,
     )
 
 
