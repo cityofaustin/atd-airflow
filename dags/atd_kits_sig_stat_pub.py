@@ -65,6 +65,7 @@ with DAG(
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="atd_kits_sig_status_to_socrata",
         image="atddocker/atd-kits:production",
         docker_conn_id="docker_default",
