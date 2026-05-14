@@ -15,11 +15,15 @@ x-airflow-common: &airflow-common
     OP_CONNECT: ${OP_CONNECT}
     OP_VAULT_ID: ${OP_VAULT_ID}
     AIRFLOW_CONN_DOCKER_DEFAULT: "docker://${DOCKER_HUB_USERNAME}:${DOCKER_HUB_TOKEN}@https%3A%2F%2Findex.docker.io%2Fv1%2F:80"
+    ENVIRONMENT: ${ENVIRONMENT}
+    AIRFLOW__API__BASE_URL: ${_AIRFLOW__API__BASE_URL:-http://localhost:8080}
 
     # Airflow stock suggested environment variables
+    PYTHONPATH: /opt/airflow/dags
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
-    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: ${AIRFLOW_METADATA_DB_SQL_ALCHEMY_CONN:-postgresql+psycopg2://airflow:airflow@postgres/airflow}
+    AIRFLOW_DB_CLEAN_SQL_ALCHEMY_CONN: ${AIRFLOW_METADATA_DB_SQL_ALCHEMY_CONN:-postgresql+psycopg2://airflow:airflow@postgres/airflow}
     AIRFLOW__CORE__FERNET_KEY: ${_AIRFLOW__CORE__FERNET_KEY}
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
@@ -39,8 +43,8 @@ x-airflow-common: &airflow-common
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
+    - ${AIRFLOW_PROJ_DIR:-.}/toolbox:/opt/airflow/toolbox
     - ${AIRFLOW_PROJ_DIR:-.}/users:/opt/airflow/users
-    - knack-certs:/opt/airflow/certs/knack
     - /var/run/docker.sock:/var/run/docker.sock
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on: &airflow-common-depends-on
@@ -65,6 +69,7 @@ services:
 
   haproxy:
     image: haproxy:lts
+    restart: unless-stopped
     ports:
       - 8080:80
     volumes:
@@ -194,14 +199,14 @@ services:
         echo
         echo "Creating missing opt dirs if missing:"
         echo
-        mkdir -v -p /opt/airflow/{logs,dags,plugins,config}
+        mkdir -v -p /opt/airflow/{logs,dags,plugins,config,toolbox}
         echo
         echo "Airflow version:"
         /entrypoint airflow version
         echo
         echo "Files in shared volumes:"
         echo
-        ls -la /opt/airflow/{logs,dags,plugins,config}
+        ls -la /opt/airflow/{logs,dags,plugins,config,toolbox}
         echo
         echo "Running airflow config list to create default config file if missing."
         echo
@@ -209,7 +214,7 @@ services:
         echo
         echo "Files in shared volumes:"
         echo
-        ls -la /opt/airflow/{logs,dags,plugins,config}
+        ls -la /opt/airflow/{logs,dags,plugins,config,toolbox}
         echo
         echo "Change ownership of files in /opt/airflow to ${AIRFLOW_UID}:0"
         echo
@@ -217,11 +222,11 @@ services:
         echo
         echo "Change ownership of files in shared volumes to ${AIRFLOW_UID}:0"
         echo
-        chown -v -R "${AIRFLOW_UID}:0" /opt/airflow/{logs,dags,plugins,config}
+        chown -v -R "${AIRFLOW_UID}:0" /opt/airflow/{logs,dags,plugins,config,toolbox}
         echo
         echo "Files in shared volumes:"
         echo
-        ls -la /opt/airflow/{logs,dags,plugins,config}
+        ls -la /opt/airflow/{logs,dags,plugins,config,toolbox}
 
     # yamllint enable rule:line-length
     environment:
@@ -251,10 +256,3 @@ services:
 
 volumes:
   v3-postgres-db-volume:
-  # volume for Knack SSL certs which will be mounted to DockerOperator tasks for 311 integration
-  knack-certs:
-    driver: local
-    driver_opts:
-      type: "none"
-      o: "bind"
-      device: ${AIRFLOW_PROJ_DIR}/certs/knack
