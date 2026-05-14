@@ -50,7 +50,8 @@ REQUIRED_SECRETS = {
 
 
 with DAG(
-    dag_id="atd_knack_arterial_management_locations",
+    # NOFIX: Typo in management. Changing the `dag_id` means a new run history and references to the DAG break.
+    dag_id="atd_knack_arterial_managment_locations", 
     description="Publishes AMD location records to AGOL",
     doc_md="**Need VPN access or addition to security group allow list to reach Postgrest**",
     default_args=DEFAULT_ARGS,
