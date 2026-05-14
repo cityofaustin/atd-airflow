@@ -1,7 +1,6 @@
 from os import getenv
 
 from airflow.sdk import DAG
-from airflow.providers.docker.operators.docker import DockerOperator
 from utils.docker_operator import DockerOperatorWithFallback
 from pendulum import datetime, duration
 
@@ -67,6 +66,7 @@ with DAG(
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     to_postgrest = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="atd_knack_markings_materials_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -77,7 +77,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    to_agol = DockerOperator(
+    to_agol = DockerOperatorWithFallback(
         task_id="atd_knack_markings_materials_to_agol",
         image=docker_image,
         docker_conn_id="docker_default",

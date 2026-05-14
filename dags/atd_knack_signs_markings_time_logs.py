@@ -73,6 +73,7 @@ with DAG(
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="atd_knack_signs_time_logs_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",

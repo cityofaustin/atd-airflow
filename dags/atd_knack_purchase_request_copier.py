@@ -3,7 +3,7 @@
 from os import getenv
 
 from airflow.sdk import DAG
-from airflow.providers.docker.operators.docker import DockerOperator
+from utils.docker_operator import DockerOperatorWithFallback
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -62,7 +62,8 @@ with DAG(
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperator(
+    t1 = DockerOperatorWithFallback(
+        force_pull=False,  # atd_knack_signals pulls this image every 5 minutes
         task_id="purchase_request_copier",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -70,7 +71,6 @@ with DAG(
         command=f"./atd-knack-services/services/purchase_request_copier.py -a {app_name} -c {container}",
         environment=env_vars,
         tty=True,
-        force_pull=False, # atd_knack_signals pulls this image every 5 minutes
         mount_tmp_dir=False,
     )
 

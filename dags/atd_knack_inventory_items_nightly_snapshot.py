@@ -1,7 +1,6 @@
 from os import getenv
 
 from utils.docker_operator import DockerOperatorWithFallback
-from airflow.providers.docker.operators.docker import DockerOperator
 from airflow.sdk import dag
 from pendulum import datetime, duration
 
@@ -93,6 +92,7 @@ def atd_knack_inventory_items_nightly_snapshot():
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     load_inventory_items_to_postgrest_task = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="atd_knack_inventory_items_nightly_snapshot_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -103,7 +103,7 @@ def atd_knack_inventory_items_nightly_snapshot():
         mount_tmp_dir=False,
     )
 
-    load_inventory_items_to_socrata_task = DockerOperator(
+    load_inventory_items_to_socrata_task = DockerOperatorWithFallback(
         task_id="atd_knack_inventory_items_nightly_snapshot_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -114,7 +114,7 @@ def atd_knack_inventory_items_nightly_snapshot():
         mount_tmp_dir=False,
     )
 
-    backup_inventory_items_socrata_task = DockerOperator(
+    backup_inventory_items_socrata_task = DockerOperatorWithFallback(
         task_id="atd_knack_inventory_items_nightly_snapshot_socrata_backup",
         image=docker_image,
         docker_conn_id="docker_default",
