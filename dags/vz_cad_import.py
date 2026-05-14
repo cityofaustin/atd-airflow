@@ -1,11 +1,11 @@
 from os import getenv
 
 from airflow.sdk import dag, task, Param
+from airflow.operators.docker_operator import DockerOperator
 from docker.types import Mount
 
-from pendulum import datetime, duration
+from pendulum import datetime
 
-from utils.docker_operator import DockerOperatorWithFallback
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert, slack_member_ids
 
@@ -62,7 +62,6 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "retry_delay": duration(minutes=1),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -111,7 +110,7 @@ def etl_data_import():
     dry_run_arg = get_is_dry_run_arg()
 
 
-    incidents_to_s3 = DockerOperatorWithFallback(
+    incidents_to_s3 = DockerOperator(
         task_id="cad_incidents_to_s3",
         environment=env_vars,
         image=docker_image,
@@ -124,7 +123,7 @@ def etl_data_import():
         mounts=[files_volume_mount],
     )
 
-    incidents_import = DockerOperatorWithFallback(
+    incidents_import = DockerOperator(
         task_id="cad_incidents_import",
         environment=env_vars,
         image=docker_image,
