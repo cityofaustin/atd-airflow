@@ -175,7 +175,8 @@ with DAG(
     prev_year_env = get_env_vars_task(PREV_YEAR_SECRETS)
     two_years_env = get_env_vars_task(TWO_YEARS_AGO_SECRETS)
 
-    t1 = DockerOperatorWithFallback(
+    cur_year_requests_report_to_socrata = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="cur_year_requests_report_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -186,7 +187,7 @@ with DAG(
         tty=True,
     )
 
-    t2 = DockerOperatorWithFallback(
+    cur_year_flex_note_report_to_socrata = DockerOperatorWithFallback(
         task_id="cur_year_flex_note_report_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -197,7 +198,7 @@ with DAG(
         tty=True,
     )
 
-    t3 = DockerOperatorWithFallback(
+    cur_year_activities_report_to_socrata = DockerOperatorWithFallback(
         task_id="cur_year_activities_report_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -208,7 +209,7 @@ with DAG(
         tty=True,
     )
 
-    t4 = DockerOperatorWithFallback(
+    prev_year_requests_report_to_socrata = DockerOperatorWithFallback(
         task_id="prev_year_requests_report_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -219,7 +220,7 @@ with DAG(
         tty=True,
     )
 
-    t5 = DockerOperatorWithFallback(
+    prev_year_flex_note_report_to_socrata = DockerOperatorWithFallback(
         task_id="prev_year_flex_note_report_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -230,7 +231,7 @@ with DAG(
         tty=True,
     )
 
-    t6 = DockerOperatorWithFallback(
+    prev_year_activities_report_to_socrata = DockerOperatorWithFallback(
         task_id="prev_year_activities_report_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -241,7 +242,7 @@ with DAG(
         tty=True,
     )
 
-    t7 = DockerOperatorWithFallback(
+    two_years_ago_requests_report_to_socrata = DockerOperatorWithFallback(
         task_id="two_years_ago_requests_report_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -252,7 +253,7 @@ with DAG(
         tty=True,
     )
 
-    t8 = DockerOperatorWithFallback(
+    two_years_ago_flex_note_report_to_socrata = DockerOperatorWithFallback(
         task_id="two_years_ago_flex_note_report_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -263,7 +264,7 @@ with DAG(
         tty=True,
     )
 
-    t9 = DockerOperatorWithFallback(
+    two_years_ago_activities_report_to_socrata = DockerOperatorWithFallback(
         task_id="two_years_ago_activities_report_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -274,4 +275,14 @@ with DAG(
         tty=True,
     )
 
-    t1 >> t2 >> t3 >> t4 >> t5 >> t6 >> t7 >> t8 >> t9
+    (
+        cur_year_requests_report_to_socrata
+        >> cur_year_flex_note_report_to_socrata
+        >> cur_year_activities_report_to_socrata
+        >> prev_year_requests_report_to_socrata
+        >> prev_year_flex_note_report_to_socrata
+        >> prev_year_activities_report_to_socrata
+        >> two_years_ago_requests_report_to_socrata
+        >> two_years_ago_flex_note_report_to_socrata
+        >> two_years_ago_activities_report_to_socrata
+    )

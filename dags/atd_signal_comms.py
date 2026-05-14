@@ -1,6 +1,5 @@
 from os import getenv
 
-from airflow.providers.docker.operators.docker import DockerOperator
 from utils.docker_operator import DockerOperatorWithFallback
 from airflow.sdk import dag, task
 from pendulum import datetime, duration
@@ -123,7 +122,7 @@ def atd_signal_comms():
         network_mode="bridge",
     )
 
-    detectors_s3 = DockerOperator(
+    detectors_s3 = DockerOperatorWithFallback(
         task_id="run_comm_check_detectors",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -136,7 +135,7 @@ def atd_signal_comms():
         force_pull=False,
     )
 
-    dms_s3 = DockerOperator(
+    dms_s3 = DockerOperatorWithFallback(
         task_id="run_comm_check_dms",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -149,7 +148,7 @@ def atd_signal_comms():
         force_pull=False,
     )
 
-    battery_backup_s3 = DockerOperator(
+    battery_backup_s3 = DockerOperatorWithFallback(
         task_id="run_comm_check_battery_backup",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -162,7 +161,7 @@ def atd_signal_comms():
         force_pull=False,
     )
 
-    signal_monitors_s3 = DockerOperator(
+    signal_monitors_s3 = DockerOperatorWithFallback(
         task_id="run_comm_check_signal_monitors",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -175,7 +174,7 @@ def atd_signal_comms():
         force_pull=False,
     )
 
-    cameras_socrata = DockerOperator(
+    cameras_socrata = DockerOperatorWithFallback(
         task_id="socrata_pub_cameras",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -188,7 +187,7 @@ def atd_signal_comms():
         force_pull=False,
     )
 
-    detectors_socrata = DockerOperator(
+    detectors_socrata = DockerOperatorWithFallback(
         task_id="socrata_pub_detectors",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -201,7 +200,7 @@ def atd_signal_comms():
         force_pull=False,
     )
 
-    dms_socrata = DockerOperator(
+    dms_socrata = DockerOperatorWithFallback(
         task_id="socrata_pub_dms",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -214,7 +213,7 @@ def atd_signal_comms():
         force_pull=False,
     )
 
-    battery_backup_socrata = DockerOperator(
+    battery_backup_socrata = DockerOperatorWithFallback(
         task_id="socrata_pub_battery_backup",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -227,7 +226,7 @@ def atd_signal_comms():
         force_pull=False,
     )
 
-    signal_monitors_socrata = DockerOperator(
+    signal_monitors_socrata = DockerOperatorWithFallback(
         task_id="socrata_pub_signal_monitors",
         image=docker_image,
         docker_conn_id="docker_default",

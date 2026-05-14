@@ -106,7 +106,8 @@ with DAG(
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperatorWithFallback(
+    public_safety_incident_reports_to_postgres = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="public_safety_incident_reports_to_postgres",
         docker_conn_id="docker_default",
         image=docker_image,
@@ -117,7 +118,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperatorWithFallback(
+    public_safety_incident_reports_to_socrata = DockerOperatorWithFallback(
         task_id="public_safety_incident_reports_to_socrata",
         docker_conn_id="docker_default",
         image=docker_image,
@@ -128,4 +129,8 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    date_filter_arg >> t1 >> t2
+    (
+        date_filter_arg
+        >> public_safety_incident_reports_to_postgres
+        >> public_safety_incident_reports_to_socrata
+    )

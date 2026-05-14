@@ -123,7 +123,8 @@ with DAG(
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperatorWithFallback(
+    amanda_row_inspector_permit_list = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="amanda_row_inspector_permit_list",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -137,7 +138,7 @@ with DAG(
         trigger_rule="all_done",
     )
 
-    t2 = DockerOperatorWithFallback(
+    amanda_row_inspector_segment_list = DockerOperatorWithFallback(
         task_id="amanda_row_inspector_segment_list",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -151,7 +152,7 @@ with DAG(
         trigger_rule="all_done",
     )
 
-    t3 = DockerOperatorWithFallback(
+    agol_street_segment_tagging = DockerOperatorWithFallback(
         task_id="agol_street_segment_tagging",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -163,7 +164,7 @@ with DAG(
         trigger_rule="all_done",
     )
 
-    t4 = DockerOperatorWithFallback(
+    inspector_prioritization = DockerOperatorWithFallback(
         task_id="inspector_prioritization",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -175,4 +176,9 @@ with DAG(
         trigger_rule="all_done",
     )
 
-    t1 >> t2 >> t3 >> t4
+    (
+        amanda_row_inspector_permit_list
+        >> amanda_row_inspector_segment_list
+        >> agol_street_segment_tagging
+        >> inspector_prioritization
+    )

@@ -91,7 +91,8 @@ with DAG(
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperatorWithFallback(
+    maximo_workorders_to_socrata = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="maximo_workorders_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -102,7 +103,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperatorWithFallback(
+    maximo_service_requests_to_socrata = DockerOperatorWithFallback(
         task_id="maximo_service_requests_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -113,7 +114,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t3 = DockerOperatorWithFallback(
+    maximo_work_order_history_to_socrata = DockerOperatorWithFallback(
         task_id="maximo_work_order_history_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -124,7 +125,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t4 = DockerOperatorWithFallback(
+    work_order_time_logs_to_socrata = DockerOperatorWithFallback(
         task_id="work_order_time_logs_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -135,7 +136,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t5 = DockerOperatorWithFallback(
+    work_order_materials_to_socrata = DockerOperatorWithFallback(
         task_id="work_order_materials_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -146,7 +147,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t6 = DockerOperatorWithFallback(
+    work_order_specifications_to_socrata = DockerOperatorWithFallback(
         task_id="work_order_specifications_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -157,7 +158,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t7 = DockerOperatorWithFallback(
+    maximo_locations_to_socrata = DockerOperatorWithFallback(
         task_id="maximo_locations_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -168,4 +169,12 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t1 >> t2 >> t3 >> t4 >> t5 >> t6 >> t7
+    (
+        maximo_workorders_to_socrata
+        >> maximo_service_requests_to_socrata
+        >> maximo_work_order_history_to_socrata
+        >> work_order_time_logs_to_socrata
+        >> work_order_materials_to_socrata
+        >> work_order_specifications_to_socrata
+        >> maximo_locations_to_socrata
+    )

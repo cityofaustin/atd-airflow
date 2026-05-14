@@ -117,7 +117,8 @@ with DAG(
 ) as dag:
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperatorWithFallback(
+    work_zone_data_publishing = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="work_zone_data_publishing",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -130,4 +131,4 @@ with DAG(
         retry_delay=duration(seconds=60),
     )
 
-    t1
+    work_zone_data_publishing

@@ -148,6 +148,7 @@ with DAG(
     docker_tasks = []
     docker_tasks.append(
         DockerOperatorWithFallback(
+            force_pull=True,
             task_id="smartfolio_transactions",
             image=docker_image,
             docker_conn_id="docker_default",

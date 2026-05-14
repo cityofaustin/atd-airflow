@@ -89,7 +89,8 @@ with DAG(
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperatorWithFallback(
+    projects_segments_to_socrata = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="VW_UPDATED_PROJECTS_SEGMENTS_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -100,4 +101,4 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t1
+    projects_segments_to_socrata

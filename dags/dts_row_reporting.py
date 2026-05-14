@@ -167,6 +167,7 @@ with DAG(
 
     commands = [
         {
+            "force_pull": True,
             "task_id": "amanda_applications_received",
             "command": "python amanda/amanda_to_s3.py --query applications_received",
             "image": docker_image,
@@ -227,6 +228,7 @@ with DAG(
             "env": env_vars,
         },
         {
+            "force_pull": True,
             "task_id": "backup_active_permits",
             "command": f"./atd-knack-services/services/backup_socrata.py --dataset {dataset_id}",
             "image": knack_services_image,
