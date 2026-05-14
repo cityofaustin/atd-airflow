@@ -60,6 +60,7 @@ def atd_knack_data_tracker_location_updater():
     date_filter_arg = get_date_filter_arg()
 
     update_locations_task = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="update_locations",
         image="atddocker/atd-knack-services:production",
         docker_conn_id="docker_default",

@@ -66,6 +66,7 @@ def atd_knack_data_tracker_sr_asset_assign():
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     service_request_asset_assign_task = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="service_request_asset_assign",
         image="atddocker/atd-knack-services:production",
         docker_conn_id="docker_default",

@@ -67,6 +67,7 @@ with DAG(
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     update_employees = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="update_employees",
         image=docker_image,
         docker_conn_id="docker_default",

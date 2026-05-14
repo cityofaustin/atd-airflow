@@ -56,7 +56,9 @@ REQUIRED_SECRETS = {
 }
 
 
-def knack_services_task_template(task_id, image, command, env_vars, operator_cls=DockerOperator):
+def knack_services_task_template(
+    task_id, image, command, env_vars, operator_cls=DockerOperator, force_pull=False
+):
     return operator_cls(
         task_id=task_id,
         image=image,
@@ -67,6 +69,7 @@ def knack_services_task_template(task_id, image, command, env_vars, operator_cls
         tty=True,
         mount_tmp_dir=False,
         trigger_rule="all_done",
+        force_pull=force_pull,
     )
 
 
@@ -178,7 +181,8 @@ def atd_knack_development_services():
                 image=docker_image,
                 command=cmd["command"],
                 env_vars=env_vars,
-                operator_cls=DockerOperatorWithFallback if i == 0 else DockerOperator,
+                operator_cls=DockerOperatorWithFallback,
+                force_pull=True if i == 0 else False,
             )
         )
 

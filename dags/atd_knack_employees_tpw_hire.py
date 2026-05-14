@@ -2,7 +2,6 @@
 
 from os import getenv
 
-from airflow.providers.docker.operators.docker import DockerOperator
 from utils.docker_operator import DockerOperatorWithFallback
 from airflow.sdk import dag
 from pendulum import datetime, duration
@@ -97,6 +96,7 @@ def atd_knack_employees_tpw_hire():
     env_vars_knack_to_knack = get_env_vars_task(REQUIRED_SECRETS_KNACK_TO_KNACK)
 
     hr_accounts_to_postgrest = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="hr_accounts_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -107,7 +107,7 @@ def atd_knack_employees_tpw_hire():
         mount_tmp_dir=False,
     )
 
-    tpw_hire_employees_to_postgrest = DockerOperator(
+    tpw_hire_employees_to_postgrest = DockerOperatorWithFallback(
         task_id="tpw_hire_employees_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -118,7 +118,7 @@ def atd_knack_employees_tpw_hire():
         mount_tmp_dir=False,
     )
 
-    hr_accounts_to_tpw_hire = DockerOperator(
+    hr_accounts_to_tpw_hire = DockerOperatorWithFallback(
         task_id="hr_accounts_to_tpw_hire",
         image=docker_image,
         docker_conn_id="docker_default",

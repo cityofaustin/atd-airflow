@@ -61,6 +61,7 @@ def atd_knack_data_tracker_street_segment_updater():
     date_filter_arg = get_date_filter_arg()
 
     update_street_segments_task = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="update_street_segments",
         image="atddocker/atd-knack-services:production",
         docker_conn_id="docker_default",
