@@ -111,6 +111,7 @@ def atd_signal_comms():
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     cameras_s3 = DockerOperatorWithFallback(
+        force_pull=True,
         task_id="run_comm_check_cameras",
         image=docker_image,
         docker_conn_id="docker_default",
