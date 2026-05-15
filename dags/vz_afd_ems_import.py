@@ -33,6 +33,12 @@ else:
 
 docker_image = f"atddocker/vz-afd-ems-import:{'production' if DEPLOYMENT_ENVIRONMENT == 'production' else 'latest'}"
 
+DEFAULT_ARGS = {
+    "on_failure_callback": (
+        task_fail_slack_alert if DEPLOYMENT_ENVIRONMENT == "production" else None
+    ),
+}
+
 
 REQUIRED_SECRETS = {
     "BUCKET_ENV": {
@@ -70,11 +76,9 @@ REQUIRED_SECRETS = {
     # https://github.com/cityofaustin/atd-data-tech/issues/25781
     schedule="45 7 * * 1-5" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     start_date=datetime(2023, 1, 1, tz="America/Chicago"),
+    default_args=DEFAULT_ARGS,
     catchup=False,
     tags=["repo:atd-vz-data", "vision-zero", "ems", "afd", "import"],
-    on_failure_callback=(
-        task_fail_slack_alert if DEPLOYMENT_ENVIRONMENT == "production" else None
-    ),
 )
 def etl_data_import():
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
@@ -106,5 +110,9 @@ def etl_data_import():
 
     env_vars >> [ems_import, afd_import]
 
+dag_instance = etl_data_import()
 
-etl_data_import()
+if dag_instance:
+    dag_instance.byline = (
+        f"Failure impacts Vision Zero team, {slack_member_ids['John']} & {slack_member_ids['Frank']}"
+    )
