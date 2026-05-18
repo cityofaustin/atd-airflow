@@ -12,11 +12,7 @@ Extracts EMS and AFD data from files in an S3 bucket and imports to a VZ Databas
 
 If no email is found in the S3 bucket, the task will throw an error.
 
-Until the automatic email forwarding is fixed, Xavier manually forwards the email. As such, this may fail if Xavier does not forward the email.
-
-
-Issue tracking email forwarding: https://github.com/cityofaustin/atd-data-tech/issues/21712
-
+AFD contacts for issues with the report delivery: Albert L, Celeste K
 """
 
 
@@ -68,7 +64,7 @@ REQUIRED_SECRETS = {
     doc_md=doc_md,
     # todo: we are currently skipping weekends
     # https://github.com/cityofaustin/atd-data-tech/issues/25781
-    schedule="45 7 * * 1-5" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="45 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     start_date=datetime(2023, 1, 1, tz="America/Chicago"),
     catchup=False,
     tags=["repo:atd-vz-data", "vision-zero", "ems", "afd", "import"],
