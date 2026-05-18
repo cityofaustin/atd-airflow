@@ -71,7 +71,7 @@ services:
     image: haproxy:lts
     restart: unless-stopped
     healthcheck:
-      test: # healthy to see if the configuration is valid and if the api is reachable. No curl or wget, so a raw TCP connection is used to check the HTTP response code.
+      test: # health check to see if the configuration is valid and if the api is reachable. No curl or wget, so a raw TCP connection is used to check the HTTP response code.
         [
           "CMD-SHELL",
           "haproxy -c -q -f /usr/local/etc/haproxy/haproxy.cfg && bash -ec 'exec 3<>/dev/tcp/127.0.0.1/80; printf \"GET /api/v2/version HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; read -r _ code _ <&3; [[ \"$$code\" == \"200\" ]]'",
