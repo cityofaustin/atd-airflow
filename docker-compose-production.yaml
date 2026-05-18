@@ -9,3 +9,13 @@ services:
       - ${AIRFLOW_PROJ_DIR}/haproxy/haproxy-production.cfg:/usr/local/etc/haproxy/haproxy.cfg
     depends_on:
       - airflow-apiserver
+    healthcheck:
+      test: # health check to see if the configuration is valid and if the webserver is returning a 301 as expected on port 8080. 
+        [
+          "CMD-SHELL",
+          "haproxy -c -q -f /usr/local/etc/haproxy/haproxy.cfg && bash -ec 'exec 3<>/dev/tcp/127.0.0.1/8080; printf \"GET /api/v2/version HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; read -r _ code _ <&3; [[ \"$$code\" == \"301\" ]]'",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
