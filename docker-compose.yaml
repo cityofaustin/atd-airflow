@@ -115,7 +115,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          'airflow jobs check --job-type DagProcessorJob --hostname "$${HOSTNAME}"',
+          'gosu airflow airflow jobs check --job-type DagProcessorJob --hostname "$${HOSTNAME}"',
         ]
       interval: 30s
       timeout: 10s
@@ -134,7 +134,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          'airflow jobs check --job-type TriggererJob --hostname "$${HOSTNAME}"',
+          'gosu airflow airflow jobs check --job-type TriggererJob --hostname "$${HOSTNAME}"',
         ]
       interval: 30s
       timeout: 10s
