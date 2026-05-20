@@ -187,7 +187,7 @@ def atd_knack_development_services():
             )
         )
 
-    chain(*tasks)
+    chain(date_filter_arg, *tasks)
 
 
 atd_knack_development_services()
