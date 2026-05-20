@@ -71,7 +71,10 @@ services:
     image: haproxy:lts
     restart: unless-stopped
     healthcheck:
-      test: # health check to see if the configuration is valid and if the api is reachable. No curl or wget, so a raw TCP connection is used to check the HTTP response code.
+      # This health check is to see if the configuration is valid and if the api is reachable. 
+      # No curl or wget is available in the haproxy image, so a raw TCP connection is used to 
+      # check the HTTP response code.
+      test: 
         [
           "CMD-SHELL",
           "haproxy -c -q -f /usr/local/etc/haproxy/haproxy.cfg && bash -ec 'exec 3<>/dev/tcp/127.0.0.1/80; printf \"GET /api/v2/version HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; read -r _ code _ <&3; [[ \"$$code\" == \"200\" ]]'",
@@ -122,6 +125,7 @@ services:
     <<: *airflow-common
     command: dag-processor
     healthcheck:
+      # We run our stack as root, so we need to use gosu to run the airflow jobs check command as the airflow user.
       test:
         [
           "CMD-SHELL",
@@ -141,6 +145,7 @@ services:
     <<: *airflow-common
     command: triggerer
     healthcheck:
+      # We run our stack as root, so we need to use gosu to run the airflow jobs check command as the airflow user.
       test:
         [
           "CMD-SHELL",
