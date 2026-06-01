@@ -37,7 +37,7 @@ docker run --rm --name certbot \
 -v "/var/lib/letsencrypt:/var/lib/letsencrypt" \
 certbot/dns-route53 certonly -n --dns-route53 -d $DOMAIN
 
-cat /etc/letsencrypt/live/$DOMAIN/cert.pem > $ATD_AIRFLOW_HOMEDIR/haproxy/ssl/$DOMAIN.pem
+cat /etc/letsencrypt/live/$DOMAIN/fullchain.pem > $ATD_AIRFLOW_HOMEDIR/haproxy/ssl/$DOMAIN.pem
 
 cat /etc/letsencrypt/live/$DOMAIN/privkey.pem >> $ATD_AIRFLOW_HOMEDIR/haproxy/ssl/$DOMAIN.pem
 
