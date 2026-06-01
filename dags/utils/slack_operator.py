@@ -138,8 +138,8 @@ def task_fail_slack_alert(context):
 
     schedule_description = (
         format_schedule(dag.timetable.summary)
-        if dag and hasattr(dag, "timetable")
-        else "Not available"
+        if dag and hasattr(getattr(dag, "timetable", None), "summary")
+        else "Manual Run / None"
     )
 
     all_exceptions = extract_all_exceptions(context)
