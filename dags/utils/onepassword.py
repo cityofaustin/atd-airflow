@@ -5,8 +5,8 @@ See: https://github.com/1Password/connect-sdk-python
 
 from os import getenv
 
-from airflow.decorators import task
-from onepasswordconnectsdk.client import Client, new_client
+from airflow.sdk import task
+from onepasswordconnectsdk.client import new_client
 import onepasswordconnectsdk
 from pendulum import duration
 

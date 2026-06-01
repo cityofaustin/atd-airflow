@@ -1,7 +1,7 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import dag
 from pendulum import datetime, duration
 
 from utils.knack import get_date_filter_arg
@@ -40,19 +40,27 @@ REQUIRED_SECRETS = {
     },
 }
 
-with DAG(
-    dag_id=f"atd_knack_data_tracker_street_segment_updater",
+DAG_DOC_MD = """
+### DAG purpose
+This DAG updates street segment records in the AMD Data Tracker using ArcGIS Online source data.
+"""
+
+
+@dag(
+    dag_id="atd_knack_data_tracker_street_segment_updater",
     description="Update street segment records in Data Tracker with feature data from ArcGIS Online",
     default_args=DEFAULT_ARGS,
-    schedule_interval="45 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="45 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "data-tracker", "agol"],
     catchup=False,
-) as dag:
+    doc_md=DAG_DOC_MD,
+)
+def atd_knack_data_tracker_street_segment_updater():
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     date_filter_arg = get_date_filter_arg()
 
-    t1 = DockerOperator(
+    update_street_segments_task = DockerOperator(
         task_id="update_street_segments",
         image="atddocker/atd-knack-services:production",
         docker_conn_id="docker_default",
@@ -64,4 +72,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    date_filter_arg >> t1
+    date_filter_arg >> update_street_segments_task
+
+
+atd_knack_data_tracker_street_segment_updater()

@@ -2,9 +2,9 @@
 
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
-from pendulum import datetime, duration, now
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import dag
+from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
@@ -22,6 +22,12 @@ DEFAULT_ARGS = {
     "execution_timeout": duration(minutes=30),
     "on_failure_callback": task_fail_slack_alert,
 }
+
+DAG_DOC_MD = """
+### TPW Hire Employee Sync
+
+This DAG syncs Banner TPW employee data from the HR Manager Knack app into the TPW Hire Knack app.
+"""
 
 REQUIRED_SECRETS_KNACK_SERVICES = {
     "PGREST_ENDPOINT": {
@@ -67,56 +73,67 @@ REQUIRED_SECRETS_HR_MANAGER.update(REQUIRED_SECRETS_KNACK_SERVICES)
 REQUIRED_SECRETS_TPW_HIRE.update(REQUIRED_SECRETS_KNACK_SERVICES)
 REQUIRED_SECRETS_KNACK_TO_KNACK.update(REQUIRED_SECRETS_KNACK_SERVICES)
 
-with DAG(
-    dag_id=f"atd_knack_employees_tpw_hire",
+
+@dag(
+    dag_id="atd_knack_employees_tpw_hire",
     description="Copies Banner TPW employee data from the HR knack app to TPW hire knack app.",
     default_args=DEFAULT_ARGS,
-    schedule_interval="30 1 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="30 1 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "hr-manager", "tpw-hire", "banner"],
     catchup=False,
-) as dag:
+    doc_md=DAG_DOC_MD,
+)
+def atd_knack_employees_tpw_hire():
     docker_image = "atddocker/atd-knack-services:production"
     app_name_src = "hr-manager"
     container_src = "view_684"
     app_name_dest = "tpw-hire"
     container_dest = "view_148"
 
-    date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
-    env_vars_t1 = get_env_vars_task(REQUIRED_SECRETS_HR_MANAGER)
-    env_vars_t2 = get_env_vars_task(REQUIRED_SECRETS_TPW_HIRE)
-    env_vars_t3 = get_env_vars_task(REQUIRED_SECRETS_KNACK_TO_KNACK)
+    date_filter_task = get_date_filter_arg(should_replace_monthly=True)
+    env_vars_hr_manager = get_env_vars_task(REQUIRED_SECRETS_HR_MANAGER)
+    env_vars_tpw_hire = get_env_vars_task(REQUIRED_SECRETS_TPW_HIRE)
+    env_vars_knack_to_knack = get_env_vars_task(REQUIRED_SECRETS_KNACK_TO_KNACK)
 
-    t1 = DockerOperator(
+    hr_accounts_to_postgrest = DockerOperator(
         task_id="hr_accounts_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"python ./atd-knack-services/services/records_to_postgrest.py -a {app_name_src} -c {container_src} {date_filter_arg}",
-        environment=env_vars_t1,
+        command=f"python ./atd-knack-services/services/records_to_postgrest.py -a {app_name_src} -c {container_src} {date_filter_task}",
+        environment=env_vars_hr_manager,
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperator(
+    tpw_hire_employees_to_postgrest = DockerOperator(
         task_id="tpw_hire_employees_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"python ./atd-knack-services/services/records_to_postgrest.py -a {app_name_dest} -c {container_dest} {date_filter_arg}",
-        environment=env_vars_t2,
+        command=f"python ./atd-knack-services/services/records_to_postgrest.py -a {app_name_dest} -c {container_dest} {date_filter_task}",
+        environment=env_vars_tpw_hire,
         tty=True,
         mount_tmp_dir=False,
     )
 
-    t3 = DockerOperator(
+    hr_accounts_to_tpw_hire = DockerOperator(
         task_id="hr_accounts_to_tpw_hire",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"python ./atd-knack-services/services/records_to_knack.py -a {app_name_src} -c {container_src} --app-name-dest {app_name_dest} {date_filter_arg}",
-        environment=env_vars_t3,
+        command=f"python ./atd-knack-services/services/records_to_knack.py -a {app_name_src} -c {container_src} --app-name-dest {app_name_dest} {date_filter_task}",
+        environment=env_vars_knack_to_knack,
         tty=True,
         mount_tmp_dir=False,
     )
-    date_filter_arg >> t1 >> t2 >> t3
+    (
+        date_filter_task
+        >> hr_accounts_to_postgrest
+        >> tpw_hire_employees_to_postgrest
+        >> hr_accounts_to_tpw_hire
+    )
+
+
+atd_knack_employees_tpw_hire()

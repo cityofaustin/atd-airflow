@@ -1,7 +1,7 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import dag
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -45,20 +45,28 @@ REQUIRED_SECRETS = {
 }
 
 
-with DAG(
+@dag(
     dag_id="road_conditions_socrata",
     default_args=DEFAULT_ARGS,
     description="Fetch road condition sensor data from postgrest and publish to socrata",
-    schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-road-conditions", "socrata"],
     catchup=False,
-) as dag:
+    doc_md="""
+## Road conditions to Socrata
+
+Fetches road condition sensor data from PostgREST and publishes it to Socrata
+using the 'atddocker/atd-road-conditions:production' image. Requires VPN access 
+to reach PostgREST.
+""",
+)
+def road_conditions_socrata():
 
     date_filter_arg = get_date_filter_arg(should_replace_monthly=False)
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperator(
+    publish_road_conditions_to_socrata = DockerOperator(
         task_id="road_conditions_socrata",
         image="atddocker/atd-road-conditions:production",
         docker_conn_id="docker_default",
@@ -70,4 +78,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    date_filter_arg >> t1
+    date_filter_arg >> publish_road_conditions_to_socrata
+
+
+road_conditions_socrata()

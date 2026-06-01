@@ -1,13 +1,26 @@
-# test locally with: docker compose run --rm airflow-cli dags test dts_maximo_reporting
-
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
+
+doc_md = """
+## Maximo Reporting DAG
+
+This DAG runs a series of queries on the maximo data warehouse then sends the results to datasets in Socrata.
+
+## Troubleshooting
+
+You will need to be on city VPN to run this locally.
+
+Re-triggering these DAGs is a good first step to troubleshoot potential issues.
+
+Make the Maximo team aware if there is an issue attempting to connect to the Maximo data warehouse.
+
+"""
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -68,8 +81,9 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id=f"dts_maximo_reporting",
     description="Uploads the last 7 days of Maximo work orders to Socrata from the Maximo data warehouse.",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
-    schedule_interval="00 6 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="00 6 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:dts-maximo-reporting", "socrata", "maximo"],
     catchup=False,
 ) as dag:
@@ -160,7 +174,5 @@ with DAG(
         force_pull=False,
         mount_tmp_dir=False,
     )
-
-
 
     t1 >> t2 >> t3 >> t4 >> t5 >> t6 >> t7

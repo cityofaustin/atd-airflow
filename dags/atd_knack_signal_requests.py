@@ -1,13 +1,30 @@
+# test locally with: docker compose run --rm airflow-cli dags test atd_knack_signal_requests
+
 from os import getenv
 
-from airflow.decorators import task
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.knack import get_date_filter_arg
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
+
+doc_md = """
+## Knack Services DAG: Traffic Signal Requests
+
+Load signal requests (view_200) records from Knack to AGOL
+
+## Troubleshooting
+
+You should not need to be on VPN to reach Knack or AGOL.
+
+Most of the time just re-triggering this DAG will likely resolve any issues automatically.
+
+The most common bug is when the underlying Knack view is changed and the corresponding AGOL feature service
+was not updated to match.
+
+"""
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -26,11 +43,11 @@ DEFAULT_ARGS = {
 REQUIRED_SECRETS = {
     "KNACK_APP_ID": {
         "opitem": "Knack AMD Data Tracker",
-        "opfield": f"production.appId",
+        "opfield": "production.appId",
     },
     "KNACK_API_KEY": {
         "opitem": "Knack AMD Data Tracker",
-        "opfield": f"production.apiKey",
+        "opfield": "production.apiKey",
     },
     "PGREST_ENDPOINT": {
         "opitem": "atd-knack-services PostgREST",
@@ -53,8 +70,9 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id=f"atd_knack_signal_requests",
     description="Load signal requests (view_200) records from Knack to AGOL",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
-    schedule_interval="30 0 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="30 0 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "data-tracker"],
     catchup=False,
 ) as dag:

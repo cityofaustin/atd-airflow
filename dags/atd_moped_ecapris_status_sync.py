@@ -2,12 +2,22 @@
 
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import dag, Param, task
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
+
+doc_md = """
+## Troubleshooting
+Trigger the DAG again as needed since this one upserts records
+
+## Testing
+**Need VPN access to reach the FSD Data Warehouse (Oracle DB)**
+
+Trigger the DAG with the Moped local stack running to move records from Data Warehouse to local or staging Moped database Moped database
+"""
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -22,54 +32,72 @@ DEFAULT_ARGS = {
     "on_failure_callback": task_fail_slack_alert,
 }
 
-REQUIRED_SECRETS = {
-    "HASURA_ENDPOINT": {
-        "opitem": "Moped Hasura Admin",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.Endpoint",
-    },
-    "HASURA_ADMIN_SECRET": {
-        "opitem": "Moped Hasura Admin",
-        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.Admin Secret",
-    },
-    "ORACLE_USER": {
-        "opitem": "Finance Data Warehouse Oracle DB",
-        "opfield": "production.Username",
-    },
-    "ORACLE_PASSWORD": {
-        "opitem": "Finance Data Warehouse Oracle DB",
-        "opfield": "production.Password",
-    },
-    "ORACLE_HOST": {
-        "opitem": "Finance Data Warehouse Oracle DB",
-        "opfield": "production.Host",
-    },
-    "ORACLE_PORT": {
-        "opitem": "Finance Data Warehouse Oracle DB",
-        "opfield": "production.Port",
-    },
-    "ORACLE_SERVICE": {
-        "opitem": "Finance Data Warehouse Oracle DB",
-        "opfield": "production.Service",
-    },
-}
+
+@task
+def get_required_secrets(params):
+    target_database = params["target_database"]
+
+    return {
+        "HASURA_ENDPOINT": {
+            "opitem": "Moped Hasura Admin",
+            "opfield": f"{target_database}.Endpoint",
+        },
+        "HASURA_ADMIN_SECRET": {
+            "opitem": "Moped Hasura Admin",
+            "opfield": f"{target_database}.Admin Secret",
+        },
+        "ORACLE_USER": {
+            "opitem": "Finance Data Warehouse Oracle DB",
+            "opfield": "production.Username",
+        },
+        "ORACLE_PASSWORD": {
+            "opitem": "Finance Data Warehouse Oracle DB",
+            "opfield": "production.Password",
+        },
+        "ORACLE_HOST": {
+            "opitem": "Finance Data Warehouse Oracle DB",
+            "opfield": "production.Host",
+        },
+        "ORACLE_PORT": {
+            "opitem": "Finance Data Warehouse Oracle DB",
+            "opfield": "production.Port",
+        },
+        "ORACLE_SERVICE": {
+            "opitem": "Finance Data Warehouse Oracle DB",
+            "opfield": "production.Service",
+        },
+    }
 
 
-with DAG(
+@dag(
     dag_id="atd_moped_ecapris_status_sync",
     description="sync eCapris statuses to Moped database",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
-    schedule_interval=(
-        "*/30 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
-    ),
+    schedule=("*/30 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None),
     dagrun_timeout=duration(minutes=30),
     tags=["repo:atd-moped", "moped", "ecapris"],
     catchup=False,
-) as dag:
+    params={
+        "target_database": Param(
+            default=DEPLOYMENT_ENVIRONMENT,
+            enum=(
+                ["production", "staging"]
+                if DEPLOYMENT_ENVIRONMENT == "production"
+                else ["staging", "development"]
+            ),
+            description="Target Moped database. Defaults to the current deployment environment.",
+        )
+    },
+)
+def sync_ecapris_statuses():
+    # No staging tag for this image. Push test code to development image or run production image against staging or production environments.
     docker_image = f"atddocker/atd-moped-etl-ecapris-statuses:{DEPLOYMENT_ENVIRONMENT}"
 
+    REQUIRED_SECRETS = get_required_secrets()
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperator(
+    ecapris_statuses_to_moped = DockerOperator(
         task_id="ecapris_statuses_to_moped",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -81,4 +109,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t1
+    ecapris_statuses_to_moped
+
+
+sync_ecapris_statuses()

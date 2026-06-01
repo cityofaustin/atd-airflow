@@ -1,13 +1,30 @@
-# test locally with: docker compose run --rm airflow-cli dags test dts_inspector_priority
-
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
+
+doc_md = """
+## Inspector Priority DAG
+
+This DAG runs a script which scores active permits in AMANDA for inspectors to prioritize their work.
+
+This is visualized in a Power BI dashboard for the inspectors.
+
+## Troubleshooting
+
+You will need to be on city VPN in order to run this DAG locally.
+
+An outage of this DAG should be investigated and if a fix is not found, make the AMANDA team aware of the outage.
+
+Re-triggering this DAG should be the first step in troubleshooting.
+
+AMANDA connection issues should be investigated with the AMANDA team.
+
+"""
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -96,8 +113,9 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id="dts_inspector_priority",
     description="Downloads permits and road segment data from AMANDA and scores permits based on several metrics",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
-    schedule_interval="0 3 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="0 3 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:dts-right-of-way-reporting", "amanda", "socrata", "permits"],
     catchup=False,
 ) as dag:

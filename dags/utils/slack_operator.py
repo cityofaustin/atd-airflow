@@ -1,12 +1,13 @@
 from os import getenv
+import logging
 
 from cron_descriptor import get_description
-from airflow.hooks.base import BaseHook
-from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
+from airflow.exceptions import AirflowException
+from airflow.providers.slack.hooks.slack_webhook import SlackWebhookHook
 from utils.log_parsing import extract_all_exceptions_from_log, extract_all_exceptions
 
-# This is the Conn Id that we set when creating the connection in the Airflow dashboard
-# in Admin > Connections.
+# This is the connection id that we set when creating the connection in the Airflow dashboard
+# in Admin > Connections. This must match the instructions in the 1PW entry with the slack API token.
 SLACK_CONN_ID = "slack"
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
@@ -48,7 +49,6 @@ def format_schedule(schedule_interval):
         str: A human-readable description of the schedule interval.
     """
 
-    from cron_descriptor import get_description
     import datetime
 
     if schedule_interval is None:
@@ -110,23 +110,43 @@ def build_exception_text(all_exceptions):
     return exceptions_text
 
 
+def get_task_duration_seconds(task_instance):
+    duration = getattr(task_instance, "duration", None)
+    if duration is not None:
+        return duration
+
+    start_date = getattr(task_instance, "start_date", None)
+    end_date = getattr(task_instance, "end_date", None)
+    if start_date and end_date:
+        return (end_date - start_date).total_seconds()
+
+    return None
+
+
 def task_fail_slack_alert(context):
+    logger = logging.getLogger(__name__)
     task_instance = context.get("task_instance")
     dag = context.get("dag")
     dag_id = task_instance.dag_id
     task_id = task_instance.task_id
     exec_date = get_central_time_exec_data(context)
     log_url = task_instance.log_url
-    duration = getattr(task_instance, "duration", "Not available")
+    duration_seconds = get_task_duration_seconds(task_instance)
+    duration = (
+        f"{duration_seconds:.1f}" if duration_seconds is not None else "Not available"
+    )
 
-    schedule_interval = dag.schedule_interval if dag else None
-    schedule_description = format_schedule(schedule_interval)
+    schedule_description = (
+        format_schedule(dag.timetable.summary)
+        if dag and hasattr(getattr(dag, "timetable", None), "summary")
+        else "Manual Run / None"
+    )
 
     all_exceptions = extract_all_exceptions(context)
     exceptions_text = build_exception_text(all_exceptions)
 
     byline = getattr(dag, "byline", "")
-    icon = getattr(dag, "icon", ":red_circle:")
+    icon = getattr(dag, "icon", ":three:")
 
     # Add deployment environment indication if not production
     env_indicator = ""
@@ -145,32 +165,11 @@ def task_fail_slack_alert(context):
         <{log_url}|*View Task Log*>
     """
 
-    failed_alert = SlackWebhookOperator(
-        task_id="slack_failure",
+    failed_alert = SlackWebhookHook(
         slack_webhook_conn_id=SLACK_CONN_ID,
-        message=slack_msg,
-        username="Airflow Alert",
     )
-    return failed_alert.execute(context=context)
-
-
-def task_success_slack_alert(context):
-    slack_msg = """
-            :white_check_mark: Task Successfully Completed.
-            *Task*: {task}
-            *DAG*: {dag}
-            *Execution Time*: {exec_date}
-            *Log URL*: {log_url}
-            """.format(
-        task=context.get("task_instance").task_id,
-        dag=context.get("task_instance").dag_id,
-        exec_date=get_central_time_exec_data(context),
-        log_url=context.get("task_instance").log_url,
-    )
-    success_alert = SlackWebhookOperator(
-        task_id="slack_success",
-        slack_webhook_conn_id=SLACK_CONN_ID,
-        message=slack_msg,
-        username="airflow",
-    )
-    return success_alert.execute(context=context)
+    try:
+        return failed_alert.send(text=slack_msg)
+    except AirflowException as exc:
+        logger.warning("Slack failure alert failed: %s", exc)
+        return False

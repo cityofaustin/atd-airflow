@@ -1,14 +1,26 @@
-# test locally with: docker compose run --rm airflow-cli dags test atd_finance_data_objects
-
 from os import getenv
 
-from airflow.decorators import task
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import task, DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
+
+doc_md = """
+## Finance Reporting ETL
+
+Gets object data from a database, places it in an S3 bucket, then moves it along to Knack and socrata.
+
+## Troubleshooting
+
+You need to be on city VPN to run this locally.
+
+Feel free to trigger this DAG manually to see if that fixes the issue. 
+
+Contact the eCapris team for help with issues connecting to their oracle DB we use for this DAG.
+
+"""
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -121,8 +133,9 @@ FINANCE_PURCHASING_SECRETS.update(OTHER_SECRETS)
 with DAG(
     dag_id="atd_finance_data_objects",
     description="Gets Finance data from a database, places it in an S3 bucket, then moves it along to Knack and socrata.",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
-    schedule_interval="23 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="23 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-finance-data", "knack", "data-tracker", "socrata"],
     catchup=False,
 ) as dag:

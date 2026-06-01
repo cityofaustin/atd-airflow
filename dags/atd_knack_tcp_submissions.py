@@ -1,12 +1,30 @@
+# test locally with: docker compose run --rm airflow-cli dags test atd_knack_tcp_submissions
+
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration, now
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 from utils.knack import get_date_filter_arg
+
+doc_md = """
+## Knack Services DAG: TCP Submissions
+
+Load traffic control plan (TCP) submission from ROW portal to Socrata
+
+## Troubleshooting
+
+**Need VPN access or addition to security group allow list to reach Postgrest**
+
+Most of the time just re-triggering this DAG will likely resolve any issues automatically.
+
+The most common bug is when the underlying Knack view is changed and the corresponding Socrata dataset
+was not updated to match.
+
+"""
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
@@ -24,11 +42,11 @@ DEFAULT_ARGS = {
 REQUIRED_SECRETS = {
     "KNACK_APP_ID": {
         "opitem": "Knack Right of Way (ROW) Portal",
-        "opfield": f"production.appId",
+        "opfield": "production.appId",
     },
     "KNACK_API_KEY": {
         "opitem": "Knack Right of Way (ROW) Portal",
-        "opfield": f"production.apiKey",
+        "opfield": "production.apiKey",
     },
     "SOCRATA_API_KEY_ID": {
         "opitem": "Socrata Key ID, Secret, and Token",
@@ -54,10 +72,11 @@ REQUIRED_SECRETS = {
 
 
 with DAG(
-    dag_id=f"atd_knack_tcp_submissions",
+    dag_id="atd_knack_tcp_submissions",
     description="Load traffic control plan (TCP) submission from ROW portal to Socrata",
+    doc_md=doc_md,
     default_args=DEFAULT_ARGS,
-    schedule_interval="15 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="15 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "data-tracker"],
     catchup=False,
 ) as dag:

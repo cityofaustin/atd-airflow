@@ -1,7 +1,7 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import dag
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -64,24 +64,34 @@ REQUIRED_SECRETS = {
 }
 
 
-with DAG(
+DAG_DOC_MD = """
+### atd_knack_inventory_items_nightly_snapshot
+Appends inventory item counts from Data Tracker to Socrata and then backs up the dataset.
+
+This DAG intentionally uses a fixed date filter of 1970-01-01 so each run appends the full view contents.
+"""
+
+
+@dag(
     dag_id="atd_knack_inventory_items_nightly_snapshot",
     description="Appends inventory item counts to running log in Socrata",
     default_args=DEFAULT_ARGS,
-    schedule_interval="13 23 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="13 23 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata"],
     catchup=False,
-) as dag:
+    doc_md=DAG_DOC_MD,
+)
+def atd_knack_inventory_items_nightly_snapshot():
     docker_image = "atddocker/atd-knack-services:production"
     app_name = "data-tracker"
     container = "view_2863"
 
-    # we always want to append the the complete view contents every time
+    # Always append complete view contents for nightly snapshots.
     date_filter_arg = "-d 1970-01-01"
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperator(
+    load_inventory_items_to_postgrest_task = DockerOperator(
         task_id="atd_knack_inventory_items_nightly_snapshot_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -93,7 +103,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperator(
+    load_inventory_items_to_socrata_task = DockerOperator(
         task_id="atd_knack_inventory_items_nightly_snapshot_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -104,7 +114,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t3 = DockerOperator(
+    backup_inventory_items_socrata_task = DockerOperator(
         task_id="atd_knack_inventory_items_nightly_snapshot_socrata_backup",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -115,4 +125,11 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t1 >> t2 >> t3
+    (
+        load_inventory_items_to_postgrest_task
+        >> load_inventory_items_to_socrata_task
+        >> backup_inventory_items_socrata_task
+    )
+
+
+atd_knack_inventory_items_nightly_snapshot()

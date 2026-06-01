@@ -1,10 +1,8 @@
-# test locally with: docker compose run --rm airflow-cli dags test atd_knack_amd_pm
-
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
-from pendulum import datetime, duration, now
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
+from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
@@ -26,11 +24,11 @@ DEFAULT_ARGS = {
 REQUIRED_SECRETS = {
     "KNACK_APP_ID": {
         "opitem": "Knack AMD Data Tracker",
-        "opfield": f"production.appId",
+        "opfield": "production.appId",
     },
     "KNACK_API_KEY": {
         "opitem": "Knack AMD Data Tracker",
-        "opfield": f"production.apiKey",
+        "opfield": "production.apiKey",
     },
     "SOCRATA_API_KEY_ID": {
         "opitem": "Socrata Key ID, Secret, and Token",
@@ -56,10 +54,11 @@ REQUIRED_SECRETS = {
 
 
 with DAG(
-    dag_id=f"atd_knack_amd_pm",
+    dag_id=f"atd_knack_amd_preventative_maintenance",
     description="Copies primary signal preventive maintenance records to secondary signals. Then, loads preventative maintenance work order (view_3887) records from Knack to Postgrest and Socrata.",
+    doc_md="**Need VPN access or addition to security group allow list to reach Postgrest**",
     default_args=DEFAULT_ARGS,
-    schedule_interval="15 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="15 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "data-tracker"],
     catchup=False,
 ) as dag:
@@ -105,7 +104,5 @@ with DAG(
         tty=True,
         mount_tmp_dir=False,
     )
-    
 
     date_filter_arg >> t1 >> t2 >> t3
-

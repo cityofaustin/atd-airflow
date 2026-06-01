@@ -1,7 +1,7 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -57,7 +57,7 @@ with DAG(
     dag_id="atd_knack_data_collection_requests",
     description="Updates a socrata dataset of TED traffic count and data collection requests",
     default_args=DEFAULT_ARGS,
-    schedule_interval="44 22 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="44 22 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata"],
     catchup=False,
 ) as dag:

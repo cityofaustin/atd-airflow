@@ -1,11 +1,7 @@
-# Test locally with: docker compose run --rm airflow-cli dags test atd_moped_components_to_agol
-
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
-from airflow.decorators import task
-from airflow.models import Param
+from airflow.sdk import DAG, task, Param
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration, parse
 
 from utils.onepassword import get_env_vars_task
@@ -59,15 +55,21 @@ def get_args(params, **context):
             variable.
 
     Returns:
-        Str: the -d flag and ISO date string or full replace arg.
+        Str: the -d flag and ISO date string or full replace arg, plus optional dry run.
     """
     full_replace = bool(params["full_replace"])
+    dry_run = bool(params["dry_run"])
 
     if full_replace == False:
         prev_start_date = context.get("prev_start_date_success") or parse("1970-01-01")
-        return f"-d {prev_start_date.isoformat()}"
+        args = f"-d {prev_start_date.isoformat()}"
     else:
-        return "-f"
+        args = "-f"
+
+    if dry_run:
+        args = f"{args} --dry-run"
+
+    return args
 
 
 @task.branch(task_id="branch")
@@ -96,10 +98,13 @@ with DAG(
     dag_id="atd_moped_components_to_agol",
     description="publish component record data to ArcGIS Online (AGOL)",
     default_args=DEFAULT_ARGS,
-    schedule_interval="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="*/5 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-moped", "moped", "agol"],
     catchup=False,
-    params={"full_replace": Param(default=False, type="boolean")},
+    params={
+        "full_replace": Param(default=False, type="boolean"),
+        "dry_run": Param(default=False, type="boolean"),
+    },
     max_active_runs=1,  # Block schedule while DAG with params is triggered
 ) as dag:
     docker_image = "atddocker/atd-moped-etl-arcgis:production"

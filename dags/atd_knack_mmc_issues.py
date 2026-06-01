@@ -1,7 +1,7 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import dag
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -53,14 +53,32 @@ REQUIRED_SECRETS = {
 }
 
 
-with DAG(
+@dag(
     dag_id="atd_knack_mmc_issues",
-    description="Loads MMC issue records (aka 311 service requests from Data Tracker to Socrata",
+    description="Loads MMC issue records (aka 311 service requests from Data Tracker) to Socrata",
     default_args=DEFAULT_ARGS,
-    schedule_interval="10 6 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="10 6 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "data-tracker"],
     catchup=False,
-) as dag:
+    doc_md="""
+## MMC issues (Knack to PostgREST and Socrata)
+
+Loads MMC issue records (311-style service requests) from Knack Data Tracker
+(app 'data-tracker', container 'view_2892') using the
+'atddocker/atd-knack-services:production' image, then publishes them to PostgREST
+and Socrata.
+
+### New Airflow environments
+
+The 'get_date_filter_arg' task uses the previous successful run time
+('prev_start_date_success' in task context) to build the incremental date filter.
+A brand-new Airflow database has no prior successful runs for this DAG, so that
+value may not behave as expected until history exists. When moving this DAG to a
+new Airflow environment, add an artificial successful run (or otherwise seed the
+behavior you want) so the first real run uses an appropriate baseline date.
+""",
+)
+def atd_knack_mmc_issues():
     docker_image = "atddocker/atd-knack-services:production"
     app_name = "data-tracker"
     container = "view_2892"
@@ -69,7 +87,7 @@ with DAG(
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
-    t1 = DockerOperator(
+    to_postgrest = DockerOperator(
         task_id="atd_knack_mmc_issues_to_postgrest",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -81,7 +99,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    t2 = DockerOperator(
+    to_socrata = DockerOperator(
         task_id="atd_knack_mmc_issues_to_socrata",
         image=docker_image,
         docker_conn_id="docker_default",
@@ -92,4 +110,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    date_filter_arg >> t1 >> t2
+    date_filter_arg >> to_postgrest >> to_socrata
+
+
+atd_knack_mmc_issues()

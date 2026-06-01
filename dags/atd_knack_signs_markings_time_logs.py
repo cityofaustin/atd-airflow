@@ -1,11 +1,11 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
-from utils.knack import get_date_filter_arg
+from utils.knack import get_date_filter_arg, atd_knack_services_doc_md
 from utils.slack_operator import task_fail_slack_alert
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
@@ -56,11 +56,10 @@ REQUIRED_SECRETS = {
 with DAG(
     dag_id="atd_knack_signs_markings_time_logs",
     description="Load signs markings time logs (view_3516) records from Knack to Postgrest to Socrata",
+    doc_md=atd_knack_services_doc_md,
     default_args=DEFAULT_ARGS,
     # runs once at 950a cst and again at 150pm cst
-    schedule_interval=(
-        "50 9,13 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
-    ),
+    schedule=("50 9,13 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None),
     tags=["repo:atd-knack-services", "knack", "socrata", "signs-markings"],
     catchup=False,
 ) as dag:

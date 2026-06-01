@@ -25,3 +25,5 @@ logs/*
 db/*
 
 .vscode/*
+
+users/

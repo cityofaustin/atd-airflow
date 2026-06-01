@@ -1,7 +1,7 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.sdk import dag
 from pendulum import datetime, duration
 
 from utils.knack import get_date_filter_arg
@@ -40,23 +40,26 @@ REQUIRED_SECRETS = {
     },
 }
 
-with DAG(
-    dag_id=f"atd_knack_data_tracker_location_updater",
-    description="With data from AGOL, update signal location information in Knack ",
+
+@dag(
+    dag_id="atd_knack_data_tracker_location_updater",
+    description="With data from AGOL, update signal location information in Knack",
     default_args=DEFAULT_ARGS,
-    schedule_interval="19 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="19 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "data-tracker", "agol"],
     catchup=False,
-) as dag:
-    docker_image = "atddocker/atd-knack-services:production"
+    doc_md="""
+This DAG updates Knack signal location data using AGOL source data.
+""",
+)
+def atd_knack_data_tracker_location_updater():
     app_name = "data-tracker"
     container = "view_1201"
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
-
     date_filter_arg = get_date_filter_arg()
 
-    t1 = DockerOperator(
+    update_locations_task = DockerOperator(
         task_id="update_locations",
         image="atddocker/atd-knack-services:production",
         docker_conn_id="docker_default",
@@ -68,4 +71,7 @@ with DAG(
         mount_tmp_dir=False,
     )
 
-    date_filter_arg >> t1
+    date_filter_arg >> update_locations_task
+
+
+atd_knack_data_tracker_location_updater()

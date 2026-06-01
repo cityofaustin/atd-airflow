@@ -1,7 +1,7 @@
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -53,9 +53,7 @@ with DAG(
     dag_id="atd_knack_markings_materials",
     description="Loads markings materials records from Knack to Postgrest to AGOL",
     default_args=DEFAULT_ARGS,
-    schedule_interval=(
-        "10 12,14 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None
-    ),
+    schedule=("10 12,14 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None),
     tags=["repo:atd-knack-services", "knack", "agol", "signs-markings"],
     catchup=False,
 ) as dag:
@@ -87,7 +85,7 @@ with DAG(
         command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
+        force_pull=False,
         mount_tmp_dir=False,
     )
 

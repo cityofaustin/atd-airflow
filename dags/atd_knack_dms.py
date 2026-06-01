@@ -2,8 +2,8 @@
 
 from os import getenv
 
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -66,7 +66,7 @@ with DAG(
     dag_id="atd_knack_dms",
     default_args=DEFAULT_ARGS,
     description="Load dms (view_1564) records from Knack to Postgrest to AGOL and Socrata",
-    schedule_interval="24 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="24 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "agol", "data-tracker"],
     catchup=False,
 ) as dag:

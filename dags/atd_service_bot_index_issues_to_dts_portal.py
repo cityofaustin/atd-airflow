@@ -1,17 +1,24 @@
 from os import getenv
 from pendulum import datetime, duration
 
-from airflow.decorators import task
-from airflow.models import DAG
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import DAG
+from airflow.providers.docker.operators.docker import DockerOperator
 
 from utils.slack_operator import task_fail_slack_alert
+from utils.onepassword import get_env_vars_task
+
+doc_md = """
+Issues labeled 'Project Index' are updated in the Knack DTS Portal.
+
+
+These issues' evaluations are then referenced on the DTS website (austinmobility.io)
+"""
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
-default_args = {
+DEFAULT_ARGS = {
     "owner": "airflow",
-    "description": "Create/update 'Index' issues in the DTS portal from Github.",
+    "description": "Create/update 'Project Index' issues in the Knack DTS portal from Github.",
     "depends_on_past": False,
     "start_date": datetime(2015, 12, 1, tz="America/Chicago"),
     "email_on_failure": False,
@@ -36,31 +43,18 @@ REQUIRED_SECRETS = {
         "opitem": "Github Access Token Service Bot",
         "opfield": ".password",
     },
-    "ZENHUB_ACCESS_TOKEN": {
-        "opitem": "Zenhub Access Token",
-        "opfield": ".password",
-    },
 }
 
 with DAG(
     dag_id=f"atd_service_bot_issues_to_dts_portal_{DEPLOYMENT_ENVIRONMENT}",
-    default_args=default_args,
-    schedule_interval="0 5 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    default_args=DEFAULT_ARGS,
+    doc_md=doc_md,
+    schedule="0 5 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-service-bot", "knack", "github"],
     catchup=False,
 ) as dag:
 
-    @task(
-        task_id="get_env_vars",
-        execution_timeout=duration(seconds=30),
-    )
-    def get_env_vars():
-        from utils.onepassword import load_dict
-
-        env_vars = load_dict(REQUIRED_SECRETS)
-        return env_vars
-
-    env_vars = get_env_vars()
+    env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     DockerOperator(
         task_id="github_to_dts_portal",
@@ -72,4 +66,5 @@ with DAG(
         environment=env_vars,
         tty=True,
         force_pull=True,
+        mount_tmp_dir=False,
     )

@@ -1,11 +1,19 @@
 from os import getenv
 
-from airflow.decorators import dag
-from airflow.operators.docker_operator import DockerOperator
+from airflow.sdk import dag
+from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert, slack_member_ids
+
+doc_md = """
+Extracts EMS and AFD data from files in an S3 bucket and imports to a VZ Database.
+
+If no email is found in the S3 bucket, the task will throw an error.
+
+AFD contacts for issues with the report delivery: Albert L, Celeste K
+"""
 
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT")
@@ -53,16 +61,18 @@ REQUIRED_SECRETS = {
 @dag(
     dag_id="vz-afd-ems-incident-import",
     description="A DAG which imports EMS and AFD data into the Vision Zero database.",
+    doc_md=doc_md,
     # todo: we are currently skipping weekends
     # https://github.com/cityofaustin/atd-data-tech/issues/25781
-    schedule="45 7 * * 1-5" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="45 7 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     start_date=datetime(2023, 1, 1, tz="America/Chicago"),
     catchup=False,
     tags=["repo:atd-vz-data", "vision-zero", "ems", "afd", "import"],
-    on_failure_callback=task_fail_slack_alert,
+    on_failure_callback=(
+        task_fail_slack_alert if DEPLOYMENT_ENVIRONMENT == "production" else None
+    ),
 )
 def etl_data_import():
-    dag.byline = f"Failure impacts VZ team, {slack_member_ids['John']} & {slack_member_ids['Frank']}"
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     # EMS
@@ -70,6 +80,7 @@ def etl_data_import():
         task_id="run_ems_import",
         environment=env_vars,
         image=docker_image,
+        docker_conn_id="docker_default",
         auto_remove="force",
         command="ems",
         tty=True,
@@ -89,10 +100,7 @@ def etl_data_import():
         mount_tmp_dir=False,
     )
 
-    # run the AFD task regardless of whether EMS succeeded or failed
-    afd_import.trigger_rule = "all_done"
-
-    ems_import >> afd_import
+    env_vars >> [ems_import, afd_import]
 
 
 etl_data_import()
