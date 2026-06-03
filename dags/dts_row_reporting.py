@@ -287,6 +287,18 @@ with DAG(
             "image": docker_image,
             "env": env_vars,
         },
+        {
+            "task_id": "active_contractors_s3",
+            "command": "python amanda/amanda_to_s3.py --query active_contractors",
+            "image": docker_image,
+            "env": env_vars,
+        },
+        {
+            "task_id": "active_contractors_socrata",
+            "command": "python metrics/s3_to_socrata.py --dataset active_contractors",
+            "image": docker_image,
+            "env": env_vars,
+        },
     ]
 
     tasks = []
