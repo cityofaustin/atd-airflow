@@ -137,16 +137,26 @@ def task_fail_slack_alert(context):
     )
 
     schedule_description = (
-        format_schedule(dag.timetable.summary)
-        if dag and hasattr(getattr(dag, "timetable", None), "summary")
+        format_schedule(dag.timetable.expression)
+        if dag and hasattr(getattr(dag, "timetable", None), "expression")
         else "Manual Run / None"
     )
+
+    print("⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ")
+    print(f"schedule_description: {schedule_description}")
+    print(f"dag: {dag}")
+    print(f"dag.timetable: {dag.timetable}")
+    # print(f"dag.timetable.expression: {dag.timetable.expression}")
+    print("⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ")
 
     all_exceptions = extract_all_exceptions(context)
     exceptions_text = build_exception_text(all_exceptions)
 
     byline = getattr(dag, "byline", "")
     icon = getattr(dag, "icon", ":three:")
+
+    if (DEPLOYMENT_ENVIRONMENT != "production"):
+        return
 
     # Add deployment environment indication if not production
     env_indicator = ""
