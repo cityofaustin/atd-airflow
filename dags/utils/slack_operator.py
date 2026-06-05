@@ -179,7 +179,7 @@ def task_fail_slack_alert(context):
 
     slack_message = (
         [
-            f"{icon} {env_indicator} *Task failure*",
+            f"{icon}{env_indicator} *Task failure*",
         ]
         + byline
         + [
