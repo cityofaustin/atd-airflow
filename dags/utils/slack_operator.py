@@ -163,7 +163,7 @@ def task_fail_slack_alert(context):
     all_exceptions = extract_all_exceptions(context)
     exceptions = build_exception_text(all_exceptions)
 
-    byline_value = getattr(dag, "byline", None) 
+    byline_value = getattr(dag, "byline", None)
     byline = [byline_value] if byline_value else []
     icon = getattr(dag, "icon", ":warning:")
 
@@ -183,7 +183,6 @@ def task_fail_slack_alert(context):
         ]
         + byline
         + [
-
             f"*DAG*: `{dag_id}`",
             f"*Task*: `{task_id}`",
             f"*Execution Time*: `{exec_date}`",
