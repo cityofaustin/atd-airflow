@@ -14,6 +14,7 @@ DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 @dag(
     dag_id=f"test_slack_notifier_{DEPLOYMENT_ENVIRONMENT}",
     schedule=None,
+    # schedule="* * * * *",
     start_date=pendulum.datetime(2015, 12, 1, tz="America/Chicago"),
     catchup=False,
     tags=["slack"],
