@@ -91,7 +91,7 @@ def get_central_time_exec_data(context):
 
 def build_exception_text(all_exceptions):
     # Format all exceptions for display
-    exceptions_text = ""
+    exceptions_text = []
     if len(all_exceptions) == 1:
         # Single exception - use original format with source
         exception_type = all_exceptions[-1][0]
@@ -101,7 +101,7 @@ def build_exception_text(all_exceptions):
         exceptions_text.append(f"*Exception Message*: `{exception_message}`")
     else:
         # Multiple exceptions - list them all with sources
-        exceptions_text = f"*Exceptions Found ({len(all_exceptions)} total)*:"
+        exceptions_text = [f"*Exceptions Found ({len(all_exceptions)} total)*:"]
         for i, exc_tuple in enumerate(all_exceptions, 1):
             exc_type = exc_tuple[0]
             exc_msg = exc_tuple[1]
