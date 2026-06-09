@@ -1,3 +1,9 @@
+# Test DAG that exercises failure handling for Dockerized tasks. It runs a
+# DockerOperator whose inline Python script raises chained exceptions
+# (ConnectionError -> ValueError -> RuntimeError) and exits non-zero, so the
+# resulting stacked traceback and Slack failure alert can be inspected.
+# Manually triggered only.
+
 from __future__ import annotations
 
 from os import getenv

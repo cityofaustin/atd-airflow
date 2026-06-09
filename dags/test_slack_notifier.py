@@ -1,3 +1,8 @@
+# Test DAG that verifies the Slack failure notifier is working. It defines a
+# single task that deliberately raises an exception, triggering the
+# task_fail_slack_alert callback so the resulting Slack alert (including the
+# custom byline and icon) can be inspected. 
+
 from __future__ import annotations
 
 from os import getenv
@@ -14,7 +19,11 @@ DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 @dag(
     dag_id=f"test_slack_notifier_{DEPLOYMENT_ENVIRONMENT}",
     schedule=None,
+
+    # The following schedule is used in local development to test the slack notifier.
+    # In particular, it is used to test the slack notifier's schedule parsing logic.
     # schedule="* * * * *",
+
     start_date=pendulum.datetime(2015, 12, 1, tz="America/Chicago"),
     catchup=False,
     tags=["slack"],
