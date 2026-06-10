@@ -17,7 +17,7 @@ DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
 
 @dag(
-    dag_id=f"test_slack_notifier_{DEPLOYMENT_ENVIRONMENT}",
+    dag_id=f"test_slack_notifier",
     schedule=None,
 
     # The following schedule is used in local development to test the slack notifier.
