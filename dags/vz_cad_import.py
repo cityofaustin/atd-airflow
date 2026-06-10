@@ -67,12 +67,11 @@ DEFAULT_ARGS = {
     "on_failure_callback": task_fail_slack_alert,
 }
 
-# for local dev, replace `"/your/path/here"` with the abs path to your testing files, e.g.,
-# /Users/john/atd/vision-zero/etl/cad_incidents_import/test_data
+# for local dev, replace `"/your/path/here"` with the abs path to your testing files
 mount_source = (
     "/mnt/vision_zero_cad"
     if DEPLOYMENT_ENVIRONMENT == "production"
-    else "/Users/john/atd/vision-zero/etl/cad_incidents_import/test_data"
+    else "/your/path/here"
 )
 
 files_volume_mount = Mount(
@@ -115,7 +114,18 @@ def get_incident_link_limit(params):
     default_args=DEFAULT_ARGS,
     tags=["repo:atd-vz-data", "vision-zero", "cad", "import"],
     params={
-        "dry_run": Param(default=False, type="boolean"),
+        "dry_run": Param(
+            title="Dry run",
+            default=False,
+            type="boolean",
+            description_md="Applies the dry-run flag to all tasks. No records will be procesesd.",
+        ),
+        "incident_link_limit": Param(
+            title="Incident link limit",
+            default=None,
+            type=["integer", "null"],
+            description_md="The maximum number of records to link via incident_linker.py. Otherwise the script's default limit will be applied.",
+        ),
     },
 )
 def etl_data_import():
