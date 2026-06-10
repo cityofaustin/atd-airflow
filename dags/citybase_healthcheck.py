@@ -16,7 +16,14 @@ DEFAULT_ARGS = {
     "on_failure_callback": task_fail_slack_alert,
 }
 
-doc_md = ""
+doc_md = """
+Checks that the citybase postback service is running and reachable.
+The application runs on the bastion.
+
+See the atd-citybase readme for more details on deployment and how to restart.
+
+If the postback is down for an extended period of time, inform Hanna so she can check Revenue Managment for missed transactions.
+"""
 
 with DAG(
     dag_id="citybase_postback_healthcheck",
@@ -33,7 +40,7 @@ with DAG(
 
     check_citybase_endpoint = HttpSensor(
         task_id="check_citybase_postback_endpoint",
-        http_conn_id="check_citybase",
+        http_conn_id="http_default",
         endpoint="citybase.austinmobility.io",
         request_params={},
         response_check=lambda response: response.status_code == 200,
