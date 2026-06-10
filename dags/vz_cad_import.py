@@ -81,13 +81,25 @@ files_volume_mount = Mount(
     type="bind",
 )
 
+
 @task(
-    task_id="get_args",
+    task_id="get_is_dry_run_arg",
 )
 def get_is_dry_run_arg(params):
     """Return ` --dry-run` if the dry_run param has been set"""
     if bool(params["dry_run"]):
         return " --dry-run"
+    else:
+        return ""
+
+
+@task(
+    task_id="get_incident_link_limit",
+)
+def get_incident_link_limit(params):
+    """Return ` --limit {number}` if the incident_link_limit param has been set"""
+    if bool(params["incident_link_limit"]):
+        return f" --limit {params["incident_link_limit"]}"
     else:
         return ""
 
@@ -110,7 +122,7 @@ def etl_data_import():
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     dry_run_arg = get_is_dry_run_arg()
-
+    incident_link_limit = get_incident_link_limit()
 
     incidents_to_s3 = DockerOperator(
         task_id="cad_incidents_to_s3",
@@ -137,7 +149,23 @@ def etl_data_import():
         mounts=[files_volume_mount],
     )
 
-    [env_vars, dry_run_arg] >> incidents_to_s3 >> incidents_import
+    incidents_linker = DockerOperator(
+        task_id="cad_incidents_links",
+        environment=env_vars,
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove="force",
+        command=f"incident_linker.py{dry_run_arg}{incident_link_limit}",
+        tty=True,
+        mount_tmp_dir=False,
+    )
+
+    (
+        [env_vars, dry_run_arg, incident_link_limit]
+        >> incidents_to_s3
+        >> incidents_import
+        >> incidents_linker
+    )
 
 
 etl_data_import()
