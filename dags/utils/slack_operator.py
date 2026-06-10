@@ -202,6 +202,8 @@ def task_fail_slack_alert(context):
 
     print(f"\n\n\n⚠️ slack_message_text: {slack_message_text}\n\n\n")
 
+    # Comment out this guard to test the full, error -> notification delivery pipeline. 
+    # Remember, you'll need to have a `slack` connection in the Airflow UI defined. 
     if DEPLOYMENT_ENVIRONMENT != "production":
         return
 
