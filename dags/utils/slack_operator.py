@@ -200,8 +200,7 @@ def task_fail_slack_alert(context):
 
     slack_message_text = "\n\t\t".join(slack_message)
 
-    if DEPLOYMENT_ENVIRONMENT == "development":
-        print(f"\n\n\n⚠️ slack_message_text: {slack_message_text}\n\n\n")
+    print(f"\n\n\n⚠️ slack_message_text: {slack_message_text}\n\n\n")
 
     if DEPLOYMENT_ENVIRONMENT != "production":
         return
