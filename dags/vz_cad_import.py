@@ -118,7 +118,7 @@ def get_incident_link_limit(params):
             title="Dry run",
             default=False,
             type="boolean",
-            description_md="Applies the dry-run flag to all tasks. No records will be procesesd.",
+            description_md="Applies the dry-run flag to all tasks. No records will be processed.",
         ),
         "incident_link_limit": Param(
             title="Incident link limit",
