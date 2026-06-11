@@ -67,12 +67,11 @@ DEFAULT_ARGS = {
     "on_failure_callback": task_fail_slack_alert,
 }
 
-# for local dev, replace `"/your/path/here"` with the abs path to your testing files, e.g.,
-# /Users/john/atd/vision-zero/etl/cad_incidents_import/test_data
+# for local dev, replace `"/your/path/here"` with the abs path to your testing files
 mount_source = (
     "/mnt/vision_zero_cad"
     if DEPLOYMENT_ENVIRONMENT == "production"
-    else "/Users/john/atd/vision-zero/etl/cad_incidents_import/test_data"
+    else "/your/path/here"
 )
 
 files_volume_mount = Mount(
@@ -81,13 +80,25 @@ files_volume_mount = Mount(
     type="bind",
 )
 
+
 @task(
-    task_id="get_args",
+    task_id="get_is_dry_run_arg",
 )
 def get_is_dry_run_arg(params):
     """Return ` --dry-run` if the dry_run param has been set"""
     if bool(params["dry_run"]):
         return " --dry-run"
+    else:
+        return ""
+
+
+@task(
+    task_id="get_incident_link_limit",
+)
+def get_incident_link_limit(params):
+    """Return ` --limit {number}` if the incident_link_limit param has been set"""
+    if bool(params["incident_link_limit"]):
+        return f" --limit {params["incident_link_limit"]}"
     else:
         return ""
 
@@ -103,14 +114,25 @@ def get_is_dry_run_arg(params):
     default_args=DEFAULT_ARGS,
     tags=["repo:atd-vz-data", "vision-zero", "cad", "import"],
     params={
-        "dry_run": Param(default=False, type="boolean"),
+        "dry_run": Param(
+            title="Dry run",
+            default=False,
+            type="boolean",
+            description_md="Applies the dry-run flag to all tasks. No records will be processed.",
+        ),
+        "incident_link_limit": Param(
+            title="Incident link limit",
+            default=None,
+            type=["integer", "null"],
+            description_md="The maximum number of records to link via incident_linker.py. Otherwise the script's default limit will be applied.",
+        ),
     },
 )
 def etl_data_import():
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     dry_run_arg = get_is_dry_run_arg()
-
+    incident_link_limit = get_incident_link_limit()
 
     incidents_to_s3 = DockerOperator(
         task_id="cad_incidents_to_s3",
@@ -137,7 +159,23 @@ def etl_data_import():
         mounts=[files_volume_mount],
     )
 
-    [env_vars, dry_run_arg] >> incidents_to_s3 >> incidents_import
+    incidents_linker = DockerOperator(
+        task_id="cad_incidents_links",
+        environment=env_vars,
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove="force",
+        command=f"incident_linker.py{dry_run_arg}{incident_link_limit}",
+        tty=True,
+        mount_tmp_dir=False,
+    )
+
+    (
+        [env_vars, dry_run_arg, incident_link_limit]
+        >> incidents_to_s3
+        >> incidents_import
+        >> incidents_linker
+    )
 
 
 etl_data_import()
