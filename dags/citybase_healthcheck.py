@@ -30,7 +30,7 @@ with DAG(
     description="Checks citybase postback for 200 response",
     doc_md=doc_md,
     default_args=DEFAULT_ARGS,
-    schedule="0 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="*/10 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-citybase", "citybase"],
     catchup=False,
 ) as dag:
