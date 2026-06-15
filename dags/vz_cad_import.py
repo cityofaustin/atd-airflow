@@ -4,7 +4,7 @@ from airflow.sdk import dag, task, Param
 from airflow.providers.docker.operators.docker import DockerOperator
 from docker.types import Mount
 
-from pendulum import datetime
+from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert, slack_member_ids
@@ -65,6 +65,7 @@ DEFAULT_ARGS = {
     "email_on_retry": False,
     "retries": 0,
     "on_failure_callback": task_fail_slack_alert,
+    "execution_timeout": duration(minutes=45),
 }
 
 # for local dev, replace `"/your/path/here"` with the abs path to your testing files
