@@ -37,12 +37,11 @@ with DAG(
 
     dag.byline = f"Citybase postback healthcheck failed, {slack_member_ids['Chia']}"
 
-
     check_citybase_endpoint = HttpSensor(
         task_id="check_citybase_postback_endpoint",
         http_conn_id="http_default",
         endpoint="citybase.austinmobility.io",
-        request_params={},
+        request_params={"verify": True, "timeout": 30},
         response_check=lambda response: response.status_code == 200,
     )
 
