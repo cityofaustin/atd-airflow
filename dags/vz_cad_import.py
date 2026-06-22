@@ -103,6 +103,17 @@ def get_incident_link_limit(params):
         return ""
 
 
+@task(
+    task_id="get_no_files_pass",
+)
+def get_no_files_pass(params):
+    """Return ` --no-files-pass` if the no_files_pass param has been set"""
+    if bool(params["no_files_pass"]):
+        return " --no-files-pass"
+    else:
+        return ""
+
+
 @dag(
     dag_id="vz-cad-incidents-import",
     description="A DAG which imports CAD records into the Vision Zero database.",
@@ -126,13 +137,22 @@ def get_incident_link_limit(params):
             type=["integer", "null"],
             description_md="The maximum number of records to link via incident_linker.py. Otherwise the script's default limit will be applied.",
         ),
+        "no_files_pass": Param(
+            title="No files, no problem",
+            default=False,
+            type="boolean",
+            description_md="Don't throw an error if any stage does not find files to process.",
+        ),
     },
 )
 def etl_data_import():
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     dry_run_arg = get_is_dry_run_arg()
+
     incident_link_limit = get_incident_link_limit()
+
+    no_files_pass = get_no_files_pass()
 
     incidents_to_s3 = DockerOperator(
         task_id="cad_incidents_to_s3",
@@ -140,7 +160,7 @@ def etl_data_import():
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"incidents_to_s3.py --remove{dry_run_arg}",
+        command=f"incidents_to_s3.py --remove{dry_run_arg}{no_files_pass}",
         tty=True,
         force_pull=True,
         mount_tmp_dir=False,
@@ -153,7 +173,7 @@ def etl_data_import():
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"incidents_import.py --archive{dry_run_arg}",
+        command=f"incidents_import.py --archive{dry_run_arg}{no_files_pass}",
         tty=True,
         mount_tmp_dir=False,
         mounts=[files_volume_mount],
