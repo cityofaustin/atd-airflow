@@ -41,8 +41,8 @@ with DAG(
         task_id="check_citybase_postback_endpoint",
         http_conn_id="http_default",
         endpoint="citybase.austinmobility.io",
-        request_params={"verify": True, "timeout": 30},
-        response_check=lambda response: response.status_code == 200,
+        extra_options={"verify": True, "timeout": 30},
+        response_check=lambda response: response.json().get("status") == "OK",
     )
 
     check_citybase_endpoint
