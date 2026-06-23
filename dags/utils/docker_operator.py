@@ -110,9 +110,11 @@ class DockerOperatorWithFallback(DockerOperator):
 
         self._require_run_image()
 
-        # Base DockerOperator would also pull inside _run_image when force_pull=True.
-        # We handle pull behavior here to provide fallback semantics and avoid a second pull.
-        should_pull = bool(self.force_pull)
+        # Upstream DockerOperator.execute() pulls when force_pull=True (or image is
+        # missing locally), then calls _run_image(). _run_image() itself does not read
+        # force_pull. We handle pull here to add fallback semantics, then call
+        # _run_image() directly instead of super().execute() to avoid a second pull.
+        should_pull = bool(self.force_pull or not self.cli.images(name=self.image))
 
         if should_pull:
             self.log.info("Attempting to pull image %s", self.image)
@@ -135,6 +137,9 @@ class DockerOperatorWithFallback(DockerOperator):
                 self.image,
             )
 
+        # Start the container via upstream _run_image(). Clear force_pull first as a
+        # guard: current providers only honor it in execute(), but this prevents an
+        # accidental double-pull if that logic ever moves or we delegate to super().
         original_force_pull = self.force_pull
         try:
             self.force_pull = False
