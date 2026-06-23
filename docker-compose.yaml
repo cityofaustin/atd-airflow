@@ -127,10 +127,8 @@ services:
     healthcheck:
       # We run our stack as root, so we need to use gosu to run the airflow jobs check command as the airflow user.
       test:
-        [
-          "CMD-SHELL",
-          'gosu airflow airflow jobs check --job-type DagProcessorJob --hostname "$${HOSTNAME}"',
-        ]
+        - CMD-SHELL
+        - 'gosu airflow airflow jobs check --job-type DagProcessorJob --hostname "$${HOSTNAME}"'
       interval: 30s
       timeout: 10s
       retries: 5
@@ -147,10 +145,8 @@ services:
     healthcheck:
       # We run our stack as root, so we need to use gosu to run the airflow jobs check command as the airflow user.
       test:
-        [
-          "CMD-SHELL",
-          'gosu airflow airflow jobs check --job-type TriggererJob --hostname "$${HOSTNAME}"',
-        ]
+        - CMD-SHELL
+        - 'gosu airflow airflow jobs check --job-type TriggererJob --hostname "$${HOSTNAME}"'
       interval: 30s
       timeout: 10s
       retries: 5
