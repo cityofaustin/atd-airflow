@@ -89,9 +89,14 @@ with DAG(
     docker_image = "atddocker/dts-311-reporting:production"
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
-    one_day_ago = now("America/Chicago").subtract(days=1)
+
+    @task 
+    def one_day_prev():
+        return now("America/Chicago").subtract(days=1).to_iso8601_string()
+
+    one_day_ago = one_day_prev()
     prev_run_time = get_previous_success_start_time(
-        fallback_date=one_day_ago.to_iso8601_string()
+        fallback_date=one_day_ago
     )
 
     t1 = DockerOperator(
@@ -106,4 +111,4 @@ with DAG(
         force_pull=True,
     )
 
-    t1
+    env_vars >> one_day_ago >> prev_run_time >> t1

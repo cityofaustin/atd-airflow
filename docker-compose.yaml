@@ -7,8 +7,8 @@ x-airflow-common: &airflow-common
   # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
 
-  build: .
-  #image: atddocker/atd-airflow:production
+  # build: .
+  image: atddocker/atd-airflow:production
 
   environment: &airflow-common-env # Some DTS specific environment variables
     OP_API_TOKEN: ${OP_API_TOKEN}
@@ -70,6 +70,19 @@ services:
   haproxy:
     image: haproxy:lts
     restart: unless-stopped
+    healthcheck:
+      # This health check is to see if the configuration is valid and if the api is reachable. 
+      # No curl or wget is available in the haproxy image, so a raw TCP connection is used to 
+      # check the HTTP response code.
+      test: 
+        [
+          "CMD-SHELL",
+          "haproxy -c -q -f /usr/local/etc/haproxy/haproxy.cfg && bash -ec 'exec 3<>/dev/tcp/127.0.0.1/80; printf \"GET /api/v2/version HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; read -r _ code _ <&3; [[ \"$$code\" == \"200\" ]]'",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     ports:
       - 8080:80
     volumes:
@@ -112,10 +125,11 @@ services:
     <<: *airflow-common
     command: dag-processor
     healthcheck:
+      # We run our stack as root, so we need to use gosu to run the airflow jobs check command as the airflow user.
       test:
         [
           "CMD-SHELL",
-          'airflow jobs check --job-type DagProcessorJob --hostname "$${HOSTNAME}"',
+          'gosu airflow airflow jobs check --job-type DagProcessorJob --hostname "$${HOSTNAME}"',
         ]
       interval: 30s
       timeout: 10s
@@ -131,10 +145,11 @@ services:
     <<: *airflow-common
     command: triggerer
     healthcheck:
+      # We run our stack as root, so we need to use gosu to run the airflow jobs check command as the airflow user.
       test:
         [
           "CMD-SHELL",
-          'airflow jobs check --job-type TriggererJob --hostname "$${HOSTNAME}"',
+          'gosu airflow airflow jobs check --job-type TriggererJob --hostname "$${HOSTNAME}"',
         ]
       interval: 30s
       timeout: 10s

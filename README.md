@@ -211,7 +211,17 @@ with DAG(
     <snip>
 ```
 
-**To test the Slack operator locally**, see the DAGs `test_slack_notifier` and `test_docker_failure`.
+#### Testing the delivery functionality of the messages
+
+When testing, it's helpful to be able to see the messages that the slack operator generates without sending them all the way to the #atd-airflow channel in slack. The utility will always print out a copy of the message into the `STDOUT` which can be seen in the output of `docker compose up` or `docker compose logs -f`. Additionally, to test the full delivery pipeline, one can comment out check on the `DEVELOPMENT_ENVIRONMENT` to allow the `slack` connection to be used to send the message to the Slack API. 
+
+
+#### Testing the slack notifier's content
+
+To test the Slack operator, see the DAGs `test_slack_notifier` and `test_docker_failure`.
+
+In particular, look into the `test_slack_notifier` DAG and observe that there is a commented out schedule. The slack notifier has slightly different behavior in how it reports the DAG run schedule based on if it was kicked off manually or by the system itself. You can comment this schedule in and out and look for messages in the logs to test to see how this is working.
+
 
 ## Useful Commands
 

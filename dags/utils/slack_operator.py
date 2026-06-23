@@ -2,6 +2,7 @@ from os import getenv
 import logging
 
 from cron_descriptor import get_description
+from airflow.utils.types import DagRunType
 from airflow.exceptions import AirflowException
 from airflow.providers.slack.hooks.slack_webhook import SlackWebhookHook
 from utils.log_parsing import extract_all_exceptions_from_log, extract_all_exceptions
@@ -90,23 +91,22 @@ def get_central_time_exec_data(context):
 
 def build_exception_text(all_exceptions):
     # Format all exceptions for display
-    exceptions_text = ""
+    exceptions_text = []
     if len(all_exceptions) == 1:
         # Single exception - use original format with source
         exception_type = all_exceptions[-1][0]
         exception_message = all_exceptions[-1][1]
         source = all_exceptions[0][2] if len(all_exceptions[0]) > 2 else "Unknown"
-        exceptions_text = f"*Exception Type*: `{exception_type}` _(from {source})_\n        *Exception Message*: `{exception_message}`"
+        exceptions_text = [f"*Exception Type*: `{exception_type}` _(from {source})_"]
+        exceptions_text.append(f"*Exception Message*: `{exception_message}`")
     else:
         # Multiple exceptions - list them all with sources
-        exceptions_text = f"*Exceptions Found ({len(all_exceptions)} total)*:"
+        exceptions_text = [f"*Exceptions Found ({len(all_exceptions)} total)*:"]
         for i, exc_tuple in enumerate(all_exceptions, 1):
             exc_type = exc_tuple[0]
             exc_msg = exc_tuple[1]
             source = exc_tuple[2] if len(exc_tuple) > 2 else "Unknown"
-            exceptions_text += (
-                f"\n        {i}. *{exc_type}* _(from {source})_: `{exc_msg}`"
-            )
+            exceptions_text.append(f"{i}. *{exc_type}* _(from {source})_: `{exc_msg}`")
     return exceptions_text
 
 
@@ -123,10 +123,28 @@ def get_task_duration_seconds(task_instance):
     return None
 
 
+def format_run_type_slack_lines(dag_run):
+    if dag_run is None:
+        return ["*Run Type*: `Unknown`"]
+
+    run_type = dag_run.run_type
+    run_type_value = run_type.value if hasattr(run_type, "value") else str(run_type)
+    run_type_label = run_type_value.replace("_", " ").title()
+    lines = [f"*Run Type*: `{run_type_label}`"]
+
+    if run_type in (DagRunType.MANUAL, "manual"):
+        username = getattr(dag_run, "triggering_user_name", None)
+        if username:
+            lines.append(f"*Triggered By*: `{username}`")
+
+    return lines
+
+
 def task_fail_slack_alert(context):
     logger = logging.getLogger(__name__)
     task_instance = context.get("task_instance")
     dag = context.get("dag")
+    dag_run = context.get("dag_run")
     dag_id = task_instance.dag_id
     task_id = task_instance.task_id
     exec_date = get_central_time_exec_data(context)
@@ -137,39 +155,63 @@ def task_fail_slack_alert(context):
     )
 
     schedule_description = (
-        format_schedule(dag.timetable.summary)
-        if dag and hasattr(dag, "timetable")
-        else "Not available"
+        format_schedule(dag.timetable.expression)
+        if dag and hasattr(getattr(dag, "timetable", None), "expression")
+        else None
     )
 
     all_exceptions = extract_all_exceptions(context)
-    exceptions_text = build_exception_text(all_exceptions)
+    exceptions = build_exception_text(all_exceptions)
 
-    byline = getattr(dag, "byline", "")
-    icon = getattr(dag, "icon", ":three:")
+    byline_value = getattr(dag, "byline", None)
+    byline = [byline_value] if byline_value else []
+    icon = getattr(dag, "icon", ":warning:")
 
     # Add deployment environment indication if not production
     env_indicator = ""
     if DEPLOYMENT_ENVIRONMENT != "production":
         env_indicator = f" *{DEPLOYMENT_ENVIRONMENT.capitalize()} Environment*"
 
-    slack_msg = f"""
-        {icon}{env_indicator} *Task failure* 
-        {'\n\t\t' + byline if byline else ''}
-        *DAG*: `{dag_id}`
-        *Task*: `{task_id}`
-        *Execution Time*: `{exec_date}`
-        *Schedule*: `{schedule_description}`
-        *Duration*: `{duration} seconds`
-        {exceptions_text}
-        <{log_url}|*View Task Log*>
-    """
+    run_type_lines = format_run_type_slack_lines(dag_run)  # array
+    schedule_line = (
+        [f"*Schedule*: `{schedule_description}`"] if schedule_description else []
+    )
+
+    slack_message = (
+        [
+            f"{icon}{env_indicator} *Task failure*",
+        ]
+        + byline
+        + [
+            f"*DAG*: `{dag_id}`",
+            f"*Task*: `{task_id}`",
+            f"*Execution Time*: `{exec_date}`",
+        ]
+        + schedule_line
+        + run_type_lines
+        + [
+            f"*Duration*: `{duration} seconds`",
+        ]
+        + exceptions
+        + [
+            f"<{log_url}|*View Task Log*>",
+        ]
+    )
+
+    slack_message_text = "\n\t\t".join(slack_message)
+
+    print(f"\n\n\n⚠️ slack_message_text: {slack_message_text}\n\n\n")
+
+    # Comment out this guard to test the full, error -> notification delivery pipeline. 
+    # Remember, you'll need to have a `slack` connection in the Airflow UI defined. 
+    if DEPLOYMENT_ENVIRONMENT != "production":
+        return
 
     failed_alert = SlackWebhookHook(
         slack_webhook_conn_id=SLACK_CONN_ID,
     )
     try:
-        return failed_alert.send(text=slack_msg)
+        return failed_alert.send(text=slack_message_text)
     except AirflowException as exc:
         logger.warning("Slack failure alert failed: %s", exc)
         return False
