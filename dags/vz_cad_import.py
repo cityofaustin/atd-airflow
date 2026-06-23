@@ -191,7 +191,7 @@ def etl_data_import():
     )
 
     (
-        [env_vars, dry_run_arg, incident_link_limit]
+        [env_vars, dry_run_arg, incident_link_limit, no_files_pass]
         >> incidents_to_s3
         >> incidents_import
         >> incidents_linker
