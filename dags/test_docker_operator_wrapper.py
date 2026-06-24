@@ -157,7 +157,7 @@ with DAG(
     transient_failure_no_cache = DockerOperatorWithFallback(
         task_id="transient_failure_no_cache",
         image=_TEST_IMAGE,
-        command=["python", "-c", "print('This should never run')"],
+        command=["python", "-c", "print('This should never run, transient_failure_no_cache')"],
         **_COMMON_KWARGS,
     )
 
@@ -166,7 +166,7 @@ with DAG(
     non_retryable_4xx = DockerOperatorWithFallback(
         task_id="non_retryable_4xx",
         image="python:this-tag-does-not-exist",
-        command=["python", "-c", "print('This should never run')"],
+        command=["python", "-c", "print('This should never run, non_retryable_4xx')"],
         **_COMMON_KWARGS,
     )
 
