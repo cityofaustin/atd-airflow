@@ -28,8 +28,7 @@ class DockerOperatorWithFallback(DockerOperator):
         #   - if the image isn't cached locally at all, we must try to pull regardless
         if self.force_pull or not self.cli.images(name=self.image):
 
-            # ::group:: / ::endgroup:: are Airflow log-grouping markers that collapse the
-            # verbose layer-by-layer pull output in the UI, matching the parent's behavior.
+            # ::group:: / ::endgroup:: are Airflow log-grouping markers
             self.log.info("::group::Pulling docker image %s", self.image)
 
             # pull_error stays None if the pull succeeds. If anything goes wrong — whether
