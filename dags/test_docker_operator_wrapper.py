@@ -10,6 +10,10 @@ _TEST_IMAGE = "python:3-slim"
 doc_md = """
 ## DockerOperatorWithFallback test DAG
 
+Hint: This is much easier to read by closing this modal and examining the code tab below.
+
+---
+
 Validates all failure modes of `DockerOperatorWithFallback`
 (`dags/utils/docker_operator_with_fallback.py`).
 
