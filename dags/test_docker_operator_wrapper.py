@@ -43,9 +43,11 @@ sudo sh -c 'echo "127.0.0.1 registry-1.docker.io" >> /etc/hosts'
 
 Restore when done:
 
-```
-sudo sed -i '' '/registry-1.docker.io/d' /etc/hosts
-```
+    # Linux (GNU sed)
+    sudo sed -i '/registry-1.docker.io/d' /etc/hosts
+
+    # macOS (BSD sed)
+    sudo sed -i '' '/registry-1.docker.io/d' /etc/hosts
 
 To also test `transient_failure_no_cache`, remove the local image before triggering:
 
