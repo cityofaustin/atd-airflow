@@ -84,7 +84,6 @@ _COMMON_KWARGS = dict(
     force_pull=True,
     auto_remove="force",
     execution_timeout=duration(minutes=5),
-    docker_url="unix://var/run/docker.sock",
     network_mode="bridge",
 )
 
