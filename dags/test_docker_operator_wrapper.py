@@ -85,6 +85,7 @@ _COMMON_KWARGS = dict(
     auto_remove="force",
     execution_timeout=duration(minutes=5),
     network_mode="bridge",
+    docker_conn_id="docker_default",
 )
 
 with DAG(
