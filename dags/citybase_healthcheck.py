@@ -1,6 +1,6 @@
 from os import getenv
 from airflow import DAG
-from airflow.providers.http.sensors.http import HttpSensor
+from airflow.providers.http.operators.http import HttpOperator
 from pendulum import datetime, duration
 
 from utils.slack_operator import task_fail_slack_alert, slack_member_ids
@@ -37,11 +37,12 @@ with DAG(
 
     dag.byline = f"Citybase postback healthcheck failed, {slack_member_ids['Chia']}"
 
-    check_citybase_endpoint = HttpSensor(
+    check_citybase_endpoint = HttpOperator(
         task_id="check_citybase_postback_endpoint",
-        http_conn_id="http_default",
-        endpoint="citybase.austinmobility.io",
-        extra_options={"verify": True, "timeout": 30},
+        http_conn_id="citybase_https",
+        endpoint="/",
+        method="GET",
+        extra_options={"verify": True, "timeout": 5},
         response_check=lambda response: response.json().get("status") == "OK",
     )
 
