@@ -65,7 +65,7 @@ with DAG(
     description="Checks the healthiness of the atd-cctv-service app",
     doc_md=doc_md,
     default_args=DEFAULT_ARGS,
-    schedule="*/10 * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="7 */1 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-cctv-service", "cctv"],
     catchup=False,
 ) as dag:
