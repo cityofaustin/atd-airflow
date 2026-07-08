@@ -97,6 +97,7 @@ def get_start_date(**context):
     prev_start_date = prev_start_date.subtract(days=3)
     return prev_start_date.strftime("%Y-%m-%d")
 
+
 @task(
     task_id="get_is_dry_run_arg",
 )
