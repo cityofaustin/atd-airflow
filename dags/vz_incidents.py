@@ -76,7 +76,7 @@ def get_incident_link_limit(params):
 
 
 @dag(
-    dag_id="vz-cad-incidents-import",
+    dag_id="vz-incidents",
     description="A DAG which creates VZ incident records in the Vision Zero database.",
     doc_md=doc_md,
     # the CAD file export happens daily at 5a CT
@@ -107,18 +107,51 @@ def etl_data_import():
 
     incident_link_limit = get_incident_link_limit()
 
-    incidents_linker = DockerOperator(
-        task_id="cad_incidents_links",
+    cad = DockerOperator(
+        task_id="vz_incidents_cad",
         environment=env_vars,
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"incident_linker.py{dry_run_arg}{incident_link_limit}",
+        command=f"incident_linker.py cad{dry_run_arg}{incident_link_limit}",
         tty=True,
         mount_tmp_dir=False,
     )
 
-    ([env_vars, dry_run_arg, incident_link_limit] >> incidents_linker)
+    ems = DockerOperator(
+        task_id="vz_incidents_ems",
+        environment=env_vars,
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove="force",
+        command=f"incident_linker.py ems{dry_run_arg}{incident_link_limit}",
+        tty=True,
+        mount_tmp_dir=False,
+    )
+
+    afd = DockerOperator(
+        task_id="vz_incidents_afd",
+        environment=env_vars,
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove="force",
+        command=f"incident_linker.py afd{dry_run_arg}{incident_link_limit}",
+        tty=True,
+        mount_tmp_dir=False,
+    )
+
+    crashes = DockerOperator(
+        task_id="vz_incidents_crashes",
+        environment=env_vars,
+        image=docker_image,
+        docker_conn_id="docker_default",
+        auto_remove="force",
+        command=f"incident_linker.py crashes{dry_run_arg}{incident_link_limit}",
+        tty=True,
+        mount_tmp_dir=False,
+    )
+
+    ([env_vars, dry_run_arg, incident_link_limit] >> cad >> ems >> afd >> crashes)
 
 
 etl_data_import()
