@@ -110,7 +110,7 @@ def get_is_dry_run_arg(params):
 
 
 with DAG(
-    dag_id=f"dts_traffic_signal_metrics",
+    dag_id="dts_traffic_signal_metrics",
     description="Uploads INRIX traffic signal metrics to socrata for the past few days.",
     doc_md=doc_md,
     default_args=DEFAULT_ARGS,
@@ -148,4 +148,4 @@ with DAG(
         retry_delay=duration(seconds=60),
     )
 
-    env_vars >> start_date >> t1
+    env_vars >> start_date >> dry_run_arg >> t1
