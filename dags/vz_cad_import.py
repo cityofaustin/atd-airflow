@@ -7,7 +7,7 @@ from docker.types import Mount
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
-from utils.slack_operator import task_fail_slack_alert, slack_member_ids
+from utils.slack_operator import task_fail_slack_alert
 
 doc_md = """
 Process CAD files in two steps. First, transfer files from COACD network drive to S3. Then, transform and load files in to the VZ database via graphql API.
@@ -94,17 +94,6 @@ def get_is_dry_run_arg(params):
 
 
 @task(
-    task_id="get_incident_link_limit",
-)
-def get_incident_link_limit(params):
-    """Return ` --limit {number}` if the incident_link_limit param has been set"""
-    if bool(params["incident_link_limit"]):
-        return f" --limit {params["incident_link_limit"]}"
-    else:
-        return ""
-
-
-@task(
     task_id="get_no_files_pass",
 )
 def get_no_files_pass(params):
@@ -132,12 +121,6 @@ def get_no_files_pass(params):
             type="boolean",
             description_md="Applies the dry-run flag to all tasks. No records will be processed.",
         ),
-        "incident_link_limit": Param(
-            title="Incident link limit",
-            default=None,
-            type=["integer", "null"],
-            description_md="The maximum number of records to link via incident_linker.py. Otherwise the script's default limit will be applied.",
-        ),
         "no_files_pass": Param(
             title="No files, no problem",
             default=False,
@@ -150,8 +133,6 @@ def etl_data_import():
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     dry_run_arg = get_is_dry_run_arg()
-
-    incident_link_limit = get_incident_link_limit()
 
     no_files_pass = get_no_files_pass()
 
@@ -180,23 +161,7 @@ def etl_data_import():
         mounts=[files_volume_mount],
     )
 
-    incidents_linker = DockerOperator(
-        task_id="cad_incidents_links",
-        environment=env_vars,
-        image=docker_image,
-        docker_conn_id="docker_default",
-        auto_remove="force",
-        command=f"incident_linker.py{dry_run_arg}{incident_link_limit}",
-        tty=True,
-        mount_tmp_dir=False,
-    )
-
-    (
-        [env_vars, dry_run_arg, incident_link_limit, no_files_pass]
-        >> incidents_to_s3
-        >> incidents_import
-        >> incidents_linker
-    )
+    ([env_vars, dry_run_arg, no_files_pass] >> incidents_to_s3 >> incidents_import)
 
 
 etl_data_import()
