@@ -16,7 +16,7 @@ This DAG updates a socrata dataset of directional street segments daily.
 
 You do NOT need to be on city VPN to run this locally.
 
-Please investigate any long term outages of this DAG as if it continually fails we might become out of sync with the source segment dataset.
+Please investigate any long term outages of this DAG as if it continually fails we might become out of sync with the source segment dataset. 
 
 """
 
@@ -28,8 +28,6 @@ DEFAULT_ARGS = {
     "start_date": datetime(2015, 1, 1, tz="America/Chicago"),
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 0,
-    "execution_timeout": duration(minutes=15),
     "on_failure_callback": task_fail_slack_alert,
 }
 
@@ -75,7 +73,7 @@ with DAG(
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
-        task_id="work_zone_data_publishing",
+        task_id="directional_segment_updater",
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
@@ -86,6 +84,7 @@ with DAG(
         mount_tmp_dir=False,
         retries=3,
         retry_delay=duration(seconds=5*60),
+        execution_timeout=duration(minutes=15),
     )
 
     t1
