@@ -67,7 +67,6 @@ def atd_knack_data_tracker_location_updater():
         command=f"./atd-knack-services/services/knack_location_updater.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 

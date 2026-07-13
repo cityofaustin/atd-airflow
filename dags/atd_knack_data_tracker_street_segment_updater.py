@@ -68,7 +68,6 @@ def atd_knack_data_tracker_street_segment_updater():
         command=f"./atd-knack-services/services/knack_street_seg_updater.py -a data-tracker -c view_1198 {date_filter_arg}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 

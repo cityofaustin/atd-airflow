@@ -86,7 +86,6 @@ def atd_knack_detectors():
         command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 

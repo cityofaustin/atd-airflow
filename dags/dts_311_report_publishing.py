@@ -184,7 +184,6 @@ with DAG(
         command="python -m etl.csv_reporting.requests_to_socrata",
         environment=cur_year_env,
         tty=True,
-        force_pull=True,
     )
 
     t2 = DockerOperator(

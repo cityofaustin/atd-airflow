@@ -74,7 +74,6 @@ def road_conditions_socrata():
         command=f"./atd-road-conditions/socrata.py {date_filter_arg}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 

@@ -77,7 +77,6 @@ with DAG(
         command=f"python data_tracker_sync.py {date_filter_arg}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 

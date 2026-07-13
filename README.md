@@ -181,7 +181,6 @@ with DAG(
       command="hello_world.py",
       environment=env_vars,
       tty=True,
-      force_pull=True,
     )
 ```
 

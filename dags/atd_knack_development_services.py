@@ -64,7 +64,6 @@ def knack_services_task_template(task_id, image, command, env_vars, pull=False):
         command=command,
         environment=env_vars,
         tty=True,
-        force_pull=pull,
         mount_tmp_dir=False,
         trigger_rule="all_done",
     )

@@ -79,7 +79,6 @@ with DAG(
         command=f"./atd-knack-services/services/signal_pm_copier.py -a {app_name} -c {copy_to_secondary_view}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 

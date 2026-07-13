@@ -150,7 +150,6 @@ with DAG(
         command="python3 upload_to_s3.py master_agreements",
         environment=data_tracker_env,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 
@@ -162,7 +161,6 @@ with DAG(
         command="python3 s3_to_knack.py master_agreements finance-purchasing",
         environment=finance_purchasing_env,
         tty=True,
-        force_pull=False,
         mount_tmp_dir=False,
     )
 

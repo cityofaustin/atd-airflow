@@ -73,7 +73,6 @@ def atd_knack_data_tracker_sr_asset_assign():
         command=f"./atd-knack-services/services/sr_asset_assign.py -a data-tracker -c view_2362 -s signals",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 

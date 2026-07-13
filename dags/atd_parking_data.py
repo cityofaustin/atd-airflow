@@ -156,7 +156,6 @@ with DAG(
             auto_remove="force",
             environment=env_vars,
             tty=True,
-            force_pull=True,
             retries=3,
             retry_delay=duration(seconds=60),
         )
@@ -172,7 +171,6 @@ with DAG(
             auto_remove="force",
             environment=env_vars,
             tty=True,
-            force_pull=False,
             retries=3,
             retry_delay=duration(seconds=60),
         )
@@ -188,7 +186,6 @@ with DAG(
             auto_remove="force",
             environment=env_vars,
             tty=True,
-            force_pull=False,
             retries=3,
             retry_delay=duration(seconds=60),
         )

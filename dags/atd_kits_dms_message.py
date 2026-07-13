@@ -70,7 +70,6 @@ with DAG(
         command="python ./atd-kits/atd-kits/dms_message_pub.py",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 

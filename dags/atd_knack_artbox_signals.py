@@ -100,7 +100,6 @@ with DAG(
         command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name_dest} -c {container_dest}",
         environment=env_vars_t1,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 
@@ -112,7 +111,6 @@ with DAG(
         command=f"./atd-knack-services/services/records_to_knack.py -a {app_name_src} -c {container_src} {date_filter_arg} -dest {app_name_dest}",
         environment=env_vars_t2,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
     date_filter_arg >> t1 >> t2

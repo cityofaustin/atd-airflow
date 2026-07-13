@@ -65,6 +65,5 @@ with DAG(
         command="./atd-service-bot/gh_index_issues_to_dts_portal.py",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
