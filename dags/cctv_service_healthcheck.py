@@ -27,6 +27,10 @@ DEFAULT_ARGS = {
 doc_md = """
 Checks that the cctv-service endpoint is reachable and that CCTV asset data is fresh.
 
+If the cctv asset data becomes stale, it is possible that some cameras will not direct to the correct IP address. This is a minor issue unless it persists for multiple days.
+
+If the service is down, MMC staff will not be re-directed to CCTV camera IPs from the [traffic cameras dashboard](https://data.mobility.austin.gov/traffic-cameras). This is a more significant issue and should addressed immediately.
+
 See the atd-cctv-service readme for more details on deployment and how to restart.
 """
 
