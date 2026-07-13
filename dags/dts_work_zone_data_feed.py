@@ -125,7 +125,6 @@ with DAG(
         command=f"python data_sources/amanda_closure_publishing.py",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
         retries=3,
         retry_delay=duration(seconds=60),

@@ -76,7 +76,6 @@ def maximo_geo_emergency_mgmt_email_parser():
         auto_remove="force",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 

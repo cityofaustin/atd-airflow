@@ -121,7 +121,6 @@ with DAG(
         environment=env_vars_moped_join,
         auto_remove="force",
         tty=True,
-        force_pull=True,
     )
 
     socrata_export_crash_components = DockerOperator(
@@ -132,7 +131,6 @@ with DAG(
         environment=env_vars_socrata,
         auto_remove="force",
         tty=True,
-        force_pull=True,
     )
 
     (

@@ -144,7 +144,6 @@ def etl_data_import():
         auto_remove="force",
         command=f"incidents_to_s3.py --remove{dry_run_arg}{no_files_pass}",
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
         mounts=[files_volume_mount],
     )
