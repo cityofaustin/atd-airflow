@@ -2,6 +2,8 @@
 Pulls the latest production docker images used by our dockerized ETLs.
 """
 
+import logging
+import subprocess
 from os import getenv
 
 from airflow.sdk import Param, dag, task
@@ -10,6 +12,7 @@ from pendulum import datetime, duration
 from utils.slack_operator import task_fail_slack_alert
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT")
+logger = logging.getLogger(__name__)
 
 # Docker images used by our DAGs, kept warm so task runs don't have to pull on demand
 DOCKER_IMAGES = [
@@ -155,14 +158,20 @@ def airflow_docker_image_pull():
     current, so DAG runs don't need to pull on demand.
     """
 
-    @task.bash(task_id="pull_image", map_index_template="{{ task.op_kwargs['image'] }}")
+    @task
     def pull_image(image: str, params):
         """Pull a single docker image, or log what would be pulled in dry-run mode."""
         if bool(params["dry_run"]):
-            return f'echo "Would pull {image}"'
-        return f"docker pull {image}"
+            logger.info("Would pull %s", image)
+            return
 
-    pull_image.expand(image=DOCKER_IMAGES)
+        logger.info("Pulling %s", image)
+        subprocess.run(["docker", "pull", image], check=True)
+
+    for image in DOCKER_IMAGES:
+        # atddocker/atd-airflow:production -> pull_atd-airflow
+        image_name = image.split("/")[-1].split(":")[0]
+        pull_image.override(task_id=f"pull_{image_name}")(image)
 
 
 # Instantiate the DAG
