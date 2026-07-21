@@ -4,7 +4,7 @@ Pulls the latest production docker images used by our dockerized ETLs.
 
 from os import getenv
 
-from airflow.sdk import dag, task
+from airflow.sdk import Param, dag, task
 from pendulum import datetime, duration
 
 from utils.slack_operator import task_fail_slack_alert
@@ -138,6 +138,14 @@ DOCKER_IMAGES = [
         "execution_timeout": duration(minutes=30),
     },
     description="Pull docker images used by our ETLs to keep them up to date",
+    params={
+        "dry_run": Param(
+            title="Dry run",
+            default=False,
+            type="boolean",
+            description_md="Log images that would be pulled without running docker pull.",
+        ),
+    },
 )
 def airflow_docker_image_pull():
     """
@@ -148,8 +156,10 @@ def airflow_docker_image_pull():
     """
 
     @task.bash(task_id="pull_image", map_index_template="{{ task.op_kwargs['image'] }}")
-    def pull_image(image: str):
-        """Pull a single docker image."""
+    def pull_image(image: str, params):
+        """Pull a single docker image, or log what would be pulled in dry-run mode."""
+        if bool(params["dry_run"]):
+            return f'echo "Would pull {image}"'
         return f"docker pull {image}"
 
     pull_image.expand(image=DOCKER_IMAGES)
