@@ -131,7 +131,7 @@ def get_dataset_id(env_vars):
     return env_vars["ACTIVE_DATASET"]
 
 
-def knack_services_task_template(task_id, image, command, env_vars, pull=False):
+def knack_services_task_template(task_id, image, command, env_vars):
     return DockerOperator(
         task_id=task_id,
         image=image,
@@ -303,18 +303,12 @@ with DAG(
     tasks = []
 
     for cmd in commands:
-        # We want the first task to pull the latest docker image
-        if len(tasks) == 0:
-            pull = True
-        else:
-            pull = False
         tasks.append(
             knack_services_task_template(
                 task_id=cmd["task_id"],
                 image=cmd["image"],
                 command=cmd["command"],
                 env_vars=cmd["env"],
-                pull=pull,
             )
         )
 

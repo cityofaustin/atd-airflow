@@ -55,7 +55,7 @@ REQUIRED_SECRETS = {
 }
 
 
-def knack_services_task_template(task_id, image, command, env_vars, pull=False):
+def knack_services_task_template(task_id, image, command, env_vars):
     return DockerOperator(
         task_id=task_id,
         image=image,
@@ -171,18 +171,12 @@ def atd_knack_development_services():
     tasks = []
 
     for cmd in commands:
-        # We want the first task to pull the latest docker image
-        if len(tasks) == 0:
-            pull = True
-        else:
-            pull = False
         tasks.append(
             knack_services_task_template(
                 task_id=cmd["task_id"],
                 image=docker_image,
                 command=cmd["command"],
                 env_vars=env_vars,
-                pull=pull,
             )
         )
 
