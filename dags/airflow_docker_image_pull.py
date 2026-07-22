@@ -6,7 +6,7 @@ import logging
 import subprocess
 from os import getenv
 
-from airflow.sdk import Param, dag, task
+from airflow.sdk import Param, chain, dag, task
 from pendulum import datetime, duration
 
 from utils.slack_operator import task_fail_slack_alert
@@ -168,10 +168,19 @@ def airflow_docker_image_pull():
         logger.info("Pulling %s", image)
         subprocess.run(["docker", "pull", image], check=True)
 
+    pull_tasks = []
     for image in DOCKER_IMAGES:
         # atddocker/atd-airflow:production -> pull_atd-airflow
         image_name = image.split("/")[-1].split(":")[0]
-        pull_image.override(task_id=f"pull_{image_name}")(image)
+        pull_tasks.append(
+            pull_image.override(
+                task_id=f"pull_{image_name}",
+                # Continue the chain even if an upstream pull failed
+                trigger_rule="all_done",
+            )(image)
+        )
+
+    chain(*pull_tasks)
 
 
 # Instantiate the DAG
