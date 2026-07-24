@@ -37,6 +37,10 @@ REQUIRED_SECRETS = {
         "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
         "opfield": "production.password",
     },
+    "AGOL_COMPONENTS_ENDPOINT": {
+        "opitem": "Moped ETLs",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.AGOL_COMPONENTS_ENDPOINT",
+    },
 }
 
 
