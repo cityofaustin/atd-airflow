@@ -2,6 +2,7 @@
 Pulls the latest production docker images used by our dockerized ETLs.
 """
 
+import re
 import logging
 import subprocess
 from os import getenv
@@ -91,7 +92,7 @@ def airflow_docker_image_pull():
     pull_tasks = []
     for image in DOCKER_IMAGES:
         # atddocker/atd-airflow:production -> pull_atd-airflow
-        image_name = image.split("/")[-1].split(":")[0]
+        image_name = re.sub(r"[^a-zA-Z0-9-]", "", image.split("/")[1].split(":")[0])
         pull_tasks.append(
             pull_image.override(
                 task_id=f"pull_{image_name}",
