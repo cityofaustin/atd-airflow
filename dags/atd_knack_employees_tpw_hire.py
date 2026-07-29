@@ -103,7 +103,6 @@ def atd_knack_employees_tpw_hire():
         command=f"python ./atd-knack-services/services/records_to_postgrest.py -a {app_name_src} -c {container_src} {date_filter_task}",
         environment=env_vars_hr_manager,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 

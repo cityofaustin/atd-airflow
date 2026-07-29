@@ -123,7 +123,6 @@ with DAG(
         command=f"python components_to_agol.py {args}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
         execution_timeout=duration(minutes=30),
     )
@@ -135,7 +134,6 @@ with DAG(
         command=f"python components_to_agol.py {args}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
         execution_timeout=duration(minutes=5),
     )

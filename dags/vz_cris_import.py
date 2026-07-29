@@ -100,7 +100,6 @@ with DAG(
         environment=env_vars,
         auto_remove="force",
         tty=True,
-        force_pull=True,
     )
 
     ocr_crash_narratives = DockerOperator(
@@ -121,7 +120,6 @@ with DAG(
         environment=env_vars,
         auto_remove="force",
         tty=True,
-        force_pull=True,
     )
 
     cris_import >> ocr_crash_narratives >> match_ems_to_people

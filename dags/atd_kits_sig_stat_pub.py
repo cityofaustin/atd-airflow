@@ -72,7 +72,6 @@ with DAG(
         command="./atd-kits/atd-kits/signal_status_publisher.py",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
         network_mode="bridge",
     )

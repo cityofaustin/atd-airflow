@@ -108,7 +108,6 @@ with DAG(
         command=f"python -m etl.open311.open311_to_socrata -d {prev_run_time}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
     )
 
     env_vars >> one_day_ago >> prev_run_time >> t1

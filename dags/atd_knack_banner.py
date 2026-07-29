@@ -74,7 +74,6 @@ with DAG(
         command=f"./atd-knack-banner/update_employees.py",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 

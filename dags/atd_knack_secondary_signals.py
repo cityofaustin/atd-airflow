@@ -66,7 +66,6 @@ with DAG(
         command=f"./atd-knack-services/services/secondary_signals_updater.py -a data-tracker -c view_197",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 

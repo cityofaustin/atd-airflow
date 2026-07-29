@@ -131,7 +131,6 @@ with DAG(
         command=f"python amanda/amanda_to_s3.py --query row_inspector_permit_list",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
         retries=3,
         retry_delay=duration(seconds=60),

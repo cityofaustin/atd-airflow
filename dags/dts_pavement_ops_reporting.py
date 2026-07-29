@@ -97,7 +97,6 @@ with DAG(
         command=f"python etl/report_to_socrata.py --report VW_UPDATED_PROJECTS_SEGMENTS",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 

@@ -127,7 +127,6 @@ def sync_ecapris_funding():
         "auto_remove": "force",
         "environment": env_vars,
         "tty": True,
-        "force_pull": True,
         "mount_tmp_dir": False,
     }
 

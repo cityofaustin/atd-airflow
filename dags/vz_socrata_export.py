@@ -115,7 +115,6 @@ with DAG(
         environment=env_vars,
         auto_remove="force",
         tty=True,
-        force_pull=True,
     )
 
     socrata_export_people = DockerOperator(
@@ -126,7 +125,6 @@ with DAG(
         environment=env_vars,
         auto_remove="force",
         tty=True,
-        force_pull=False,
         trigger_rule="all_done",  # always run this task regardless of outcome of crashes task
     )
 

@@ -150,7 +150,6 @@ with DAG(
         command="python3 upload_to_s3.py units",
         environment=data_tracker_env,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 
@@ -162,7 +161,6 @@ with DAG(
         command="python3 s3_to_knack.py units data-tracker",
         environment=data_tracker_env,
         tty=True,
-        force_pull=False,
         mount_tmp_dir=False,
     )
 
@@ -174,7 +172,6 @@ with DAG(
         command="python3 s3_to_socrata.py --dataset dept_units",
         environment=finance_purchasing_env,
         tty=True,
-        force_pull=False,
         mount_tmp_dir=False,
     )
 
@@ -186,7 +183,6 @@ with DAG(
         command="python3 s3_to_knack.py units finance-purchasing",
         environment=finance_purchasing_env,
         tty=True,
-        force_pull=False,
         mount_tmp_dir=False,
     )
 

@@ -27,6 +27,7 @@ The stack is composed of:
     - [Slack operator utility](#slack-operator-utility)
       - [Byline support](#byline-support)
       - [Custom icon/emoji support](#custom-iconemoji-support)
+    - [Docker image pull DAG](#docker-image-pull-dag)
   - [Useful Commands](#useful-commands)
   - [Updating the stack](#updating-the-stack)
     - [Update Process](#update-process)
@@ -181,7 +182,6 @@ with DAG(
       command="hello_world.py",
       environment=env_vars,
       tty=True,
-      force_pull=True,
     )
 ```
 
@@ -221,6 +221,16 @@ When testing, it's helpful to be able to see the messages that the slack operato
 To test the Slack operator, see the DAGs `test_slack_notifier` and `test_docker_failure`.
 
 In particular, look into the `test_slack_notifier` DAG and observe that there is a commented out schedule. The slack notifier has slightly different behavior in how it reports the DAG run schedule based on if it was kicked off manually or by the system itself. You can comment this schedule in and out and look for messages in the logs to test to see how this is working.
+
+### Docker image pull DAG
+
+Many of our DAGs run ETLs inside Docker containers. To avoid pulling images on demand during task execution, the `airflow_docker_image_pull` DAG (`dags/airflow_docker_image_pull.py`) keeps those production images warm on the host.
+
+In production it runs daily. In non-production environments it has no schedule and must be triggered manually. Each image in the `DOCKER_IMAGES` list is pulled as its own task; tasks use `trigger_rule="all_done"` so a failed pull does not stop later pulls. Failures notify Slack via the [Slack operator utility](#slack-operator-utility).
+
+When adding a new dockerized ETL, append its production image (for example `atddocker/my-etl:production`) to `DOCKER_IMAGES` in that DAG so it is included in the daily pull.
+
+The DAG accepts a `dry_run` boolean param. When `true`, tasks only log the images that would be pulled and do not run `docker pull`.
 
 
 ## Useful Commands

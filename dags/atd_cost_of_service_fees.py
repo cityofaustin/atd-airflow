@@ -81,7 +81,6 @@ def atd_cost_of_service_fees():
         environment=env_vars,
         tty=True,
         docker_conn_id="docker_default",
-        force_pull=True,
         mount_tmp_dir=False,
     )
 

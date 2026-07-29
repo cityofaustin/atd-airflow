@@ -80,7 +80,6 @@ with DAG(
         command=f"python geometry/street_segment_directionality.py",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
         retries=3,
         retry_delay=duration(seconds=5*60),

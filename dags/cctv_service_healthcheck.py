@@ -46,7 +46,7 @@ def healthcheck(env_vars):
     try:
         res = requests.get(url, timeout=10)
     except requests.exceptions.RequestException as e:
-        # A ConnnectionError would raise here, for example
+        # A ConnectionError would raise here, for example
         raise AirflowException(f"Could not reach {url}: {e}")
 
     try:

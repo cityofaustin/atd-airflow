@@ -99,7 +99,6 @@ with DAG(
         command=f"python etl/maximo_to_socrata.py --query work_orders",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 
@@ -111,7 +110,6 @@ with DAG(
         command=f"python etl/maximo_to_socrata.py --query service_requests",
         environment=env_vars,
         tty=True,
-        force_pull=False,
         mount_tmp_dir=False,
     )
 
@@ -123,7 +121,6 @@ with DAG(
         command=f"python etl/maximo_to_socrata.py --query work_order_status_history",
         environment=env_vars,
         tty=True,
-        force_pull=False,
         mount_tmp_dir=False,
     )
 
@@ -135,7 +132,6 @@ with DAG(
         command=f"python etl/maximo_to_socrata.py --query work_order_time_logs",
         environment=env_vars,
         tty=True,
-        force_pull=False,
         mount_tmp_dir=False,
     )
 
@@ -147,7 +143,6 @@ with DAG(
         command=f"python etl/maximo_to_socrata.py --query work_order_materials",
         environment=env_vars,
         tty=True,
-        force_pull=False,
         mount_tmp_dir=False,
     )
 
@@ -159,7 +154,6 @@ with DAG(
         command=f"python etl/maximo_to_socrata.py --query work_order_specifications",
         environment=env_vars,
         tty=True,
-        force_pull=False,
         mount_tmp_dir=False,
     )
 
@@ -171,7 +165,6 @@ with DAG(
         command=f"python etl/maximo_to_socrata.py --query locations",
         environment=env_vars,
         tty=True,
-        force_pull=False,
         mount_tmp_dir=False,
     )
 

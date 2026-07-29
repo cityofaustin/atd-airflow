@@ -84,7 +84,6 @@ def etl_data_import():
         auto_remove="force",
         command="ems",
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
     )
 

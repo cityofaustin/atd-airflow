@@ -118,7 +118,6 @@ def atd_signal_comms():
         command=f"python atd-signal-comms/run_comm_check.py camera --env {deployment_stage_abbreviation}",
         environment=env_vars,
         tty=True,
-        force_pull=True,
         mount_tmp_dir=False,
         network_mode="bridge",
     )
@@ -131,7 +130,6 @@ def atd_signal_comms():
         command=f"python atd-signal-comms/run_comm_check.py detector --env {deployment_stage_abbreviation}",
         environment=env_vars,
         tty=True,
-        force_pull=False,
         mount_tmp_dir=False,
         network_mode="bridge",
     )
@@ -144,7 +142,6 @@ def atd_signal_comms():
         command=f"python atd-signal-comms/run_comm_check.py digital_message_sign --env {deployment_stage_abbreviation}",
         environment=env_vars,
         tty=True,
-        force_pull=False,
         mount_tmp_dir=False,
         network_mode="bridge",
     )
@@ -157,7 +154,6 @@ def atd_signal_comms():
         command=f"python atd-signal-comms/run_comm_check.py cabinet_battery_backup --env {deployment_stage_abbreviation}",
         environment=env_vars,
         tty=True,
-        force_pull=False,
         mount_tmp_dir=False,
         network_mode="bridge",
     )
@@ -170,7 +166,6 @@ def atd_signal_comms():
         command=f"python atd-signal-comms/run_comm_check.py signal_monitor --env {deployment_stage_abbreviation}",
         environment=env_vars,
         tty=True,
-        force_pull=False,
         mount_tmp_dir=False,
         network_mode="bridge",
     )
@@ -183,7 +178,6 @@ def atd_signal_comms():
         command=f"python atd-signal-comms/socrata_pub.py camera --start {start_date} -v --env {deployment_stage_abbreviation}",
         environment=env_vars,
         tty=True,
-        force_pull=False,
         mount_tmp_dir=False,
         network_mode="bridge",
     )
@@ -196,7 +190,6 @@ def atd_signal_comms():
         command=f"python atd-signal-comms/socrata_pub.py detector --start {start_date} -v --env {deployment_stage_abbreviation}",
         environment=env_vars,
         tty=True,
-        force_pull=False,
         mount_tmp_dir=False,
         network_mode="bridge",
     )
@@ -209,7 +202,6 @@ def atd_signal_comms():
         command=f"python atd-signal-comms/socrata_pub.py digital_message_sign --start {start_date} -v --env {deployment_stage_abbreviation}",
         environment=env_vars,
         tty=True,
-        force_pull=False,
         mount_tmp_dir=False,
         network_mode="bridge",
     )
@@ -222,7 +214,6 @@ def atd_signal_comms():
         command=f"python atd-signal-comms/socrata_pub.py cabinet_battery_backup --start {start_date} -v --env {deployment_stage_abbreviation}",
         environment=env_vars,
         tty=True,
-        force_pull=False,
         mount_tmp_dir=False,
         network_mode="bridge",
     )
@@ -235,7 +226,6 @@ def atd_signal_comms():
         command=f"python atd-signal-comms/socrata_pub.py signal_monitor --start {start_date} -v --env {deployment_stage_abbreviation}",
         environment=env_vars,
         tty=True,
-        force_pull=False,
         mount_tmp_dir=False,
         network_mode="bridge",
     )
