@@ -74,10 +74,8 @@ DOCKER_IMAGES = [
 )
 def airflow_docker_image_pull():
     """
-    Pulls the docker images used by our ETLs.
-
-    This DAG runs every 6 hours in production to keep local docker images
-    current, so DAG runs don't need to pull on demand.
+    Pulls the docker images used by our ETLs to keep them current,
+    so DAG runs don't need to pull on demand.
     """
 
     @task
