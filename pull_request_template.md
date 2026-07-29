@@ -13,3 +13,4 @@
 - [ ] Code reviewed
 - [ ] Product manager approved
 - [ ] Add note to 1PW secrets moved to API vault and check for duplicates
+- [ ] Add new images `airflow_docker_image_pull.py` DAG
