@@ -52,7 +52,7 @@ DOCKER_IMAGES = [
 
 @dag(
     dag_id="airflow_docker_image_pull",
-    schedule="0 */6 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="0 6 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     start_date=datetime(2015, 12, 1, tz="America/Chicago"),
     catchup=False,
     tags=["repo:atd-airflow"],
