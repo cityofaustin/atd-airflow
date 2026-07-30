@@ -103,7 +103,13 @@ with DAG(
     doc_md=doc_md,
     default_args=DEFAULT_ARGS,
     schedule="30 5 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    tags=["repo:dts-transportation-counter-data", "socrata", "trail counters", "ecocounters", "active transportation"],
+    tags=[
+        "repo:dts-transportation-counter-data",
+        "socrata",
+        "trail counters",
+        "ecocounters",
+        "active transportation",
+    ],
     catchup=False,
     params={
         "dry_run": Param(
@@ -127,7 +133,7 @@ with DAG(
         image=docker_image,
         docker_conn_id="docker_default",
         auto_remove="force",
-        command=f"-s {start_date}{dry_run_arg}",
+        command=f"active-transportation-counters/get_eco_counter_data.py -s {start_date}{dry_run_arg}",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
