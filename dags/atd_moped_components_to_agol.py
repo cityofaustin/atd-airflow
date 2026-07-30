@@ -23,11 +23,11 @@ DEFAULT_ARGS = {
 REQUIRED_SECRETS = {
     "HASURA_ENDPOINT": {
         "opitem": "Moped Hasura Admin",
-        "opfield": "production.Endpoint",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.Endpoint",
     },
     "HASURA_ADMIN_SECRET": {
         "opitem": "Moped Hasura Admin",
-        "opfield": "production.Admin Secret",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.Admin Secret",
     },
     "AGOL_USERNAME": {
         "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
@@ -36,6 +36,10 @@ REQUIRED_SECRETS = {
     "AGOL_PASSWORD": {
         "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
         "opfield": "production.password",
+    },
+    "AGOL_COMPONENTS_ENDPOINT": {
+        "opitem": "Moped ETLs",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.AGOL_COMPONENTS_ENDPOINT",
     },
 }
 
