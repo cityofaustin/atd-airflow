@@ -39,6 +39,7 @@ DOCKER_IMAGES = [
     "atddocker/dts-pavement-ops-reporting:production",
     "atddocker/dts-right-of-way-reporting:production",
     "atddocker/dts-traffic-signal-metrics:production",
+    "atddocker/dts-transportation-counter-data:production",
     "atddocker/dts-work-zone-data-feed:production",
     "atddocker/maximo-geo-emergency-mgmt:production",
     "atddocker/vz-afd-ems-import:production",
