@@ -27,3 +27,4 @@ db/*
 .vscode/*
 
 users/
+/.idea

@@ -78,7 +78,7 @@ REQUIRED_SECRETS = {
 @task(task_id="get_start_date")
 def get_start_date(**context):
     # Returns the start date of this ETL. If there is no run history it will get the date 3 days in the past.
-    # If there is run history it will get the date it was last run succesfully, minus 3 days.
+    # If there is run history it will get the date it was last run successfully, minus 3 days.
     from pendulum import now
 
     prev_start_date = context.get("prev_start_date_success") or now()
