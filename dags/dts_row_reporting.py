@@ -233,7 +233,7 @@ with DAG(
             "env": env_vars_knack_services,
         },
         {
-            "task_id": "license_agreements_socrata",
+            "task_id": "license_agreements_timeline_socrata",
             "command": "python metrics/s3_to_socrata.py --dataset license_agreements_timeline",
             "image": docker_image,
             "env": env_vars,
@@ -295,6 +295,18 @@ with DAG(
         {
             "task_id": "active_contractors_socrata",
             "command": "python metrics/s3_to_socrata.py --dataset active_contractors",
+            "image": docker_image,
+            "env": env_vars,
+        },
+        {
+            "task_id": "license_agreements_s3",
+            "command": "python amanda/amanda_to_s3.py --query license_agreements",
+            "image": docker_image,
+            "env": env_vars,
+        },
+        {
+            "task_id": "license_agreements_socrata",
+            "command": "python metrics/s3_to_socrata.py --dataset license_agreements",
             "image": docker_image,
             "env": env_vars,
         },
