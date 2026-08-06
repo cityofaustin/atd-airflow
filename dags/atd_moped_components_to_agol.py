@@ -122,7 +122,6 @@ with DAG(
     full = DockerOperator(
         task_id="moped_components_to_agol_full",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"python components_to_agol.py {args}",
         environment=env_vars,

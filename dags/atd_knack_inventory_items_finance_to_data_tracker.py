@@ -133,7 +133,6 @@ def atd_knack_inventory_items_finance_to_data_tracker():
     load_finance_inventory_to_postgrest_task = DockerOperator(
         task_id="atd_knack_finance_inventory_items_to_postgrest",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name_src} -c {container_src} {date_filter_arg}",
         environment=finance_inventory_postgrest_env_vars,
@@ -144,7 +143,6 @@ def atd_knack_inventory_items_finance_to_data_tracker():
     load_data_tracker_inventory_to_postgrest_task = DockerOperator(
         task_id="atd_knack_data_tracker_inventory_items_to_postgrest",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name_dest} -c {container_dest} {date_filter_arg}",
         environment=data_tracker_inventory_postgrest_env_vars,
@@ -155,7 +153,6 @@ def atd_knack_inventory_items_finance_to_data_tracker():
     sync_finance_inventory_to_data_tracker_task = DockerOperator(
         task_id="atd_knack_update_data_tracker_inventory_items_from_finance_inventory",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"./atd-knack-services/services/records_to_knack.py -a {app_name_src} -c {container_src} {date_filter_arg} -dest {app_name_dest}",
         environment=finance_inventory_data_tracker_sync_env_vars,

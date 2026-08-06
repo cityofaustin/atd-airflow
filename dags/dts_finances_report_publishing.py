@@ -111,7 +111,6 @@ with DAG(
     t1 = DockerOperator(
         task_id="download_microstrategy_reports",
         image=docker_image,
-        docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
         command=f"python etl/rev_exp_report_to_s3.py",
@@ -122,7 +121,6 @@ with DAG(
     t2 = DockerOperator(
         task_id="update_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
         command=f"python etl/mstro_reports_to_socrata.py",

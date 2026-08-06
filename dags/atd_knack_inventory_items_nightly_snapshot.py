@@ -94,7 +94,6 @@ def atd_knack_inventory_items_nightly_snapshot():
     load_inventory_items_to_postgrest_task = DockerOperator(
         task_id="atd_knack_inventory_items_nightly_snapshot_to_postgrest",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
@@ -105,7 +104,6 @@ def atd_knack_inventory_items_nightly_snapshot():
     load_inventory_items_to_socrata_task = DockerOperator(
         task_id="atd_knack_inventory_items_nightly_snapshot_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
@@ -116,7 +114,6 @@ def atd_knack_inventory_items_nightly_snapshot():
     backup_inventory_items_socrata_task = DockerOperator(
         task_id="atd_knack_inventory_items_nightly_snapshot_socrata_backup",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"./atd-knack-services/services/backup_socrata.py -a {app_name} -c {container}",
         environment=env_vars,

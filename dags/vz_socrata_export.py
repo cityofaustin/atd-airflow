@@ -109,7 +109,6 @@ with DAG(
 
     socrata_export_crashes = DockerOperator(
         task_id="socrata_export_crashes",
-        docker_conn_id="docker_default",
         image=docker_image,
         command=f"./socrata_export.py --crashes",
         environment=env_vars,
@@ -119,7 +118,6 @@ with DAG(
 
     socrata_export_people = DockerOperator(
         task_id="socrata_export_people",
-        docker_conn_id="docker_default",
         image=docker_image,
         command=f"./socrata_export.py --people",
         environment=env_vars,

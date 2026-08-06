@@ -81,7 +81,6 @@ def atd_knack_detectors():
     load_detectors_to_postgrest = DockerOperator(
         task_id="atd_knack_detectors_to_postgrest",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container}",
         environment=env_vars,
@@ -92,7 +91,6 @@ def atd_knack_detectors():
     load_detectors_to_socrata = DockerOperator(
         task_id="atd_knack_detectors_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container}",
         environment=env_vars,
@@ -103,7 +101,6 @@ def atd_knack_detectors():
     load_detectors_to_agol = DockerOperator(
         task_id="atd_knack_detectors_to_agol",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"./atd-knack-services/services/records_to_agol.py -a {app_name} -c {container}",
         environment=env_vars,

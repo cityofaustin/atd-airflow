@@ -123,7 +123,6 @@ def sync_ecapris_funding():
 
     common_docker_config = {
         "image": docker_image,
-        "docker_conn_id": "docker_default",
         "auto_remove": "force",
         "environment": env_vars,
         "tty": True,

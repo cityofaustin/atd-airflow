@@ -72,7 +72,6 @@ with DAG(
     DockerOperator(
         task_id="dts_github_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
         command="./atd-service-bot/issues_to_socrata.py",

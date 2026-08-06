@@ -102,7 +102,6 @@ with DAG(
     t1 = DockerOperator(
         task_id="open311_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
         command=f"python -m etl.open311.open311_to_socrata -d {prev_run_time}",

@@ -131,7 +131,6 @@ with DAG(
     t1 = DockerOperator(
         task_id="ecocounter_data_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"active-transportation-counters/get_eco_counter_data.py -s {start_date}{dry_run_arg}",
         environment=env_vars,

@@ -94,7 +94,6 @@ with DAG(
     t1 = DockerOperator(
         task_id="maximo_workorders_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"python etl/maximo_to_socrata.py --query work_orders",
         environment=env_vars,
@@ -105,7 +104,6 @@ with DAG(
     t2 = DockerOperator(
         task_id="maximo_service_requests_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"python etl/maximo_to_socrata.py --query service_requests",
         environment=env_vars,
@@ -116,7 +114,6 @@ with DAG(
     t3 = DockerOperator(
         task_id="maximo_work_order_history_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"python etl/maximo_to_socrata.py --query work_order_status_history",
         environment=env_vars,
@@ -127,7 +124,6 @@ with DAG(
     t4 = DockerOperator(
         task_id="work_order_time_logs_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"python etl/maximo_to_socrata.py --query work_order_time_logs",
         environment=env_vars,
@@ -138,7 +134,6 @@ with DAG(
     t5 = DockerOperator(
         task_id="work_order_materials_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"python etl/maximo_to_socrata.py --query work_order_materials",
         environment=env_vars,
@@ -149,7 +144,6 @@ with DAG(
     t6 = DockerOperator(
         task_id="work_order_specifications_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"python etl/maximo_to_socrata.py --query work_order_specifications",
         environment=env_vars,
@@ -160,7 +154,6 @@ with DAG(
     t7 = DockerOperator(
         task_id="maximo_locations_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"python etl/maximo_to_socrata.py --query locations",
         environment=env_vars,
@@ -171,7 +164,6 @@ with DAG(
     t8 = DockerOperator(
         task_id="sbo_users_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"python etl/maximo_to_socrata.py --query users",
         environment=env_vars,

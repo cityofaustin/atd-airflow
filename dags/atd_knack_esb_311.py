@@ -88,7 +88,6 @@ def atd_knack_esb_311():
     data_tracker_activities_to_311 = DockerOperator(
         task_id="knack_amd_data_tracker_activities_to_311",
         image=DOCKER_IMAGE,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command="./atd-knack-311/send_knack_messages_to_esb.py data-tracker",
         environment=env_vars_data_tracker,
@@ -101,7 +100,6 @@ def atd_knack_esb_311():
     signs_markings_activities_to_311 = DockerOperator(
         task_id="knack_amd_signs_markings_activities_to_311",
         image=DOCKER_IMAGE,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command="./atd-knack-311/send_knack_messages_to_esb.py signs-markings",
         environment=env_vars_signs_markings,

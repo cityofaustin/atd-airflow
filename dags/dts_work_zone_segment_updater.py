@@ -75,7 +75,6 @@ with DAG(
     t1 = DockerOperator(
         task_id="directional_segment_updater",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"python geometry/street_segment_directionality.py",
         environment=env_vars,

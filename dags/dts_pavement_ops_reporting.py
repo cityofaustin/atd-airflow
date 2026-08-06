@@ -92,7 +92,6 @@ with DAG(
     t1 = DockerOperator(
         task_id="VW_UPDATED_PROJECTS_SEGMENTS_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"python etl/report_to_socrata.py --report VW_UPDATED_PROJECTS_SEGMENTS",
         environment=env_vars,

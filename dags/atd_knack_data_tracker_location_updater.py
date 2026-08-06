@@ -62,7 +62,6 @@ def atd_knack_data_tracker_location_updater():
     update_locations_task = DockerOperator(
         task_id="update_locations",
         image="atddocker/atd-knack-services:production",
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"./atd-knack-services/services/knack_location_updater.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,

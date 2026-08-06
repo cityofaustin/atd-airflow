@@ -72,7 +72,6 @@ def maximo_geo_emergency_mgmt_email_parser():
         task_id="parse_email",
         image="atddocker/maximo-geo-emergency-mgmt:production",
         api_version="auto",
-        docker_conn_id="docker_default",
         auto_remove="force",
         environment=env_vars,
         tty=True,
