@@ -104,6 +104,15 @@ REQUIRED_SECRETS = {
         "opitem": "Work Zone Data Feed",
         "opfield": "coordinate.coordinate password",
     },
+    # ArcGIS Online
+    "AGOL_USERNAME": {
+        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
+        "opfield": "production.username",
+    },
+    "AGOL_PASSWORD": {
+        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
+        "opfield": "production.password",
+    },
 }
 
 with DAG(
