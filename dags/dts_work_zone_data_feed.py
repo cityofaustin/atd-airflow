@@ -65,6 +65,10 @@ REQUIRED_SECRETS = {
         "opitem": "Work Zone Data Feed",
         "opfield": "production.segment dataset ID",
     },
+    "CRITICAL_DATASET": {
+        "opitem": "Work Zone Data Feed",
+        "opfield": "production.Critical Corridors Feed dataset ID",
+    },
     # AMANDA
     "HOST": {
         "opitem": "Amanda Read-Only (RO) replica database",
@@ -103,6 +107,15 @@ REQUIRED_SECRETS = {
     "COORDINATE_PASSWORD": {
         "opitem": "Work Zone Data Feed",
         "opfield": "coordinate.coordinate password",
+    },
+    # ArcGIS Online
+    "AGOL_USERNAME": {
+        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
+        "opfield": "production.username",
+    },
+    "AGOL_PASSWORD": {
+        "opitem": "ArcGIS Online (AGOL) Scripts Publisher",
+        "opfield": "production.password",
     },
 }
 
