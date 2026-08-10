@@ -80,7 +80,6 @@ def atd_cost_of_service_fees():
         network_mode="bridge",
         environment=env_vars,
         tty=True,
-        docker_conn_id="docker_default",
         mount_tmp_dir=False,
     )
 

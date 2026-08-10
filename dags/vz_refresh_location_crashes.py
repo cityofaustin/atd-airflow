@@ -61,7 +61,6 @@ with DAG(
 
     refresh_location_crashes = DockerOperator(
         task_id="refresh_location_crashes",
-        docker_conn_id="docker_default",
         image=docker_image,
         command=f"./run_sql.py -c refresh_location_crashes",
         environment=env_vars,

@@ -59,7 +59,6 @@ with DAG(
     DockerOperator(
         task_id="dts_sr_to_github",
         image=docker_image,
-        docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
         command="./atd-service-bot/intake.py",

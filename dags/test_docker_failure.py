@@ -73,7 +73,6 @@ if __name__ == "__main__":
         sys.exit(1)
 """,
         ],
-        docker_conn_id="docker_default",
         auto_remove="force",
         tty=True,
         mount_tmp_dir=False,

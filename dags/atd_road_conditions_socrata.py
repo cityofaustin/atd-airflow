@@ -69,7 +69,6 @@ def road_conditions_socrata():
     publish_road_conditions_to_socrata = DockerOperator(
         task_id="road_conditions_socrata",
         image="atddocker/atd-road-conditions:production",
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"./atd-road-conditions/socrata.py {date_filter_arg}",
         environment=env_vars,

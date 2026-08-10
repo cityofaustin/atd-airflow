@@ -98,7 +98,6 @@ def atd_knack_employees_tpw_hire():
     hr_accounts_to_postgrest = DockerOperator(
         task_id="hr_accounts_to_postgrest",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"python ./atd-knack-services/services/records_to_postgrest.py -a {app_name_src} -c {container_src} {date_filter_task}",
         environment=env_vars_hr_manager,
@@ -109,7 +108,6 @@ def atd_knack_employees_tpw_hire():
     tpw_hire_employees_to_postgrest = DockerOperator(
         task_id="tpw_hire_employees_to_postgrest",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"python ./atd-knack-services/services/records_to_postgrest.py -a {app_name_dest} -c {container_dest} {date_filter_task}",
         environment=env_vars_tpw_hire,
@@ -120,7 +118,6 @@ def atd_knack_employees_tpw_hire():
     hr_accounts_to_tpw_hire = DockerOperator(
         task_id="hr_accounts_to_tpw_hire",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"python ./atd-knack-services/services/records_to_knack.py -a {app_name_src} -c {container_src} --app-name-dest {app_name_dest} {date_filter_task}",
         environment=env_vars_knack_to_knack,

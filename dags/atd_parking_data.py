@@ -150,7 +150,6 @@ with DAG(
         DockerOperator(
             task_id="smartfolio_transactions",
             image=docker_image,
-            docker_conn_id="docker_default",
             command=f"python txn_history.py -v --report transactions --env prod --start {prev_exec}",
             api_version="auto",
             auto_remove="force",
@@ -165,7 +164,6 @@ with DAG(
         DockerOperator(
             task_id="process_smartfolio_transactions",
             image=docker_image,
-            docker_conn_id="docker_default",
             command=f"python smartfolio_s3.py --lastmonth True",
             api_version="auto",
             auto_remove="force",
@@ -180,7 +178,6 @@ with DAG(
         DockerOperator(
             task_id="transactions_to_socrata",
             image=docker_image,
-            docker_conn_id="docker_default",
             command=f"python parking_socrata.py --dataset transactions",
             api_version="auto",
             auto_remove="force",

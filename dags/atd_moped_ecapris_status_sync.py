@@ -100,7 +100,6 @@ def sync_ecapris_statuses():
     ecapris_statuses_to_moped = DockerOperator(
         task_id="ecapris_statuses_to_moped",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"python3.12 ecapris_statuses_sync.py",
         environment=env_vars,

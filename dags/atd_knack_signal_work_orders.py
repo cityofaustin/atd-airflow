@@ -91,7 +91,6 @@ with DAG(
     t1 = DockerOperator(
         task_id="atd_knack_signal_work_orders_to_postgrest",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"./atd-knack-services/services/records_to_postgrest.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,
@@ -102,7 +101,6 @@ with DAG(
     t2 = DockerOperator(
         task_id="atd_knack_signal_work_orders_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"./atd-knack-services/services/records_to_socrata.py -a {app_name} -c {container} {date_filter_arg}",
         environment=env_vars,

@@ -126,7 +126,6 @@ with DAG(
     t1 = DockerOperator(
         task_id="amanda_row_inspector_permit_list",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"python amanda/amanda_to_s3.py --query row_inspector_permit_list",
         environment=env_vars,
@@ -140,7 +139,6 @@ with DAG(
     t2 = DockerOperator(
         task_id="amanda_row_inspector_segment_list",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"python amanda/amanda_to_s3.py --query row_inspector_segment_list",
         environment=env_vars,
@@ -154,7 +152,6 @@ with DAG(
     t3 = DockerOperator(
         task_id="agol_street_segment_tagging",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"python metrics/roadway_segment_tagging.py",
         environment=env_vars,
@@ -166,7 +163,6 @@ with DAG(
     t4 = DockerOperator(
         task_id="inspector_prioritization",
         image=docker_image,
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"python metrics/inspector_prioritization.py",
         environment=env_vars,

@@ -63,7 +63,6 @@ def atd_knack_data_tracker_street_segment_updater():
     update_street_segments_task = DockerOperator(
         task_id="update_street_segments",
         image="atddocker/atd-knack-services:production",
-        docker_conn_id="docker_default",
         auto_remove="force",
         command=f"./atd-knack-services/services/knack_street_seg_updater.py -a data-tracker -c view_1198 {date_filter_arg}",
         environment=env_vars,

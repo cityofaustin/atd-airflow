@@ -115,7 +115,6 @@ with DAG(
 
     vz_moped_spatial_join = DockerOperator(
         task_id="vz_moped_spatial_join",
-        docker_conn_id="docker_default",
         image=docker_image_vz_moped_join,
         command="./moped_project_components_spatial_join.py",
         environment=env_vars_moped_join,
@@ -125,7 +124,6 @@ with DAG(
 
     socrata_export_crash_components = DockerOperator(
         task_id="socrata_export_crashes",
-        docker_conn_id="docker_default",
         image=docker_image_socrata_export,
         command=f"./socrata_export.py --crash-components",
         environment=env_vars_socrata,

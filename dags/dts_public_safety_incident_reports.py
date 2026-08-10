@@ -108,7 +108,6 @@ with DAG(
 
     t1 = DockerOperator(
         task_id="public_safety_incident_reports_to_postgres",
-        docker_conn_id="docker_default",
         image=docker_image,
         auto_remove="force",
         command=f"python records_to_postgrest.py",
@@ -119,7 +118,6 @@ with DAG(
 
     t2 = DockerOperator(
         task_id="public_safety_incident_reports_to_socrata",
-        docker_conn_id="docker_default",
         image=docker_image,
         auto_remove="force",
         command=f"python records_to_socrata.py -date {date_filter_arg}",

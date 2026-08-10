@@ -178,7 +178,6 @@ with DAG(
     t1 = DockerOperator(
         task_id="cur_year_requests_report_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
         command="python -m etl.csv_reporting.requests_to_socrata",
@@ -189,7 +188,6 @@ with DAG(
     t2 = DockerOperator(
         task_id="cur_year_flex_note_report_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
         command="python -m etl.csv_reporting.flex_notes_to_socrata",
@@ -200,7 +198,6 @@ with DAG(
     t3 = DockerOperator(
         task_id="cur_year_activities_report_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
         command="python -m etl.csv_reporting.activities_to_socrata",
@@ -211,7 +208,6 @@ with DAG(
     t4 = DockerOperator(
         task_id="prev_year_requests_report_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
         command="python -m etl.csv_reporting.requests_to_socrata",
@@ -222,7 +218,6 @@ with DAG(
     t5 = DockerOperator(
         task_id="prev_year_flex_note_report_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
         command="python -m etl.csv_reporting.flex_notes_to_socrata",
@@ -233,7 +228,6 @@ with DAG(
     t6 = DockerOperator(
         task_id="prev_year_activities_report_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
         command="python -m etl.csv_reporting.activities_to_socrata",
@@ -244,7 +238,6 @@ with DAG(
     t7 = DockerOperator(
         task_id="two_years_ago_requests_report_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
         command="python -m etl.csv_reporting.requests_to_socrata",
@@ -255,7 +248,6 @@ with DAG(
     t8 = DockerOperator(
         task_id="two_years_ago_flex_note_report_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
         command="python -m etl.csv_reporting.flex_notes_to_socrata",
@@ -266,7 +258,6 @@ with DAG(
     t9 = DockerOperator(
         task_id="two_years_ago_activities_report_to_socrata",
         image=docker_image,
-        docker_conn_id="docker_default",
         api_version="auto",
         auto_remove="force",
         command="python -m etl.csv_reporting.activities_to_socrata",

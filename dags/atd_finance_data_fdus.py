@@ -145,7 +145,6 @@ with DAG(
     t1 = DockerOperator(
         task_id="fdus_to_s3",
         image="atddocker/atd-finance-data:production",
-        docker_conn_id="docker_default",
         auto_remove="force",
         command="python3 upload_to_s3.py fdus",
         environment=data_tracker_env,
@@ -156,7 +155,6 @@ with DAG(
     t2 = DockerOperator(
         task_id="fdus_to_socrata",
         image="atddocker/atd-finance-data:production",
-        docker_conn_id="docker_default",
         auto_remove="force",
         command="python3 s3_to_socrata.py --dataset fdus",
         environment=finance_purchasing_env,
