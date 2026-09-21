@@ -63,9 +63,9 @@ REQUIRED_SECRETS = {
     doc_md="""
 ## AMD completed work (Knack to PostgREST and Socrata)
 
-Loads AMD completed work actions for each work order added to the Traffic Signal Work Order starting from July 2022 to current, 
-from Knack Data Tracker (app 'data-tracker', container 'view_5039') then
-publishes them to PostgREST and Socrata (resource_id '6drc-t4jn')
+Loads all Project Requests from Arterial Management Division from Knack Data Tracker
+(app 'data-tracker', container 'view_5040') then
+publishes them to PostgREST and Socrata (resource_id 'cs6c-b6bz')
 
 """,
 )
