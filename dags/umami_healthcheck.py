@@ -3,11 +3,17 @@ from os import getenv
 from airflow.sdk import dag, task
 from pendulum import datetime, duration
 
+from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT", "development")
 
-UMAMI_ENDPOINT = "https://umami.austinmobility.io/api/heartbeat"
+REQUIRED_SECRETS = {
+    "UMAMI_ENDPOINT": {
+        "opitem": "Umami Healthcheck",
+        "opfield": f"{DEPLOYMENT_ENVIRONMENT}.Umami Healthcheck Endpoint",
+    },
+}
 
 DEFAULT_ARGS = {
     "owner": "airflow",
@@ -34,9 +40,11 @@ See the tpw-umami-analytics readme for more details on deployment.
 )
 def umami_healthcheck():
     @task(task_id="healthcheck")
-    def healthcheck(url: str):
+    def healthcheck(env_vars):
         import requests
         from airflow.exceptions import AirflowException
+
+        url = env_vars["UMAMI_ENDPOINT"]
 
         try:
             res = requests.get(url, timeout=10)
@@ -63,7 +71,8 @@ def umami_healthcheck():
         # log healthy check results
         print(data)
 
-    healthcheck(UMAMI_ENDPOINT)
+    env_vars = get_env_vars_task(REQUIRED_SECRETS)
+    healthcheck(env_vars)
 
 
 umami_healthcheck()
