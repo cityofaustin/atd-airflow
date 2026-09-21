@@ -57,7 +57,7 @@ REQUIRED_SECRETS = {
     dag_id="atd_knack_amd_project_requests",
     description="Load AMD project requests from Knack to Postgres to Socrata",
     default_args=DEFAULT_ARGS,
-    schedule="20 17 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="46 17 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "socrata", "data-tracker"],
     catchup=False,
     doc_md="""
