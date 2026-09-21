@@ -54,7 +54,7 @@ REQUIRED_SECRETS = {
 
 
 @dag(
-    dag_id="atd_knack_amd_completed_work_to_socrata",
+    dag_id="atd_knack_amd_completed_work",
     description="Load AMD completed work from Knack to Postgres to Socrata",
     default_args=DEFAULT_ARGS,
     schedule="20 17 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
@@ -64,7 +64,7 @@ REQUIRED_SECRETS = {
 ## AMD completed work (Knack to PostgREST and Socrata)
 
 Loads AMD completed work actions for each work order added to the Traffic Signal Work Order starting from July 2022 to current, 
-from Knack Data Tracker (app 'data-tracker', container 'view_5039') using the 'atddocker/atd-knack-services:production' image, then
+from Knack Data Tracker (app 'data-tracker', container 'view_5039') then
 publishes them to PostgREST and Socrata (resource_id '6drc-t4jn')
 
 """,
