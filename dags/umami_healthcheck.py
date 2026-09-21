@@ -56,7 +56,7 @@ def umami_healthcheck():
             data = res.json()
         except ValueError:
             # Non-JSON response — this would be a 500 or similar unhandled error
-            raise AirflowException(f"{res.status_code}): {res.text[:200]}")
+            raise AirflowException(f"{res.status_code}: {res.text[:200]}")
 
         if res.status_code != 200:
             # Get error message from response payload, if available
