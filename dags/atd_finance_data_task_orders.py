@@ -30,7 +30,8 @@ DEFAULT_ARGS = {
     "start_date": datetime(2015, 1, 1, tz="America/Chicago"),
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 0,
+    "retries": 3,
+    "retry_delay":duration(seconds=60),
     "execution_timeout": duration(minutes=180),  # some queries are very slow
     "on_failure_callback": task_fail_slack_alert,
 }
