@@ -61,7 +61,7 @@ REQUIRED_SECRETS = {
     tags=["repo:atd-knack-services", "knack", "socrata", "data-tracker"],
     catchup=False,
     doc_md="""
-## AMD completed work (Knack to PostgREST and Socrata)
+## AMD project requests (Knack to PostgREST and Socrata)
 
 Loads all Project Requests from Arterial Management Division from Knack Data Tracker
 (app 'data-tracker', container 'view_5040') then
@@ -70,7 +70,7 @@ publishes them to PostgREST and Socrata (resource_id 'cs6c-b6bz')
 """,
 )
 def atd_knack_amd_project_requests():
-    docker_image = "atddocker/atd-knack-services:local"
+    docker_image = "atddocker/atd-knack-services:production"
     app_name = "data-tracker"
     container = "view_5040"
 
