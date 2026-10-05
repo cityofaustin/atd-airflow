@@ -14,8 +14,6 @@ This DAG runs a series of queries on the maximo data warehouse then sends the re
 
 ## Troubleshooting
 
-You will need to be on city VPN to run this locally.
-
 Re-triggering these DAGs is a good first step to troubleshoot potential issues.
 
 Make the Maximo team aware if there is an issue attempting to connect to the Maximo data warehouse.
@@ -52,29 +50,41 @@ REQUIRED_SECRETS = {
         "opitem": "Socrata Key ID, Secret, and Token",
         "opfield": "socrata.endpoint",
     },
-    "MAXIMO_DB_PASS": {
-        "opitem": "Maximo Data Warehouse",
-        "opfield": "production.db password",
-    },
-    "MAXIMO_DB_USER": {
-        "opitem": "Maximo Data Warehouse",
-        "opfield": "production.db username",
-    },
-    "MAXIMO_SERVICE_NAME": {
-        "opitem": "Maximo Data Warehouse",
-        "opfield": "production.service name",
-    },
-    "MAXIMO_HOST": {
-        "opitem": "Maximo Data Warehouse",
-        "opfield": "production.host",
-    },
-    "MAXIMO_PORT": {
-        "opitem": "Maximo Data Warehouse",
-        "opfield": "production.port",
-    },
     "MAXIMO_BASE_URL": {
         "opitem": "Maximo Data Warehouse",
         "opfield": "production.base url",
+    },
+    "SNOWFLAKE_ACCOUNT": {
+        "opitem": "City of Austin Snowflake",
+        "opfield": "shared.Account",
+    },
+    "SNOWFLAKE_USER": {
+        "opitem": "City of Austin Snowflake",
+        "opfield": "shared.Snowflake Username",
+    },
+    "SNOWFLAKE_PRIVATE_KEY": {
+        "opitem": "City of Austin Snowflake",
+        "opfield": "shared.Private Key",
+    },
+    "SNOWFLAKE_PRIVATE_KEY_PASSPHRASE": {
+        "opitem": "City of Austin Snowflake",
+        "opfield": "shared.Private Key Passphrase",
+    },
+    "SNOWFLAKE_WAREHOUSE": {
+        "opitem": "City of Austin Snowflake",
+        "opfield": "maximo.warehouse",
+    },
+    "SNOWFLAKE_DATABASE": {
+        "opitem": "City of Austin Snowflake",
+        "opfield": "maximo.database",
+    },
+    "SNOWFLAKE_SCHEMA": {
+        "opitem": "City of Austin Snowflake",
+        "opfield": "maximo.schema",
+    },
+    "SNOWFLAKE_ROLE": {
+        "opitem": "City of Austin Snowflake",
+        "opfield": "maximo.role",
     },
 }
 
@@ -84,7 +94,7 @@ with DAG(
     doc_md=doc_md,
     default_args=DEFAULT_ARGS,
     schedule="00 6 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    tags=["repo:dts-maximo-reporting", "socrata", "maximo"],
+    tags=["repo:dts-maximo-reporting", "socrata", "maximo", "snowflake"],
     catchup=False,
 ) as dag:
     docker_image = "atddocker/dts-maximo-reporting:production"
