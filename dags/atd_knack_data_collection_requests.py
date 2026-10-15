@@ -23,11 +23,11 @@ DEFAULT_ARGS = {
 
 REQUIRED_SECRETS = {
     "KNACK_APP_ID": {
-        "opitem": "Knack AMD Data Tracker",
+        "opitem": "Knack TED Transportation Engineering",
         "opfield": f"production.appId",
     },
     "KNACK_API_KEY": {
-        "opitem": "Knack AMD Data Tracker",
+        "opitem": "Knack TED Transportation Engineering",
         "opfield": f"production.apiKey",
     },
     "SOCRATA_API_KEY_ID": {
@@ -62,8 +62,8 @@ with DAG(
     catchup=False,
 ) as dag:
     docker_image = "atddocker/atd-knack-services:production"
-    app_name = "data-tracker"
-    container = "view_4620"
+    app_name = "transportation-engineering"
+    container = "view_5059"
 
     date_filter_arg = get_date_filter_arg(should_replace_monthly=True)
 
