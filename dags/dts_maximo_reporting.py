@@ -93,8 +93,7 @@ def is_monday_chicago(dt) -> bool:
     return instance(dt).in_timezone("America/Chicago").weekday() == 0
 
 
-# On Mondays, pass --start so the ETL does a full reload from 2014 instead of the usual window.
-# Evaluated by Airflow at task run time (Chicago time), not at DAG parse time.
+# On Mondays, pass --start so the ETL does a full refesh.
 MONDAY_START_ARG = (
     "{% if is_monday_chicago(dag_run.run_after) %} --start 2014-01-01{% endif %}"
 )
