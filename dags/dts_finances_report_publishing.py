@@ -2,7 +2,7 @@ from os import getenv
 
 from datetime import timedelta
 
-from airflow.sdk import task, DAG
+from airflow.sdk import task, DAG, Param
 from airflow.providers.docker.operators.docker import DockerOperator
 from pendulum import datetime, duration
 
@@ -12,7 +12,7 @@ from utils.slack_operator import task_fail_slack_alert
 doc_md = """
 ## Finances Report Publishing
 
-This DAG runs a microstrategy report for department finances and places the results in a socrata dataset.
+This DAG runs microstrategy reports for department finances and places the results in a socrata dataset.
 
 ## Troubleshooting
 
@@ -38,19 +38,19 @@ default_args = {
 }
 
 REQUIRED_SECRETS = {
-    "SO_WEB": {
+    "SOCRATA_ENDPOINT": {
         "opitem": "Socrata Key ID, Secret, and Token",
         "opfield": "socrata.endpoint",
     },
-    "SO_TOKEN": {
+    "SOCRATA_APP_TOKEN": {
         "opitem": "Socrata Key ID, Secret, and Token",
         "opfield": "socrata.appToken",
     },
-    "SO_SECRET": {
+    "SOCRATA_KEY_SECRET": {
         "opitem": "Socrata Key ID, Secret, and Token",
         "opfield": "socrata.apiKeySecret",
     },
-    "SO_KEY": {
+    "SOCRATA_KEY_ID": {
         "opitem": "Socrata Key ID, Secret, and Token",
         "opfield": "socrata.apiKeyId",
     },
@@ -94,38 +94,54 @@ REQUIRED_SECRETS = {
 
 with DAG(
     dag_id="dts_finances_report_publishing",
-    description="Downloads two Microstrategy Reports for Expenses and Revenue. \
-    Places the results as a CSV in a S3 bucket. \
-    Then publishes the data to a Socrata dataset",
+    description="Downloads Microstrategy Reports and publishes them on Socrata for TPW finances reporting.",
     doc_md=doc_md,
     default_args=default_args,
     schedule="00 11 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    dagrun_timeout=timedelta(minutes=120),
+    dagrun_timeout=timedelta(minutes=10),
     tags=["repo:dts-finance-reporting", "socrata", "microstrategy"],
     catchup=False,
+    params={
+        "docker_image_tag": Param(
+            "production",
+            type="string",
+            title="Docker image tag",
+            description="Tag of atddocker/dts-finance-reporting to run. Use 'local' for a locally built image.",
+        ),
+    },
 ) as dag:
-    docker_image = "atddocker/dts-finance-reporting:production"
+    docker_image = "atddocker/dts-finance-reporting:{{ params.docker_image_tag }}"
 
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
 
     t1 = DockerOperator(
-        task_id="download_microstrategy_reports",
+        task_id="download_expenses_revenue_reports",
         image=docker_image,
         api_version="auto",
         auto_remove="force",
-        command=f"python etl/rev_exp_report_to_s3.py",
+        command="python etl/revenue_expenses/rev_exp_report_to_s3.py",
         environment=env_vars,
         tty=True,
     )
 
     t2 = DockerOperator(
-        task_id="update_socrata",
+        task_id="update_expenses_revenue_socrata",
         image=docker_image,
         api_version="auto",
         auto_remove="force",
-        command=f"python etl/mstro_reports_to_socrata.py",
+        command="python etl/revenue_expenses/rev_exp_reports_to_socrata.py",
         environment=env_vars,
         tty=True,
     )
 
-    t1 >> t2
+    t3 = DockerOperator(
+        task_id="sif_spent_to_socrata",
+        image=docker_image,
+        api_version="auto",
+        auto_remove="force",
+        command="python etl/microstrategy_to_socrata.py --report sif_spent",
+        environment=env_vars,
+        tty=True,
+    )
+
+    t1 >> t2 >> t3
