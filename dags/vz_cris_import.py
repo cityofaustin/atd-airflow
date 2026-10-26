@@ -110,13 +110,4 @@ with DAG(
         tty=True,
     )
 
-    match_ems_to_people = DockerOperator(
-        task_id="match_ems_to_people",
-        image=docker_image_ems_match,
-        command=f"python match_ems_to_people.py",
-        environment=env_vars,
-        auto_remove="force",
-        tty=True,
-    )
-
-    cris_import >> ocr_crash_narratives >> match_ems_to_people
+    cris_import >> ocr_crash_narratives
