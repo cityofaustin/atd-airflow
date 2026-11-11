@@ -44,7 +44,7 @@ https://atd.knack.com/signs-markings#atd-data-tracker-api-public/csr-issues-due-
     description="",
     default_args=DEFAULT_ARGS,
     schedule="11 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
-    tags=["repo:atd-knack-services", "knack", "data-tracker"],
+    tags=["repo:atd-knack-services", "knack", "signs-markings"],
     catchup=False,
     doc_md=DAG_DOC_MD,
     params={
@@ -52,11 +52,11 @@ https://atd.knack.com/signs-markings#atd-data-tracker-api-public/csr-issues-due-
             "production",
             type="string",
             title="Docker image tag",
-            description="Tag of atddocker/dts-finance-reporting to run. Use 'local' for a locally built image.",
+            description="Tag of atddocker/atd-knack-services to run. Use 'local' for a locally built image.",
         ),
     },
 )
-def atd_knack_data_tracker_sr_due_date():
+def atd_knack_signs_markings_sr_due_date():
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
     docker_image = "atddocker/atd-knack-services:{{ params.docker_image_tag }}"
 
@@ -73,4 +73,4 @@ def atd_knack_data_tracker_sr_due_date():
     service_request_due_date_assign_task
 
 
-atd_knack_data_tracker_sr_due_date()
+atd_knack_signs_markings_sr_due_date()

@@ -52,7 +52,7 @@ https://atd.knack.com/amd#atd-data-tracker-api-public/
             "production",
             type="string",
             title="Docker image tag",
-            description="Tag of atddocker/dts-finance-reporting to run. Use 'local' for a locally built image.",
+            description="Tag of atddocker/atd-knack-services to run. Use 'local' for a locally built image.",
         ),
     },
 )
