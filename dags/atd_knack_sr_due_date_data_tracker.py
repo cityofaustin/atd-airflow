@@ -1,7 +1,7 @@
 from os import getenv
 
 from airflow.providers.docker.operators.docker import DockerOperator
-from airflow.sdk import dag
+from airflow.sdk import dag, Param
 from pendulum import datetime, duration
 
 from utils.onepassword import get_env_vars_task
@@ -32,7 +32,10 @@ REQUIRED_SECRETS = {
 }
 
 DAG_DOC_MD = """
+Reads sr records from Data Tracker view 2351 and looks for a corresponding due date from flex notes in view 2352.
+Then updates the record from view 2351 with the due date.
 
+https://atd.knack.com/amd#atd-data-tracker-api-public/
 """
 
 
@@ -40,25 +43,34 @@ DAG_DOC_MD = """
     dag_id="atd_knack_data_tracker_sr_due_date",
     description="",
     default_args=DEFAULT_ARGS,
-    schedule="* * * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
+    schedule="07 4 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     tags=["repo:atd-knack-services", "knack", "data-tracker"],
     catchup=False,
     doc_md=DAG_DOC_MD,
+    params={
+        "docker_image_tag": Param(
+            "production",
+            type="string",
+            title="Docker image tag",
+            description="Tag of atddocker/dts-finance-reporting to run. Use 'local' for a locally built image.",
+        ),
+    },
 )
 def atd_knack_data_tracker_sr_due_date():
     env_vars = get_env_vars_task(REQUIRED_SECRETS)
+    docker_image = "atddocker/atd-knack-services:{{ params.docker_image_tag }}"
 
     service_request_due_date_assign_task = DockerOperator(
         task_id="service_request_due_date_assign",
-        image="atddocker/atd-knack-services:production",
+        image=docker_image,
         auto_remove="force",
-        command=f"./atd-knack-services/services/sr_asset_assign.py -a data-tracker",
+        command=f"./atd-knack-services/services/sr_due_date_assign.py -a data_tracker",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
     )
 
-    service_request_asset_assign_task
+    service_request_due_date_assign_task
 
 
-atd_knack_data_tracker_sr_asset_assign()
+atd_knack_data_tracker_sr_due_date()
