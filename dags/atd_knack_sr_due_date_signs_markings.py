@@ -15,7 +15,7 @@ DEFAULT_ARGS = {
     "start_date": datetime(2026, 11, 1, tz="America/Chicago"),
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 0,
+    "retries": 1,
     "execution_timeout": duration(minutes=10),
     "on_failure_callback": task_fail_slack_alert,
 }
