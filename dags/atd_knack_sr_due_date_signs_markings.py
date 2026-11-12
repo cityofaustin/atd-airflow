@@ -64,7 +64,7 @@ def atd_knack_signs_markings_sr_due_date():
         task_id="service_request_due_date_assign",
         image=docker_image,
         auto_remove="force",
-        command=f"./atd-knack-services/services/sr_due_date_assign.py -a signs_markings",
+        command=f"./atd-knack-services/services/sr_due_date_assign.py -a signs-markings",
         environment=env_vars,
         tty=True,
         mount_tmp_dir=False,
