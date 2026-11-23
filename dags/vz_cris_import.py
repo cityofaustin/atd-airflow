@@ -15,12 +15,11 @@ results:
 from os import getenv
 from pendulum import datetime, duration
 
-from airflow.sdk import DAG
+from airflow.sdk import DAG, Param
 from airflow.providers.docker.operators.docker import DockerOperator
 
 from utils.onepassword import get_env_vars_task
 from utils.slack_operator import task_fail_slack_alert, slack_member_ids
-
 
 DEPLOYMENT_ENVIRONMENT = getenv("ENVIRONMENT")
 secrets_env_prefix = None
@@ -72,7 +71,7 @@ DEFAULT_ARGS = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 0,
-    "execution_timeout": duration(minutes=60),
+    "execution_timeout": duration(minutes=180),
     "on_failure_callback": (
         task_fail_slack_alert if DEPLOYMENT_ENVIRONMENT != "development" else None
     ),
@@ -87,6 +86,14 @@ with DAG(
     schedule="30 5 * * *" if DEPLOYMENT_ENVIRONMENT == "production" else None,
     start_date=datetime(2024, 8, 1, tz="America/Chicago"),
     tags=["vision-zero", "cris", "repo:atd-vz-data"],
+    params={
+        "verbose": Param(
+            False,
+            type="boolean",
+            title="Verbose logging",
+            description="Pass --verbose to cris_import.py",
+        ),
+    },
 ) as dag:
     dag.byline = f"Failure impacts VZ team, {slack_member_ids['John']} & {slack_member_ids['Frank']}"
 
@@ -95,7 +102,10 @@ with DAG(
     cris_import = DockerOperator(
         task_id="run_cris_import",
         image=docker_image_cris_import,
-        command=f"./cris_import.py --csv --pdf --s3-download --s3-upload --s3-archive --workers 2",
+        command=(
+            "./cris_import.py --csv --pdf --s3-download --s3-upload --s3-archive --workers 2"
+            "{{ ' --verbose' if params.verbose else '' }}"
+        ),
         environment=env_vars,
         auto_remove="force",
         tty=True,
